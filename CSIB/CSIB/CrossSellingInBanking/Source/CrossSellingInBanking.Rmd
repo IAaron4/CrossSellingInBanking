@@ -1,0 +1,323 @@
+---
+title: '<br>
+ <img style="background: #FDE70F;" src="https://www.fhnw.ch/de/++theme++web16theme/assets/media/img/fachhochschule-nordwestschweiz-fhnw-logo.svg" alt="FHNW Logo" height="50rem" id="logo">
+  <br><br>Challenge: Cross Selling in Banking (CED1)'
+author: Gisler Luca, Heen Christian, Studer Aaron, Bécheiraz Léonie, Vasic Filip
+date: "`r format(Sys.time(), '%d.%m.%y')`"
+output:
+   html_document:
+      toc: true
+      toc_depth: 6
+      toc_float: true
+      collapsed: false
+      code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE,
+                      warning = FALSE)
+```
+
+```{=html}
+<style type="text/css" media="screen">
+h1, h2, h3 {
+    color: #4D4D4D;
+   }
+
+.list-group-item.active {
+    background-color: #FDE70F;
+    border-color: #FDE70F;
+    color: #4D4D4D;
+    font-weight: bold;
+}
+
+#logo {
+    padding-left: 1rem;
+}
+
+</style>
+```
+## Aufgabenstellung
+
+### Allgemein
+
+Eine tschechische Bank möchte ihre Dienstleistungen für Privatkunden verbessern und "interessante Kundengruppen" identifizieren. Die Geschäftsleitung hat keine präzise Vorstellung, möchte aber zusätzliches Business generieren ohne unnötige Risiken einzugehen und Verluste einzufahren.
+
+Der analytische Auftrag umfasst die folgenden Aufgaben:
+
+-   Qualität und Repräsentativität der Daten zu überprüfen
+-   Die Verteilung der einzelnen Datenattribute zu erheben
+-   Deren Veränderung über die Zeit zu analysieren
+-   Korrelationen zwischen verschiedenen Datenattributen zu quantifizieren und zu visualisieren sowie Hypothesen hinsichtlich optimaler Produktverkauf / -nutzung zu erstellen
+
+### Datengrundlage
+
+Wir erhalten die Daten von einer Tschechischen Bank. Die Datengrundlage ist auf [dieser Webseite](https://sorry.vse.cz/~berka/challenge/PAST/index.html) beschrieben.
+
+#### ERD Daten IST-Zustand
+
+![ERD Daten IST-Zustand](../Ressources/IST-Zustand.png)
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(ggmosaic)
+library(ggalluvial)
+library(DALEXtra)
+library(visdat)
+library(DT)
+library(patchwork)
+library(ggpubr)
+library(rpart.plot)
+library(tidymodels)
+library(lubridate)
+tidymodels_prefer()
+```
+
+### Setup Account Data Frame
+
+In diesem Schritt wird das Data Frame Account vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+
+df_raw_account <- read.csv("../xselling_banking_data/account.csv", header = TRUE, sep = ";")
+
+str(df_raw_account)
+
+```
+
+Es wird wie folgt die Spalte 'date' von dem Type Integer zu dem Typ Date umgewandelt. Dabei brauchen wir die Funktionalitäten von [Lubridate](https://lubridate.tidyverse.org/). Die Spalte 'frequency' ist eine kategoriale Variable mit Tschechischen Werten, daher transformieren wir auch diese Werte auf Englisch.
+
+```{r}
+
+df_account <- df_raw_account %>%
+  mutate(date = ymd(date)) %>%
+  mutate(frequency = case_when(frequency == "POPLATEK MESICNE" ~ "Monthly",
+                              frequency == "POPLATEK TYDNE" ~ "Weekly",
+                              frequency == "POPLATEK PO OBRATU" ~ "After_Transaction")
+  ) %>%
+  arrange(account_id)
+```
+
+### Setup Client Data Frame
+
+In diesem Schritt wird das Data Frame Account vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_client <- read.csv("../xselling_banking_data/client.csv", header = TRUE, sep = ";")
+
+str(df_raw_client)
+
+```
+
+Es wird wie folgt die Spalte 'birth_number' von dem Type Integer zu dem Typ Date umgewandelt, zusätzlich nennen wir die Spalte neu 'dateofbirth'. Dabei brauchen wir die Funktionalitäten von [Lubridate](https://lubridate.tidyverse.org/). Es wird eine neue Spalte 'sex' hinzugefügt, mithilfe der Dokumentation der Daten kennen wir die Kondition, welches Geschlecht der Kunde hat.
+
+```{r}
+
+df_client <- df_raw_client %>%
+  mutate(dateofbirth = case_when(
+    strtoi(substr(as.character(birth_number), 3, 3)) > 1 ~ (ymd(birth_number - 5000)),
+    TRUE ~ (ymd(birth_number)),
+  )) %>%
+  mutate(sex = case_when(
+    strtoi(substr(as.character(birth_number), 3, 3)) > 1 ~ "Female",
+    TRUE  ~ "Male"
+  ))
+
+df_client <- df_client %>%
+ mutate(dateofbirth = case_when(
+   year(ymd(dateofbirth)) > 2000 ~ ymd(dateofbirth) - years(100),
+   TRUE ~ ymd(dateofbirth)
+ )) %>%
+ select(client_id, district_id, dateofbirth, sex) %>%
+ arrange(client_id) 
+
+
+```
+### Setup Disposition Data Frame
+
+In diesem Schritt wird das Data Frame Disposition vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_disposition <- read.csv("../xselling_banking_data/disp.csv", header = TRUE, sep = ";")
+
+str(df_raw_disposition)
+
+```
+
+In dem Date Frame disposition müssen keine weitere Schritte erledigt werden für das Transformieren der Daten.
+
+```{r}
+
+df_disposition <- df_raw_disposition %>%
+ select(disp_id, client_id, account_id, type) %>%
+ arrange(disp_id) 
+
+```
+
+### Setup Order Data Frame
+
+In diesem Schritt wird das Data Frame Order vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_perm_order <- read.csv("../xselling_banking_data/order.csv", header = TRUE, sep = ";")
+
+str(df_raw_perm_order)
+
+```
+
+In dem Data Frame perm_order müssen wir die kategoriale Variable 'k_symbol' noch übersetzen, da der Name 'k_symbol' nicht ausschlaggeben ist, benennen wir die Spalte zu 'payment_type' um.
+
+```{r}
+
+df_perm_order <- df_raw_perm_order %>%
+ mutate(payment_type = case_when(k_symbol == "POJISTNE" ~ "INSURRANCE",
+                              k_symbol == "SIPO" ~ "HOUSEHOLD",
+                              k_symbol == "LEASING" ~ "LEASING",
+                              k_symbol == "UVER" ~ "LOAN",
+                              TRUE ~ "UNKNOWN")
+ ) %>%
+ select(order_id, account_id, bank_to, account_to, amount, payment_type) %>%
+ arrange(order_id) 
+
+```
+
+### Setup Transaction Data Frame
+
+In diesem Schritt wird das Data Frame Transaction vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_transaction <- read.csv("../xselling_banking_data/trans.csv", header = TRUE, sep = ";")
+
+str(df_raw_transaction)
+
+```
+
+Es wird wie folgt die Spalte 'date' von dem Type Integer zu dem Typ Date umgewandelt. Dabei brauchen wir die Funktionalitäten von [Lubridate](https://lubridate.tidyverse.org/). Die Spalte 'type' muss von Tschechisch noch auf Englisch übersetzt werden. Dasselbe zählt auch für die Spalte 'operation' und 'k_symbol'. Jedoch benennen wir die Splate 'k_symbol' noch um in die neue Spalte 'characterization'.
+
+```{r}
+
+df_transaction <- df_raw_transaction %>%
+ mutate(date = ymd(date)) %>%
+ mutate(type = case_when(type == "PRIJEM" ~ "CREDIT",
+                         type == "VYDAJ" ~ "WITHDRAWAL") 
+ ) %>%
+ mutate(operation = case_when(operation == "VYBER KARTOU" ~ "CREDIT CARD WITHDRAWAL",
+                              operation == "VKLAD" ~ "CASH CREDIT",
+                              operation == "PREVOD Z UCTU" ~ "COLLECTION OTHER BANK",
+                              operation == "VYBER" ~ "CASH WIDTHDRAWAL",
+                              operation == "PREVOD NA UCET" ~ "REMITTANCE OTHER BANK")
+ ) %>%
+ mutate(characterization = case_when(k_symbol == "POJISTNE" ~ "INSURRANCE PAYMENT",
+                              k_symbol == "SLUZBY" ~ "STATEMENT PAYMENT",
+                              k_symbol == "UROK" ~ "CREDIT INTEREST",
+                              k_symbol == "SANKC. UROK" ~ "SANCTION INTEREST",
+                              k_symbol == "SIPO" ~ "HOUSEHOLD",
+                              k_symbol == "DUCHOD" ~ "OLD AGE PENSION",
+                              k_symbol == "UVER" ~ "LOAN PAYMENT")
+ ) %>%
+ select(trans_id, account_id, date, type, operation, amount, balance, characterization, bank, account) %>%
+ arrange(trans_id) 
+
+```
+
+### Setup Loan Data Frame
+
+In diesem Schritt wird das Data Frame Loan vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_loan <- read.csv("../xselling_banking_data/loan.csv", header = TRUE, sep = ";")
+
+str(df_raw_loan)
+
+```
+
+Es wird wie folgt die Spalte 'date' von dem Type Integer zu dem Typ Date umgewandelt. Dabei brauchen wir die Funktionalitäten von [Lubridate](https://lubridate.tidyverse.org/). Die Spalte 'status' besitzt Enum-Werte. Diese Werte transformieren wir von A, B, C und D zu den entsprechenden Bedeutungen auf English. 
+
+```{r}
+
+df_loan <- df_raw_loan %>%
+ mutate(date = ymd(date)) %>%
+ mutate(status = case_when(status == "A" ~ "CONTRACT FINISHED PAYED",
+                              status == "B" ~ "CONTRACT FINISHED UNPAID",
+                              status == "C" ~ "CONTRACT OPEN OK",
+                              status == "D" ~ "CONTRACT OPEN INDEBT",
+                              TRUE ~ "")
+ ) %>%
+ select(loan_id, account_id, date, amount, duration, payments, status) %>%
+ arrange(loan_id) 
+
+```
+
+### Setup Credit Card Data Frame
+
+In diesem Schritt wird das Data Frame Credit Card vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_credit_card <- read.csv("../xselling_banking_data/card.csv", header = TRUE, sep = ";")
+
+str(df_raw_credit_card)
+
+```
+
+Es wird wie folgt die Spalte 'issued' von dem Type Character zu dem Typ Date umgewandelt. Dabei brauchen wir die Funktionalitäten von [Lubridate](https://lubridate.tidyverse.org/). Die Werte der Spalte 'type' werden in Upper Case umgeschrieben für eine klarere Übersicht von kategorialen Variablen über alle Data Frames. 
+
+```{r}
+
+df_credit_card <- df_raw_credit_card %>%
+ mutate(issued  = ymd(as.integer(substr(issued, 0, 6)))) %>%
+ mutate(type = case_when(type == "junior" ~ "JUNIOR",
+                              type == "classic" ~ "CLASSIC",
+                              type == "gold" ~ "GOLD",
+                              TRUE ~ "")
+ ) %>%
+ select(card_id, disp_id, type, issued) %>%
+ arrange(card_id) 
+
+```
+
+### Setup District Data Frame
+
+In diesem Schritt wird das Data Frame District vorbereitet und der 'Transform'-Schritt wird durchgeführt.
+
+```{r}
+df_raw_district <- read.csv("../xselling_banking_data/district.csv", header = TRUE, sep = ";")
+
+str(df_raw_district)
+
+```
+
+In dem Date Frame 'district' müssen wir alle Spalten neu benennnen, da die einzelnen Spalten aus der Datenquelle keine Aussage über die Daten drinhat. Daher geben wir jeder Spalte einen passenden Namen.
+
+```{r}
+
+df_district <- df_raw_district %>%
+ mutate(district_id  = A1) %>%
+ mutate(name = A2) %>%
+ mutate(region = A3) %>%
+ mutate(inhabitants = A4) %>%
+ mutate(municipalities_under_499_inhabitants = A5) %>%
+ mutate(municipalities_500_to_1999_inhabitants = A6) %>%
+ mutate(municipalities_2000_to_9999_inhabitants = A7) %>%
+ mutate(municipalities_over_10000_inhabitants = A7) %>%
+ mutate(cities = A9) %>%
+ mutate(ratio_urban_inhabitants = A10) %>%
+ mutate(average_salary = A11) %>%
+ mutate(unemployment_rate_95 = A12) %>%
+ mutate(unemployment_rate_96 = A13) %>%
+ mutate(enterpreneurs_per_1000_inhabitants = A14) %>%
+ mutate(commited_crimes_95 = A15) %>%
+ mutate(commited_crimes_96 = A16) %>%
+ select(district_id, name, region, inhabitants, municipalities_under_499_inhabitants, municipalities_500_to_1999_inhabitants, municipalities_2000_to_9999_inhabitants, municipalities_over_10000_inhabitants, cities, ratio_urban_inhabitants, average_salary, unemployment_rate_95, unemployment_rate_96, enterpreneurs_per_1000_inhabitants, commited_crimes_95, commited_crimes_96) %>%
+ arrange(district_id) 
+
+```
+
+### ERD Ist-Zustand
+
+In dem nachfolgend Enitity Relation Diagramm sieht man die Elemente der transformierten Daten.
+
+![ERD Daten IST-Zustand](../Ressources/SOLL-Zustand.png)
+
+### Hypothesen
