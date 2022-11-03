@@ -323,3 +323,17 @@ In dem nachfolgend Enitity Relation Diagramm sieht man die Elemente der transfor
 ### Hypothesen
 
 BLABLABLA Test GITHUB
+
+## Test Github Tomcat
+```{r}
+str(df_client)
+str(df_district)
+```
+
+```{r}
+client_district_joined <- df_client %>% 
+  full_join(df_district, by = "district_id")
+str(client_district_joined)
+
+```
+
