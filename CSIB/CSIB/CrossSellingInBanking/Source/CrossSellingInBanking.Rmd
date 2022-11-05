@@ -324,16 +324,116 @@ In dem nachfolgend Enitity Relation Diagramm sieht man die Elemente der transfor
 
 BLABLABLA Test GITHUB
 
-## Test Github Tomcat
+## Anpassen der Objekttypen
+Es werden die Objekttypen so angepasst, damit mit den Objekten optimal weiter gearbeitet werden kann.
+z.B. wird aus kategorialen Variablen Faktoren gemacht, oder ein Datum zusätzlich in die Spalten Jahr, Monat und Tag auseinander genommen. Dabei werden neue Dataframes erstellt, welche für die weitere Verarbeitung als Grundlage dienen.
 ```{r}
+df_client <- df_client %>% 
+  mutate(across(c("client_id", "district_id", "sex"), as.factor))
 str(df_client)
+```
+
+
+```{r}
+df_district <- df_district %>% 
+  mutate(across(c("district_id":"region"), as.factor)) %>% 
+  mutate(across(c("unemployment_rate_95"), as.numeric)) %>% 
+  mutate(across(c("commited_crimes_95"), as.integer))
 str(df_district)
 ```
 
 ```{r}
-client_district_joined <- df_client %>% 
-  full_join(df_district, by = "district_id")
-str(client_district_joined)
-
+df_account <- df_account %>% 
+  mutate(across(c("account_id":"frequency"), as.factor))
+str(df_account)
+summary(df_account)
 ```
 
+
+
+
+```{r}
+df_disposition <- df_disposition %>% 
+  mutate(across(c("disp_id":"type"), as.factor))
+str(df_disposition)
+summary(df_disposition)
+```
+
+```{r}
+df_credit_card <- df_credit_card %>% 
+  mutate(across(c("card_id":"type"), as.factor))
+str(df_credit_card)
+summary(df_credit_card)
+```
+
+```{r}
+df_loan <- df_loan %>% 
+  mutate(across(c("loan_id", "account_id", "status"), as.factor))
+account_loan <- df_account %>% 
+  full_join(df_loan, by = "account_id") %>% 
+  full_join(df_client, by = "district_id")
+summary(df_loan)
+```
+
+```{r}
+df_perm_order <- df_perm_order %>% 
+  mutate(across(c("order_id":"account_to", "payment_type"), as.factor))
+str(df_perm_order)
+summary(df_perm_order)
+```
+
+```{r}
+df_transaction <- df_transaction %>% 
+  mutate(across(c("trans_id", "account_id", "type", "operation","characterization", "bank"), as.factor))
+str(df_transaction)
+summary(df_transaction)
+```
+
+```{r}
+head(df_transaction)
+```
+```{r}
+tail(df_transaction)
+```
+###Tabellen zusammenführen
+
+Klient mit dem District vereint
+```{r}
+client_district_joined <- df_client %>% 
+  full_join(df_district, by = "district_id")
+```
+
+District mit dem Account vereint, Datum in einzelne Spalten aufgeteilt und die Reihenfolge der Kolonnen angepasst.
+```{r}
+district_full_join <- client_district_joined %>% 
+  full_join(df_account, by = "district_id")
+district_full_join <- district_full_join %>% 
+  mutate(year = year(district_full_join$date)) %>% 
+  mutate(month = month(district_full_join$date)) %>% 
+  mutate(day = day(district_full_join$date)) %>% 
+  relocate("district_id", .before = "region") %>% 
+  relocate("name", .after = "client_id") %>% 
+  relocate("cities", .after = "region")
+str(district_full_join)
+```
+
+Kreditkarte mit dem Account verbinden und das Datum in einzelne Spalten aufgeteilt.
+```{r}
+disp_full_join <- df_disposition %>% 
+  full_join(df_credit_card, by = "disp_id") %>% 
+  full_join(df_account, by = "account_id")
+
+disp_full_join <- disp_full_join %>% 
+  mutate(year = year(disp_full_join$date)) %>% 
+  mutate(month = month(disp_full_join$date)) %>% 
+  mutate(day = day(disp_full_join$date))
+
+str(disp_full_join)
+summary(disp_full_join)
+```
+
+```{r}
+disp_full_join %>% 
+  group_by(year) %>% 
+  count()
+```
