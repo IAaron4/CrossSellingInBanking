@@ -957,14 +957,52 @@ Account 3654 genauer untersuchen: wann wurden die kreditbezüge getätigt, was i
 
 #### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus? (Christian)
 ```{r}
+#Muss noch angepasst werden. Inputdaten fehlerhaft. 
 
+#Filter that every Account only occurs once
+df_cons_temp <- df_cons %>%
+  group_by(account_date ) %>%
+  filter(row_number() == 1)
+
+ggplot(data = df_cons_temp, aes(x = account_date)) +
+  geom_histogram(binwidth = 15, fill = "#88B8AC") +
+  labs(title = "Opening of Account", subtitle = "subtitle") +
+  xlab("Year") +
+  ylab("Count") +
+  theme_light()
+
+
+rm(df_cons_temp)
 ```
 
 #### iv. Wie sieht die Altersverteilung dieser Kunden aus und was kann daraus hergeleitet werden? (Christian)
 ```{r}
+#Change dateofbirth of clients with lubridate and calculate age
+df_cons$current_age <- as.numeric(difftime(Sys.Date(), df_cons$dateofbirth, units = "weeks")) / 52.25
+
+#Round Age to the next full Number
+df_cons$current_age <- floor(df_cons$current_age)
+
+#Relocate rows so new column "current_age" is next to dateofbirth
+df_cons <- df_cons %>%
+  relocate(current_age, .after = dateofbirth)
+
+
+#Create Barplot with distrbution of age 
+df_cons_temp <- df_cons %>%
+  group_by(account_id) %>%
+  filter(row_number() == 1)
+
+  ggplot(data = df_cons_temp, aes(current_age)) +
+  geom_bar(fill = "#88B8AC") +
+  labs(title = "Distribution of Customer Age", subtitle = "Male and Female combined") +
+  xlab("Age in Years") +
+  ylab("Count") +
+  theme_light()
+
+rm(df_cons_temp)
 
 ```
-
 
 #### v. Wieviel Zins wurden durch Kredite erzeugt und wie sieht die Entwicklung über offene Kredite sowie dem erhaltenen Zins aus? (Aaron)
 ```{r}
@@ -1010,9 +1048,21 @@ Account 3654 genauer untersuchen: wann wurden die kreditbezüge getätigt, was i
 ```
 
 #### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen? 
-```{r}
+```{r, warning = FALSE}
+#Make plot with count of different Payment methods ("trans_operation") over time
+df_cons %>%
+  ggplot(mapping = aes(x = trans_date, fill = trans_operation)) +
+  geom_histogram(binwidth = 5) +
+  facet_wrap(~ trans_operation, ncol = 2, scales = "free_y") +
+  labs(title = "Overwiev distribution of Transaction methods used from 1993 to 1999 ", subtitle = "Y-axis set independently", fill = "Method of Transaction" ) +
+  xlab("Years") +
+  ylab("Count") +
+   theme(legend.position = "none") +
+  scale_x_date(date_labels="%y",date_breaks ="1 year", date_minor_breaks = "1 month") +
+  theme(axis.text.x = element_text(size = 8, angle=90,vjust =0.2)) 
 
 ```
+
 
 #### iii. Wie viele der Kunden verwenden eine Kreditkarte von den Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können Angebote für spezifische Kundengruppen erstellt werden?
 ```{r}
