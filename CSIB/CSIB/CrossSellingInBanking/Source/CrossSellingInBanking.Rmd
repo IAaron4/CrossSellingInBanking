@@ -2,7 +2,7 @@
 title: '<br>
  <img style="background: #FDE70F;" src="https://www.fhnw.ch/de/++theme++web16theme/assets/media/img/fachhochschule-nordwestschweiz-fhnw-logo.svg" alt="FHNW Logo" height="50rem" id="logo">
   <br><br>Challenge: Cross Selling in Banking (CED1)'
-author: Gisler Luca, Heen Christian, Studer Aaron, Bécheiraz Léonie, Vasic Filip
+author: Gisler Luca, Heeb Christian, Studer Aaron, Bécheiraz Léonie
 date: "`r format(Sys.time(), '%d.%m.%y')`"
 output:
    html_document:
@@ -820,6 +820,127 @@ n_card <- nrow(card_withdrawal)
 
 paste("Es wurden", n_cash, "Abbuchungen und", n_card, "Kreditkatenbezüge getätigt.", sep = " ")
 ```
+Für die weiteren Analysen wird eine zusätzliche Spalte für die Quartale eines Jahres benötigt. Dazu wird das Jahr in vier Quartale unterteilt.
+
+```{r}
+summary(outgoes$trans_month)
+```
+
+```{r}
+outgoes <- outgoes %>% 
+  mutate(
+    period = case_when(
+      (trans_month <= 3) ~ "1. QUARTER",
+      (trans_month >= 4 & trans_month <= 6) ~ "2. QUARTER",
+      (trans_month >= 7 & trans_month <= 9) ~ "3. QUARTER",
+      (trans_month > 9) ~ "4. QUARTER"
+    ),
+    across(
+      where(is.character), 
+      as.factor
+       )
+  )
+
+summary(outgoes$period)
+```
+
+
+```{r}
+cash_withdrawal <- outgoes %>% 
+  filter(
+    trans_operation == "CASH WIDTHDRAWAL"
+  )
+
+cash_withdrawal %>% 
+  filter(
+    trans_year == 1995,
+    period == "1. QUARTER"
+    ) %>% 
+  ggplot(aes(
+    x = account_id,
+    y = trans_amount
+  )) +
+  geom_point()
+```
+
+In Tabellenform:
+```{r}
+cash_withdrawal %>% 
+  select(
+    trans_amount,
+    trans_date,
+    account_id
+  ) %>% 
+  arrange(
+    desc(trans_amount)
+  ) %>% 
+  head
+  
+```
+
+
+```{r}
+card_withdrawal <- outgoes %>% 
+  filter(
+    trans_operation == "CREDIT CARD WITHDRAWAL"
+  )
+
+card_withdrawal %>% 
+  filter(
+    trans_year == 1995,
+    period == "1. QUARTER"
+    ) %>% 
+  ggplot(aes(
+    x = account_id,
+    y = trans_amount
+  )) +
+  geom_jitter(
+    alpha = 1,
+    width = 20,
+    shape = 3,
+    color = "blue"
+  )
+```
+
+In Tabellenform:
+```{r}
+card_withdrawal %>% 
+  select(
+    trans_amount,
+    trans_date, 
+    account_id
+  ) %>% 
+  arrange(
+    desc(trans_amount)
+  ) %>% 
+  head
+```
+Die meisten Kreditkartenbezüge sind unter 4000 ? Welche Währung??? Tschechische Krone?
+```{r}
+card_withdrawal %>% 
+  filter(
+    trans_amount == 8000
+  ) %>% 
+  count()
+```
+7 mal wurde 8000 Krone mit der Kreditkarte bezogen
+
+```{r}
+card_withdrawal %>% 
+  filter(
+    trans_amount == 8000
+  ) %>% 
+  count(account_id)
+```
+Account Nr. 3654 fällt durch die drei hohen Kreditkartenbezüge auf.
+
+Account 3654 genauer untersuchen: wann wurden die kreditbezüge getätigt, was ist sonst noch auffällig an diesem account? welche client sind damit verbunden? kann eine Aussage bezüglich Art der Client und umfeld gemacht werden?
+
+```{r}
+
+```
+
+
 
 
 #### ii. Zu welchem Zeitpunkt wird am meisten Geld überwiesen? (LBZ)
