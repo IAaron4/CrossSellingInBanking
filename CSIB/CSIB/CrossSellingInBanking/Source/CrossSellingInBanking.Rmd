@@ -108,6 +108,8 @@ df_account <- df_raw_account %>%
                               frequency == "POPLATEK PO OBRATU" ~ "After_Transaction")
   ) %>%
   arrange(account_id)
+
+rm(df_raw_account)
 ```
 
 ### Setup Client Data Frame
@@ -143,7 +145,7 @@ df_client <- df_client %>%
  select(client_id, district_id, dateofbirth, sex) %>%
  arrange(client_id) 
 
-
+rm(df_raw_client)
 ```
 ### Setup Disposition Data Frame
 
@@ -164,6 +166,7 @@ df_disposition <- df_raw_disposition %>%
  select(disp_id, client_id, account_id, type) %>%
  arrange(disp_id) 
 
+rm(df_raw_disposition)
 ```
 
 ### Setup Order Data Frame
@@ -191,6 +194,7 @@ df_perm_order <- df_raw_perm_order %>%
  select(order_id, account_id, bank_to, account_to, amount, payment_type) %>%
  arrange(order_id) 
 
+rm(df_raw_perm_order)
 ```
 
 ### Setup Transaction Data Frame
@@ -230,6 +234,7 @@ df_transaction <- df_raw_transaction %>%
  select(trans_id, account_id, date, type, operation, amount, balance, characterization, bank, account) %>%
  arrange(trans_id) 
 
+rm(df_raw_transaction)
 ```
 
 ### Setup Loan Data Frame
@@ -258,6 +263,7 @@ df_loan <- df_raw_loan %>%
  select(loan_id, account_id, date, amount, duration, payments, status) %>%
  arrange(loan_id) 
 
+rm(df_raw_loan)
 ```
 
 ### Setup Credit Card Data Frame
@@ -285,6 +291,7 @@ df_credit_card <- df_raw_credit_card %>%
  select(card_id, disp_id, type, issued) %>%
  arrange(card_id) 
 
+rm(df_raw_credit_card)
 ```
 
 ### Setup District Data Frame
@@ -322,6 +329,7 @@ df_district <- df_raw_district %>%
  select(district_id, name, region, inhabitants, municipalities_under_499_inhabitants, municipalities_500_to_1999_inhabitants, municipalities_2000_to_9999_inhabitants, municipalities_over_10000_inhabitants, cities, ratio_urban_inhabitants, average_salary, unemployment_rate_95, unemployment_rate_96, enterpreneurs_per_1000_inhabitants, commited_crimes_95, commited_crimes_96) %>%
  arrange(district_id) 
 
+rm(df_raw_district)
 ```
 
 ### ERD Ist-Zustand
@@ -365,6 +373,10 @@ Nachdem alle Tabellen aneinander gefügt wurden kann das neue Data Frame inspizi
 ```{r}
 glimpse(df)
 ```
+```{r}
+rm(df_account, df_client, df_credit_card, df_disposition,df_district, df_loan, df_perm_order, df_transaction)
+```
+
 
 ### Attribute anpassen
 
@@ -534,6 +546,11 @@ transactions %>%
   ) %>% 
   slice_sample(n = 5)
 ```
+```{r}
+rm(transactions)
+```
+
+
 Alle NA's in trans_type sind Geldrückzüge/Bezüge. Diese Variable kann entsprechend angepasst werden. Für die richtige Zuordnung der Variablen in trans_characterization braucht es weitere Analysen.
 
 ### Erstes Anpassen der Variablen 
@@ -556,6 +573,8 @@ df_mod <- df %>%
     )
   ) %>% 
   mutate(across(where(is.character), as.factor))
+
+rm(df)
 
 summary(df_mod$trans_cashflow)
 ```
@@ -593,8 +612,6 @@ transactions %>%
     trans_characterization
   ) %>% 
   summary()
-
-
 ```
 Die NA's in "operation" sind "CREDIT INTEREST" aus "trans_characterization". Um dies genauer zu verstehen, müssen diese Variablen im gesamten Data Frame angeschaut werden.
 ```{r}
@@ -606,6 +623,9 @@ transactions %>%
   
 ```
 Es handelt sich hier um Gutschriften. Diese Guthabenzinsen können in der Variable "operation" somit entsprechend angepasst werden.
+```{r}
+rm(transactions)
+```
 
 ### Zweites Anpassen der Variablen
 
@@ -667,6 +687,10 @@ characterization_NA %>%
   arrange(desc(n)) %>% 
   head()
 ```
+```{r}
+rm(characterization_NA)
+```
+
 Zum Vergleich wird dieselbe Aufstellung gemacht aber diesmal ohne die NA's auch trans_characterization
 ```{r}
 df_mod %>% 
@@ -708,19 +732,22 @@ df_mod %>%
   head()
 ```
 ```{r}
-x <- df_mod %>% 
-  filter(
-    trans_id == 3682987
-  )
-x
+df_mod %>% 
+  filter(trans_id == 3682987)
 ```
 Die Überprüfung der korrekten Zusammensetzung der einzelnen Data Frames verlief positiv. Nun kann das konsolidierte Data Frame für die weitere Arbeit erstellt werden.
+```{r}
+
+```
+
 
 
 ### **Erstellen des konsolidierten Data Frames**
 
 Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
 ```{r}
+rm(x)
+
 df_cons <- df_mod %>% 
   select(
     -trans_type,
@@ -740,6 +767,8 @@ df_cons <- df_mod %>%
     dateofbirth,
     sex
   )
+
+rm(df_mod)
 ```
 
 Übersicht über die Struktur des konsolidierten Datensatzes.
@@ -795,23 +824,16 @@ levels(df_cons$trans_operation)
 ```
 Es gibt zwei verschiedene Arten von Geldabbuchungen. Erstere ist die Geldabbuchung beziehungsweise Überweisung und die zweite die Abbuchung mittels Kreditkarte. Diese beiden Arten werden getrennt analysiert.
 ```{r}
-outgoes <- df_cons %>% 
-  filter(
-    trans_cashflow == "OUT"
-  ) %>% 
-  mutate(
-    trans_year = year(trans_date),
-    trans_month = month(trans_date),
-    trans_day = day(trans_date)
-  )
 
-cash_withdrawal <- outgoes %>% 
+cash_withdrawal <- df_cons %>% 
   filter(
+    trans_cashflow == "OUT",
     trans_operation == "CASH WIDTHDRAWAL"
   )
 
-card_withdrawal <- outgoes %>% 
+card_withdrawal <- df_cons %>% 
   filter(
+    trans_cashflow == "OUT",
     trans_operation == "CREDIT CARD WITHDRAWAL"
   )
 
@@ -819,42 +841,43 @@ n_cash <- nrow(cash_withdrawal)
 n_card <- nrow(card_withdrawal)
 
 paste("Es wurden", n_cash, "Abbuchungen und", n_card, "Kreditkatenbezüge getätigt.", sep = " ")
+
+rm(n_cash, n_card, cash_withdrawal, card_withdrawal)
 ```
 Für die weiteren Analysen wird eine zusätzliche Spalte für die Quartale eines Jahres benötigt. Dazu wird das Jahr in vier Quartale unterteilt.
 
 ```{r}
-summary(outgoes$trans_month)
+summary(df_cons$trans_month)
 ```
 
 ```{r}
-outgoes <- outgoes %>% 
+df_cons <- df_cons %>% 
   mutate(
-    period = case_when(
-      (trans_month <= 3) ~ "1. QUARTER",
-      (trans_month >= 4 & trans_month <= 6) ~ "2. QUARTER",
-      (trans_month >= 7 & trans_month <= 9) ~ "3. QUARTER",
-      (trans_month > 9) ~ "4. QUARTER"
+    trans_quarter_year = case_when(
+      (month(trans_date) <= 3) ~ "1. QUARTER",
+      (month(trans_date) >= 4 & month(trans_date) <= 6) ~ "2. QUARTER",
+      (month(trans_date) >= 7 & month(trans_date) <= 9) ~ "3. QUARTER",
+      (month(trans_date) > 9) ~ "4. QUARTER"
     ),
     across(
       where(is.character), 
       as.factor
        )
-  )
+  ) %>% 
+  relocate(trans_quarter_year, .after = trans_date)
 
-summary(outgoes$period)
+summary(df_cons$trans_quarter_year)
 ```
 
 
 ```{r}
-cash_withdrawal <- outgoes %>% 
+#muss noch angepasst werden, ev. auch anderer geom wählen, Titel etc. ergänzen
+df_cons %>% 
   filter(
-    trans_operation == "CASH WIDTHDRAWAL"
-  )
-
-cash_withdrawal %>% 
-  filter(
-    trans_year == 1995,
-    period == "1. QUARTER"
+    trans_cashflow == "OUT",
+    trans_operation == "CASH WIDTHDRAWAL",
+    year(trans_date) == 1995,
+    trans_quarter_year == "1. QUARTER"
     ) %>% 
   ggplot(aes(
     x = account_id,
@@ -865,7 +888,11 @@ cash_withdrawal %>%
 
 In Tabellenform:
 ```{r}
-cash_withdrawal %>% 
+df_cons %>% 
+  filter(
+    trans_cashflow == "OUT",
+    trans_operation == "CASH WIDTHDRAWAL"
+  ) %>% 
   select(
     trans_amount,
     trans_date,
@@ -875,20 +902,33 @@ cash_withdrawal %>%
     desc(trans_amount)
   ) %>% 
   head
-  
+```
+```{r}
+df_cons %>% 
+  filter(
+    trans_cashflow == "OUT",
+  ) %>% 
+  group_by(
+    trans_amount,
+    trans_operation,
+    order_payment_type,
+    trans_characterization,
+    year(trans_date),
+    account_id
+  ) %>% 
+  count() %>% 
+  arrange(desc(trans_amount)) %>% 
+  head(20)
 ```
 
 
 ```{r}
-card_withdrawal <- outgoes %>% 
+df_cons %>% 
   filter(
-    trans_operation == "CREDIT CARD WITHDRAWAL"
-  )
-
-card_withdrawal %>% 
-  filter(
-    trans_year == 1995,
-    period == "1. QUARTER"
+    trans_cashflow == "OUT",
+    trans_operation == "CREDIT CARD WITHDRAWAL",
+    year(trans_date) == 1995,
+    trans_quarter_year == "1. QUARTER"
     ) %>% 
   ggplot(aes(
     x = account_id,
@@ -896,15 +936,26 @@ card_withdrawal %>%
   )) +
   geom_jitter(
     alpha = 1,
-    width = 20,
+    width = 30,
     shape = 3,
-    color = "blue"
-  )
+    color = "white"
+  ) +
+  labs(
+    title = "Credit Card Withdrawal", 
+    subtitle = "Withdrawals in 1995, 1st Quarter",
+    x = "Account ID",
+    y = "Amount [CZK]"
+  ) +
+  theme_dark()
 ```
 
 In Tabellenform:
 ```{r}
-card_withdrawal %>% 
+df_cons %>% 
+  filter(
+    trans_cashflow == "OUT",
+    trans_operation == "CREDIT CARD WITHDRAWAL"
+  )
   select(
     trans_amount,
     trans_date, 
@@ -915,10 +966,12 @@ card_withdrawal %>%
   ) %>% 
   head
 ```
-Die meisten Kreditkartenbezüge sind unter 4000 ? Welche Währung??? Tschechische Krone?
+Die meisten Kreditkartenbezüge sind unter 4000 CZK
 ```{r}
-card_withdrawal %>% 
+df_cons %>% 
   filter(
+    trans_cashflow == "OUT",
+    trans_operation == "CREDIT CARD WITHDRAWAL",
     trans_amount == 8000
   ) %>% 
   count()
@@ -926,8 +979,10 @@ card_withdrawal %>%
 7 mal wurde 8000 Krone mit der Kreditkarte bezogen
 
 ```{r}
-card_withdrawal %>% 
+df_cons %>% 
   filter(
+    trans_cashflow == "OUT",
+    trans_operation == "CREDIT CARD WITHDRAWAL",
     trans_amount == 8000
   ) %>% 
   count(account_id)
