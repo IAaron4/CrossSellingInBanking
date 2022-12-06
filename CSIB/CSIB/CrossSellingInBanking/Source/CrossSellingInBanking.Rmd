@@ -951,19 +951,19 @@ df_cons %>%
 
 In Tabellenform:
 ```{r}
-df_cons %>% 
+df_cons %>%
   filter(
     trans_cashflow == "OUT",
     trans_operation == "CREDIT CARD WITHDRAWAL"
   )
   select(
     trans_amount,
-    trans_date, 
+    trans_date,
     account_id
-  ) %>% 
+  ) %>%
   arrange(
     desc(trans_amount)
-  ) %>% 
+  ) %>%
   head
 ```
 Die meisten Kreditkartenbezüge sind unter 4000 CZK
@@ -1059,24 +1059,82 @@ rm(df_cons_temp)
 
 ```
 
-#### v. Wieviel Zins wurden durch Kredite erzeugt und wie sieht die Entwicklung über offene Kredite sowie dem erhaltenen Zins aus? (Aaron)
+#### v. Neue Fragestellung (Aaron)
 ```{r}
 
 ```
 
 
-#### vi. Wie sieht die Verteilung von Kreditkartentypen auf die Population der Kreditkarten aus? (Aaron)
+#### vi. Wie sieht die Verteilung von Kreditkartentypen auf die Population der Kreditkarten aus?
 ```{r}
 
+df_cons_credit_card_by_type <- df_cons %>%
+  filter(!is.na(card_id)) %>%
+  group_by(card_id) %>%
+  mutate(card_type = card_type) %>%
+  mutate(count = sum(n())) %>%
+  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+  select(sex, count, frequency, card_type) %>% 
+  distinct()
+
+df_cons_credit_card_by_type
+
+ggplot(df_cons_credit_card_by_type, aes(fill = card_type, x = sex, y = count)) +
+  labs(title = "Distribution of Credit Card Type per Sex", subtitle = "The percentage displayed on the plot is the frequency of the type over the whole population.") +
+  geom_bar(position="fill", stat="identity") +
+  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+  xlab("Sex") +
+  ylab("Count") +
+  labs(fill = "Card Type", )
+  
+  
 ```
 
-#### vii. Wie sieht die Verteilung der Typen von Dispositionen aus? (Aaron)
+#### vii. Wie sieht die Verteilung der Typen von Dispositionen aus? 
 ```{r}
 
+
+df_cons_distribution_disposition_type <- df_cons %>%
+  filter(!is.na(disp_id)) %>%
+  group_by(disp_id) %>%
+  mutate(disp_type = disp_type) %>%
+  mutate(count = sum(n())) %>%
+  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+  select(sex, count, frequency, disp_type) %>% 
+  distinct()
+
+df_cons_distribution_disposition_type
+
+ggplot(df_cons_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
+  labs(title = "Distribution of disposition types", subtitle = "") +
+  geom_bar(position="fill", stat="identity") +
+  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+  xlab("Sex") +
+  ylab("Count") +
+  labs(fill = "Disposition Type")
 ```
 
 #### viii. Was ist der am beliebtesten Modus einer Transaktion? (Aaron)
 ```{r}
+df_cons_transaction_type_per_quarter <- df_cons %>%
+  filter(!is.na(trans_id)) %>%
+  group_by(trans_id) %>%
+  mutate(trans_characterization = trans_characterization) %>%
+  mutate(trans_quarter_year = trans_quarter_year) %>%
+  mutate(count = sum(n())) %>%
+  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+  select(trans_quarter_year, count, frequency, trans_characterization) %>% 
+  distinct()
+
+df_cons_transaction_type_per_quarter
+
+ggplot(df_cons_transaction_type_per_quarter, aes(fill = trans_characterization, x = trans_quarter_year, y = count)) +
+  labs(title = "Distribution of transaction types per quarters", subtitle = "") +
+  geom_bar(position="fill", stat="identity") +
+  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+  xlab("Quarter") +
+  ylab("Count") +
+  labs(fill = "Transaction Type")
 
 ```
 
@@ -1087,6 +1145,18 @@ rm(df_cons_temp)
 
 #### x. In welchen Distrikten gibt es den höchsten Lohn? (Aaron)
 ```{r}
+# df_cons_transaction_type_per_quarter <- df_cons %>%
+#   group_by(district_id) %>%
+#   mutate(average_salary = average_salary) %>%
+#   mutate(district = district_name)
+# 
+# df_cons_transaction_type_per_quarter
+# 
+# ggplot(df_cons_transaction_type_per_quarter, aes(x=average_salary, fill=district)) + 
+#   geom_bar( ) +
+#   xlab("District") +
+#   ylab("Average Salary") +
+#   labs(fill = "District Name")
 
 ```
 
