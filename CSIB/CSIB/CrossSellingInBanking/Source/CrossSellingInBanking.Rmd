@@ -874,20 +874,287 @@ Es sind keine Duplikate vorhanden.
 
 #### Data Frame "transaction"
 
+Übersicht über die Tabelle
 ```{r}
+glimpse(df_transaction)
+
+```
+Typen ändern von Character in Factors.
+```{r}
+df_transaction_mod <- df_transaction %>% 
+  mutate(across(where(is.character), as.factor))
+
+summary(df_transaction_mod)
+
+```
+Spalten umbenennen:
+- bank wird zu bank_name
+- account wird zu account_nr
+- type wird zu cashflow
+
+```{r}
+df_transaction_mod <- df_transaction_mod %>% 
+  rename(
+    bank_name = bank,
+    account_nr = account,
+    cashflow = type
+  )
+```
+
+#### Untersuchen der NA's
+
+Als erstes beginnen wir mit der neu benannten Spalte cashflow
+```{r}
+df_transaction_mod %>% 
+  filter(is.na(cashflow)) %>% 
+  summary()
+```
+Die NA's in "cashflow" und "characterization" sind Geldausgänge und können deshalb als Werte in die beiden Spalten imputiert werden. Bei der Spalte "bank_name" fällt auf, dass die Werte leer sind. Deshalb wird dort mit NA's ergänzt.
+Es könnte sich bei diesen Geldbezügen um Bezüge an den Automaten handeln. Dies kann aber erst überprüft werden, wenn diese Informationen mit den Beobachtungen aus der Tabelle mit den Kreditkarten-Informationen abgeglichen werden kann.
+Diese Analyse kann zu einem späteren Zeitpunkt vorgenommen werden.
+
+```{r}
+#Liste für die gezielte Imputation in "characterization" mit "CASH WIDTHDRAWAL"
+list_na_characterization_for_cashwidthrawal <- df_transaction_mod %>% 
+  filter(is.na(cashflow)) %>% 
+  select(trans_id)
+
+list_transid_for_imputation <- as.list(list_na_characterization_for_cashwidthrawal)
+```
+
+
+#### Imputieren
+```{r}
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(cashflow = case_when(cashflow == "WITHDRAWAL" ~ "OUT",
+                              cashflow == "CREDIT" ~ "IN",
+                              TRUE ~ "OUT")) %>%
+  mutate(across(where(is.character), as.factor))
+
+# das Imputieren der Werte in characterization geschieht mit %in% dazu muss der Code noch gefunden werden. Ist für den Moment nicht so dringend. Für dieses Imputieren wurde die Liste list_na_characterization_for_cashwidthrawal erstellt
+
+n_row_na <- nrow(list_na_characterization_for_cashwidthrawal)
+  
+```
+
+Kontostand Ende Monat
+
+```{r}
+# balance_end_of_month  <- df_transaction_mod %>% 
+#   mutate(
+#     year = year(date),
+#     month = month(date)
+#   ) %>% 
+#   group_by(
+#     account_id,
+#     year,
+#     month
+#   ) %>% 
+#   arrange(desc(trans_id)) %>% 
+#   slice_head(n = 1)
+# 
+# balance_end_of_month_select <- df_transaction_mod %>% 
+#   filter(
+#     trans_id %in% balance_end_of_month$trans_id
+#   ) %>% 
+#   select(
+#     account_id,
+#     date,
+#     balance,
+#     ) %>% 
+#   arrange(date) %>% 
+#   pivot_wider(names_from = date, values_from = balance)
+  
+# balance_end_of_month_select <- balance_end_of_month_select %>%  
+#   pivot_wider(names_from = date, values_from = balance)
+```
+
+Bilanz Ende Jahr
+```{r}
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(
+    year = year(date),
+    month = month(date)
+  )
+
+years_avg <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    cashflow,
+    year
+  ) %>% 
+  summarise(amount_mean = mean(amount)) %>% 
+  pivot_wider(names_from = cashflow, values_from = amount_mean) %>% 
+  mutate(balance_sheet = IN - OUT) 
+
+balance_sheet <- years_avg %>% 
+    select(
+      account_id,
+      year,
+      balance_sheet
+    ) %>% 
+    arrange(year) %>% 
+    pivot_wider(names_from = year, values_from = balance_sheet) %>% 
+    arrange(account_id)
+  
+if (!grepl("balance_sheet_end_of.", names(balance_sheet)[2])) {
+names(balance_sheet) <- paste0("balance_sheet_end_of.", names(balance_sheet))
+}
 
 ```
 
+Neu erstellte Spalte mit den Bilanzen an das bestehende df_mod anfügen.
+```{r}
+df_mod <- left_join(df_mod, balance_sheet, by = c("account.id" = "balance_sheet_end_of.account_id"))
+
+```
+
+Die durchschnittlichen Einkommen und Ausgaben pro Account und Jahr
+```{r}
+incomes_avg_per_year <- years_avg %>% 
+  select(
+    account_id,
+    IN,
+    year
+  ) %>% 
+  pivot_wider(names_from = year, values_from = IN)
+
+if (!grepl("incomes_avg_per.", names(incomes_avg_per_year)[2])) {
+names(incomes_avg_per_year) <- paste0("incomes_avg_per.", names(incomes_avg_per_year))
+}
+
+outgoes_avg_per_year <- years_avg %>% 
+  select(
+    account_id,
+    OUT,
+    year
+  ) %>% 
+  pivot_wider(names_from = year, values_from = OUT)
+
+if (!grepl("outgoes_avg_per.", names(outgoes_avg_per_year)[2])) {
+names(outgoes_avg_per_year) <- paste0("outgoes_avg_per.", names(outgoes_avg_per_year))
+}
+
+```
+
+Anfügen der beiden neuen Spalten für die arithmetischen Mittel der Einkünfte und Geldrückzüge.
+```{r}
+df_mod <- left_join(df_mod, incomes_avg_per_year, by = c("account.id" = "incomes_avg_per.account_id"))
+
+df_mod <- left_join(df_mod, outgoes_avg_per_year, by = c("account.id" = "outgoes_avg_per.account_id"))
+
+rm(balance_sheet, incomes_avg_per_year, outgoes_avg_per_year, list_na_characterization_for_cashwidthrawal, df_transaction, years_avg)
+
+```
+
+Nun werden die Totalbeträge pro Jahr und und in einem weiteren Schritt pro Monat erstellt.
+
+```{r}
+years_total <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    cashflow,
+    year
+  ) %>% 
+  summarise(amount_total = sum(amount)) %>% 
+  pivot_wider(names_from = cashflow, values_from = amount_total) %>% 
+  mutate(balance_sheet = IN - OUT) 
+
+balance_sheet_total <- years_total %>% 
+    select(
+      account_id,
+      year,
+      balance_sheet
+    ) %>% 
+    arrange(year) %>% 
+    pivot_wider(names_from = year, values_from = balance_sheet) %>% 
+    arrange(account_id)
+  
+if (!grepl("balance_sheet_total.", names(balance_sheet_total)[2])) {
+names(balance_sheet_total) <- paste0("balance_sheet_total.", names(balance_sheet_total))
+}
+
+```
+
+Neu erstellte Spalte mit den Bilanzen an das bestehende df_mod anfügen.
+```{r}
+df_mod <- left_join(df_mod, balance_sheet_total, by = c("account.id" = "balance_sheet_total.account_id"))
+
+```
+
+Die durchschnittlichen Einkommen und Ausgaben pro Account und Jahr
+```{r}
+incomes_total_per_year <- years_total %>% 
+  select(
+    account_id,
+    IN,
+    year
+  ) %>% 
+  pivot_wider(names_from = year, values_from = IN)
+
+if (!grepl("incomes_total_per.", names(incomes_total_per_year)[2])) {
+names(incomes_total_per_year) <- paste0("incomes_total_per.", names(incomes_total_per_year))
+}
+
+outgoes_total_per_year <- years_total %>% 
+  select(
+    account_id,
+    OUT,
+    year
+  ) %>% 
+  pivot_wider(names_from = year, values_from = OUT)
+
+if (!grepl("outgoes_total_per.", names(outgoes_total_per_year)[2])) {
+names(outgoes_total_per_year) <- paste0("outgoes_total_per.", names(outgoes_total_per_year))
+}
+
+```
+
+Anfügen der beiden neuen Spalten für die arithmetischen Mittel der Einkünfte und Geldrückzüge.
+```{r}
+df_mod <- left_join(df_mod, incomes_total_per_year, by = c("account.id" = "incomes_total_per.account_id"))
+
+df_mod <- left_join(df_mod, outgoes_total_per_year, by = c("account.id" = "outgoes_total_per.account_id"))
+```
+
+Nun werden noch die Summen pro Monat erstellt.
+```{r}
+month_total <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    cashflow,
+    year,
+    month
+  ) %>% 
+  summarise(amount_total = sum(amount)) 
+# %>% 
+#   pivot_wider(names_from = cashflow, values_from = amount_total)
+```
+
+
+Transaktionen werden vorerst nicht weiter behandelt. Falls während den folgenden Analysen zusätzliche Informationen aus der Tabelle "transactions" benötigt wird, können diese Daten zu einem späteren Zeitpunkt hinzugefügt werden.
 
 ### **Erstellen des konsolidierten Data Frames**
 
 Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
+Folgende Spalten aus dem Data Frame "df_mod" werden nicht mehr benötigt:
+- 
 
 ```{r}
 
-df_cons <- df_mod %>% 
+# df_cons <- df_mod %>% 
+#   select(-c(
+#     owner.client_id,
+#     owner.disp_id,
+#     user.client_id,
+#     user.disp_id,
+#     user.district_id,
+#     loan.id,
+#     card.id
+#       ))
 
-rm(df_mod)
+
+# rm(df_mod)
 ```
 
 Übersicht über die Struktur des konsolidierten Datensatzes.
