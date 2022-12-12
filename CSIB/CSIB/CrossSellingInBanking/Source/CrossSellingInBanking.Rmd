@@ -937,38 +937,6 @@ n_row_na <- nrow(list_na_characterization_for_cashwidthrawal)
   
 ```
 
-Kontostand Ende Monat
-
-```{r}
-# balance_end_of_month  <- df_transaction_mod %>% 
-#   mutate(
-#     year = year(date),
-#     month = month(date)
-#   ) %>% 
-#   group_by(
-#     account_id,
-#     year,
-#     month
-#   ) %>% 
-#   arrange(desc(trans_id)) %>% 
-#   slice_head(n = 1)
-# 
-# balance_end_of_month_select <- df_transaction_mod %>% 
-#   filter(
-#     trans_id %in% balance_end_of_month$trans_id
-#   ) %>% 
-#   select(
-#     account_id,
-#     date,
-#     balance,
-#     ) %>% 
-#   arrange(date) %>% 
-#   pivot_wider(names_from = date, values_from = balance)
-  
-# balance_end_of_month_select <- balance_end_of_month_select %>%  
-#   pivot_wider(names_from = date, values_from = balance)
-```
-
 Bilanz Ende Jahr
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
@@ -1000,6 +968,107 @@ balance_sheet <- years_avg %>%
 if (!grepl("balance_sheet_end_of.", names(balance_sheet)[2])) {
 names(balance_sheet) <- paste0("balance_sheet_end_of.", names(balance_sheet))
 }
+
+```
+
+Kontostand Ende Monat
+
+```{r}
+
+transaction_cashflow_per_month_and_year <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    cashflow,
+    year,
+    month
+  ) %>% 
+  summarise(amount_mean = mean(amount)) %>% 
+  pivot_wider(names_from = c(cashflow,year,month), values_from = amount_mean)
+
+str(transaction_cashflow_per_month_and_year)
+
+transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year %>%
+  mutate(account_id = account_id) %>%
+  mutate(balance_1993_1 = IN_1993_1 - OUT_1993_1) %>%
+  mutate(balance_1993_2 = balance_1993_1 + (IN_1993_2 - OUT_1993_2)) %>%
+  mutate(balance_1993_3 = balance_1993_2 + (IN_1993_3 - OUT_1993_3)) %>%
+  mutate(balance_1993_4 = balance_1993_3 + (IN_1993_4 - OUT_1993_4)) %>%
+  mutate(balance_1993_5 = balance_1993_4 + (IN_1993_5 - OUT_1993_5)) %>%
+  mutate(balance_1993_6 = balance_1993_5 + (IN_1993_6 - OUT_1993_6)) %>%
+  mutate(balance_1993_7 = balance_1993_6 + (IN_1993_7 - OUT_1993_7)) %>%
+  mutate(balance_1993_8 = balance_1993_7 + (IN_1993_8 - OUT_1993_8)) %>%
+  mutate(balance_1993_9 = balance_1993_8 + (IN_1993_9 - OUT_1993_9)) %>%
+  mutate(balance_1993_10 = balance_1993_9 + (IN_1993_10 - OUT_1993_10)) %>%
+  mutate(balance_1993_11 = balance_1993_10 + (IN_1993_11 - OUT_1993_11)) %>%
+  mutate(balance_1993_12 = balance_1993_11 + (IN_1993_12 - OUT_1993_12)) %>%
+  mutate(balance_1994_1 = balance_1993_12 + (IN_1994_1 - OUT_1994_1)) %>%
+  mutate(balance_1994_2 = balance_1994_1 + (IN_1994_2 - OUT_1994_2)) %>%
+  mutate(balance_1994_3 = balance_1994_2 + (IN_1994_3 - OUT_1994_3)) %>%
+  mutate(balance_1994_4 = balance_1994_3 + (IN_1994_4 - OUT_1994_4)) %>%
+  mutate(balance_1994_5 = balance_1994_4 + (IN_1994_5 - OUT_1994_5)) %>%
+  mutate(balance_1994_6 = balance_1994_5 + (IN_1994_6 - OUT_1994_6)) %>%
+  mutate(balance_1994_7 = balance_1994_6 + (IN_1994_7 - OUT_1994_7)) %>%
+  mutate(balance_1994_8 = balance_1994_7 + (IN_1994_8 - OUT_1994_8)) %>%
+  mutate(balance_1994_9 = balance_1994_8 + (IN_1994_9 - OUT_1994_9)) %>%
+  mutate(balance_1994_10 = balance_1994_9 + (IN_1994_10 - OUT_1994_10)) %>%
+  mutate(balance_1994_11 = balance_1994_10 + (IN_1994_11 - OUT_1994_11)) %>%
+  mutate(balance_1994_12 = balance_1994_11 + (IN_1994_12 - OUT_1994_12)) %>%
+  mutate(balance_1995_1 = balance_1994_12 + (IN_1995_1 - OUT_1995_1)) %>%
+  mutate(balance_1995_2 = balance_1995_1 + (IN_1995_2 - OUT_1995_2)) %>%
+  mutate(balance_1995_3 = balance_1995_2 + (IN_1995_3 - OUT_1995_3)) %>%
+  mutate(balance_1995_4 = balance_1995_3 + (IN_1995_4 - OUT_1995_4)) %>%
+  mutate(balance_1995_5 = balance_1995_4 + (IN_1995_5 - OUT_1995_5)) %>%
+  mutate(balance_1995_6 = balance_1995_5 + (IN_1995_6 - OUT_1995_6)) %>%
+  mutate(balance_1995_7 = balance_1995_6 + (IN_1995_7 - OUT_1995_7)) %>%
+  mutate(balance_1995_8 = balance_1995_7 + (IN_1995_8 - OUT_1995_8)) %>%
+  mutate(balance_1995_9 = balance_1995_8 + (IN_1995_9 - OUT_1995_9)) %>%
+  mutate(balance_1995_10 = balance_1995_9 + (IN_1995_10 - OUT_1995_10)) %>%
+  mutate(balance_1995_11 = balance_1995_10 + (IN_1995_11 - OUT_1995_11)) %>%
+  mutate(balance_1995_12 = balance_1995_11 + (IN_1995_12 - OUT_1995_12)) %>%
+  mutate(balance_1996_1 = balance_1995_12 + (IN_1996_1 - OUT_1996_1)) %>%
+  mutate(balance_1996_2 = balance_1996_1 + (IN_1996_2 - OUT_1996_2)) %>%
+  mutate(balance_1996_3 = balance_1996_2 + (IN_1996_3 - OUT_1996_3)) %>%
+  mutate(balance_1996_4 = balance_1996_3 + (IN_1996_4 - OUT_1996_4)) %>%
+  mutate(balance_1996_5 = balance_1996_4 + (IN_1996_5 - OUT_1996_5)) %>%
+  mutate(balance_1996_6 = balance_1996_5 + (IN_1996_6 - OUT_1996_6)) %>%
+  mutate(balance_1996_7 = balance_1996_6 + (IN_1996_7 - OUT_1996_7)) %>%
+  mutate(balance_1996_8 = balance_1996_7 + (IN_1996_8 - OUT_1996_8)) %>%
+  mutate(balance_1996_9 = balance_1996_8 + (IN_1996_9 - OUT_1996_9)) %>%
+  mutate(balance_1996_10 = balance_1996_9 + (IN_1996_10 - OUT_1996_10)) %>%
+  mutate(balance_1996_11 = balance_1996_10 + (IN_1996_11 - OUT_1996_11)) %>%
+  mutate(balance_1996_12 = balance_1996_11 + (IN_1996_12 - OUT_1996_12)) %>%
+  mutate(balance_1997_1 = balance_1996_12 + (IN_1997_1 - OUT_1997_1)) %>%
+  mutate(balance_1997_2 = balance_1997_1 + (IN_1997_2 - OUT_1997_2)) %>%
+  mutate(balance_1997_3 = balance_1997_2 + (IN_1997_3 - OUT_1997_3)) %>%
+  mutate(balance_1997_4 = balance_1997_3 + (IN_1997_4 - OUT_1997_4)) %>%
+  mutate(balance_1997_5 = balance_1997_4 + (IN_1997_5 - OUT_1997_5)) %>%
+  mutate(balance_1997_6 = balance_1997_5 + (IN_1997_6 - OUT_1997_6)) %>%
+  mutate(balance_1997_7 = balance_1997_6 + (IN_1997_7 - OUT_1997_7)) %>%
+  mutate(balance_1997_8 = balance_1997_7 + (IN_1997_8 - OUT_1997_8)) %>%
+  mutate(balance_1997_9 = balance_1997_8 + (IN_1997_9 - OUT_1997_9)) %>%
+  mutate(balance_1997_10 = balance_1997_9 + (IN_1997_10 - OUT_1997_10)) %>%
+  mutate(balance_1997_11 = balance_1997_10 + (IN_1997_11 - OUT_1997_11)) %>%
+  mutate(balance_1997_12 = balance_1997_11 + (IN_1997_12 - OUT_1997_12)) %>%
+  mutate(balance_1998_1 = balance_1997_12 + (IN_1998_1 - OUT_1998_1)) %>%
+  mutate(balance_1998_2 = balance_1998_1 + (IN_1998_2 - OUT_1998_2)) %>%
+  mutate(balance_1998_3 = balance_1998_2 + (IN_1998_3 - OUT_1998_3)) %>%
+  mutate(balance_1998_4 = balance_1998_3 + (IN_1998_4 - OUT_1998_4)) %>%
+  mutate(balance_1998_5 = balance_1998_4 + (IN_1998_5 - OUT_1998_5)) %>%
+  mutate(balance_1998_6 = balance_1998_5 + (IN_1998_6 - OUT_1998_6)) %>%
+  mutate(balance_1998_7 = balance_1998_6 + (IN_1998_7 - OUT_1998_7)) %>%
+  mutate(balance_1998_8 = balance_1998_7 + (IN_1998_8 - OUT_1998_8)) %>%
+  mutate(balance_1998_9 = balance_1998_8 + (IN_1998_9 - OUT_1998_9)) %>%
+  mutate(balance_1998_10 = balance_1998_9 + (IN_1998_10 - OUT_1998_10)) %>%
+  mutate(balance_1998_11 = balance_1998_10 + (IN_1998_11 - OUT_1998_11)) %>%
+  mutate(balance_1998_12 = balance_1998_11 + (IN_1998_12 - OUT_1998_12))
+
+# df_transaction_mod %>%
+#   filter(trans_id == 3530447)
+# 
+# df_transaction_mod %>%
+#   filter(account_id == 1 & month == 1 & year == 1996) %>%
+#   arrange(desc(trans_id))
+
 
 ```
 
