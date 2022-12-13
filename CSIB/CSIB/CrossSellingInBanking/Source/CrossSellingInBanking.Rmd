@@ -937,7 +937,7 @@ n_row_na <- nrow(list_na_characterization_for_cashwidthrawal)
   
 ```
 
-Bilanz Ende Jahr
+#### Bilanz Ende Jahr
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
   mutate(
@@ -971,18 +971,73 @@ names(balance_sheet) <- paste0("balance_sheet_end_of.", names(balance_sheet))
 
 ```
 
-Kontostand Ende Monat
+#### Kontostand Ende Monat
+
+Als erstes werden die Kontostände per Ende jeden Monats berechnet. Dazu müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da ja bei diesen Kontoständen sowie Geldein- und ausgängen 0 CZK vorhanden sind.
+```{r}
+transaction_cashflow_per_month_and_year_total <- df_transaction_mod %>%
+  group_by(
+    year,
+    month,
+    account_id,
+    cashflow,
+    ) %>%
+  arrange(year, month) %>%
+  summarise(amount_total = sum(amount)) %>%
+  pivot_wider(names_from = cashflow, values_from = amount_total) %>% 
+  mutate(IN = replace_na(IN, 0)) %>% 
+  mutate(OUT = replace_na(OUT, 0)) %>% 
+  mutate(balance = IN - OUT) 
+
+balance_per_month_total <- transaction_cashflow_per_month_and_year_total %>% 
+  select(
+    account_id,
+    year,
+    month,
+    balance
+  ) %>% 
+  pivot_wider(names_from = c(year,month), values_from = balance)
+
+# summary(transaction_cashflow_per_month_and_year_total)
+```
+Für die Analysen werden noch die jeweiligen mittleren Werte der Kontostände benötigt. Dazu wird ein zusätzliches Data Frame mit den Mittelwerten erstellt.
+```{r}
+transaction_cashflow_per_month_and_year_mean <- df_transaction_mod %>%
+  group_by(
+    year,
+    month,
+    account_id,
+    cashflow,
+    ) %>%
+  arrange(year, month) %>%
+  summarise(amount_mean = mean(amount)) %>%
+  pivot_wider(names_from = cashflow, values_from = amount_mean) %>% 
+  mutate(IN = replace_na(IN, 0)) %>% 
+  mutate(OUT = replace_na(OUT, 0)) %>% 
+  mutate(balance = IN - OUT) 
+
+balance_per_month_mean <- transaction_cashflow_per_month_and_year_mean %>% 
+  select(
+    account_id,
+    year,
+    month,
+    balance
+  ) %>% 
+  pivot_wider(names_from = c(year,month), values_from = balance)
+```
+
 
 ```{r}
 
-transaction_cashflow_per_month_and_year <- df_transaction_mod %>% 
+transaction_cashflow_per_month_and_year <- df_transaction_mod %>%
   group_by(
     account_id,
     cashflow,
     year,
     month
-  ) %>% 
-  summarise(amount_mean = mean(amount)) %>% 
+  ) %>%
+  summarise(amount_mean = mean(amount)) %>%
+  # arrange(year, month) %>%
   pivot_wider(names_from = c(cashflow,year,month), values_from = amount_mean)
 
 str(transaction_cashflow_per_month_and_year)
@@ -1069,7 +1124,7 @@ transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year %>%
 #   filter(account_id == 1 & month == 1 & year == 1996) %>%
 #   arrange(desc(trans_id))
 
-
+summary(transaction_cashflow_per_month_and_year)
 ```
 
 Neu erstellte Spalte mit den Bilanzen an das bestehende df_mod anfügen.
@@ -1129,7 +1184,7 @@ years_total <- df_transaction_mod %>%
   pivot_wider(names_from = cashflow, values_from = amount_total) %>% 
   mutate(balance_sheet = IN - OUT) 
 
-balance_sheet_total <- years_total %>% 
+balance_sheet_per_years_total <- years_total %>% 
     select(
       account_id,
       year,
@@ -1139,15 +1194,15 @@ balance_sheet_total <- years_total %>%
     pivot_wider(names_from = year, values_from = balance_sheet) %>% 
     arrange(account_id)
   
-if (!grepl("balance_sheet_total.", names(balance_sheet_total)[2])) {
-names(balance_sheet_total) <- paste0("balance_sheet_total.", names(balance_sheet_total))
+if (!grepl("balance_sheet_total.", names(balance_sheet_per_years_total)[2])) {
+names(balance_sheet_per_years_total) <- paste0("balance_sheet_total.", names(balance_sheet_per_years_total))
 }
 
 ```
 
 Neu erstellte Spalte mit den Bilanzen an das bestehende df_mod anfügen.
 ```{r}
-df_mod <- left_join(df_mod, balance_sheet_total, by = c("account.id" = "balance_sheet_total.account_id"))
+df_mod <- left_join(df_mod, balance_sheet_per_years_total, by = c("account.id" = "balance_sheet_total.account_id"))
 
 ```
 
@@ -1185,21 +1240,6 @@ df_mod <- left_join(df_mod, incomes_total_per_year, by = c("account.id" = "incom
 
 df_mod <- left_join(df_mod, outgoes_total_per_year, by = c("account.id" = "outgoes_total_per.account_id"))
 ```
-
-Nun werden noch die Summen pro Monat erstellt.
-```{r}
-month_total <- df_transaction_mod %>% 
-  group_by(
-    account_id,
-    cashflow,
-    year,
-    month
-  ) %>% 
-  summarise(amount_total = sum(amount)) 
-# %>% 
-#   pivot_wider(names_from = cashflow, values_from = amount_total)
-```
-
 
 Transaktionen werden vorerst nicht weiter behandelt. Falls während den folgenden Analysen zusätzliche Informationen aus der Tabelle "transactions" benötigt wird, können diese Daten zu einem späteren Zeitpunkt hinzugefügt werden.
 
