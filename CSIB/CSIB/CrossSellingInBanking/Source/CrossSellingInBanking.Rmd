@@ -391,22 +391,24 @@ transformierten Daten.
 
 ![ERD Daten IST-Zustand](../Ressources/SOLL-Zustand.png)
 
-## 1. Tabellen zusammenführen und erste Analysen
+# A. Tabellen zusammenführen und erste Analysen
 
-### Tabellen vorbereiten
+### a. Tabellen vorbereiten
 
 Die einzelnen Tabellen werden vor dem Zusammenführen so vorbereitet,
 dass pro Account nur eine Zeile vorhanden ist.
 
-#### Data Frame "Permanent Order"
+#### i. Data Frame "Permanent Order"
 
 ```{r}
 
 summary(df_perm_order)
+
 ```
 
 ```{r}
 str(df_perm_order)
+
 ```
 Neuorganisation der Werte aus "payment_type" in Spalten mit der Summe der Beträge "amount" und ergänzenden Spalten mit der Information, wieviele Aufträge des gleichen Typs vorhanden sind. 
 Die Spalten "order_id", "bank_to" und "account_to" werden weggelassen, da diese für die zukünftigen Analysen nicht benötigt werden.
@@ -426,13 +428,15 @@ df_perm_order_mod <- df_perm_order %>%
   count() %>% 
   rename(payment_type_num = n) %>% 
   pivot_wider(names_from = payment_type, values_from = c(amount_sum, payment_type_num)) %>% 
-  na.replace(., 0)
+  na.replace(., 0) %>% 
+  ungroup()
 
 # str(df_perm_order_mod)
 
-if (!grepl("order.", names(df_perm_order_mod)[2])) {
-names(df_perm_order_mod) <- paste0("order.", names(df_perm_order_mod))
+if (!grepl("order_", names(df_perm_order_mod)[2])) {
+names(df_perm_order_mod) <- paste0("order_", names(df_perm_order_mod))
 }
+
 ```
 
 Überprüfung der bisher nicht beachteten Spalten "bank_to" und "account_to"
@@ -444,7 +448,9 @@ df_perm_order %>%
   ) %>% 
   count() %>% 
   arrange(desc(n)) %>% 
+  ungroup() %>% 
   head()
+
 ```
 
 ```{r}
@@ -452,17 +458,19 @@ df_perm_order %>%
   filter(
     account_to == 79838293
   )
+
 ```
 Es gibt Überweisungen, welche von verschiedenen Konten (maximal 2) auf dasselbe Ziel-Konto einzahlen. Für die Analysen, welche geplant sind, ist dieser Umstand nicht relevant. Deshalb werden diese Informationen vorerst weggelassen. Falls nötig, können sie zu einem späteren Zeitpunkt immer noch dazu genommen werden.
 
 
-#### Data Frame "Account"
+#### ii. Data Frame "Account"
 
 Das Data Frame Account steht im Zentrum und beinhaltet die
 Schlüsselfelder zu fast allen weiteren Tabellen. Deshalb beginnen wir
 mit dem Account.
 ```{r}
 summary(df_account)
+
 ```
 Die Werte der Spalte "frequency" werden in Faktoren umgewandelt. Zudem werden zusätzliche Spalten für die Kontoeröffnungsdaten erstellt (-> Eröffnungsjahr als "opening_year", Eröffnungsmonat als "opening_month") und die Spalte "date" in "opening_date" geändert.
 Anschliessend wird wieder allen Spalten das Präfix "account." erteilt.
@@ -476,17 +484,18 @@ df_account_mod <- df_account %>%
 
 
 
-if (!grepl("account.", names(df_account_mod)[2])) {
-names(df_account_mod) <- paste0("account.", names(df_account_mod))
+if (!grepl("account_", names(df_account_mod)[2])) {
+names(df_account_mod) <- paste0("account_", names(df_account_mod))
 }
+
 ```
 
-### Erstes Zusammenführen 
+### b. Erstes Zusammenführen 
 
 Erstes zusammenfügen der modifizierten Data Frames "df_account_mod" und "df_perm_order_mod" zum neuen Data Frame "df_mod".
 ```{r}
 
-df_mod <- left_join(df_account_mod, df_perm_order_mod, by = c( "account.account_id" = "order.account_id"))
+df_mod <- left_join(df_account_mod, df_perm_order_mod, by = c( "account_account_id" = "order_account_id"))
 
 summary(df_mod)
 
@@ -496,15 +505,17 @@ Die NA's in den Spalten von "order." bedeuten, dass bei diesen Konten keine Daue
 Nun können die nicht mehr benötigten Tabellen aus dem Global Environment entfernt werden.
 ```{r}
 rm(df_account, df_account_mod, df_perm_order, df_perm_order_mod)
+
 ```
 
 
-#### Data Frame "Loan"
+#### i. Data Frame "Loan"
 
 Im weiteren Schritt wird das Data Frame "Loan" vorbereitet.
 Übersicht über das Data Frame
 ```{r}
 glimpse(df_loan)
+
 ```
 
 Folgendes soll angepasst werden:
@@ -538,8 +549,7 @@ df_loan_mod <- df_loan %>%
     "redemption_amount" = "payments"
     ) %>%
   mutate(
-    duration_in_years = case_when(
-                                  duration_in_month == 12 ~ 1,
+    duration_in_years = case_when(duration_in_month == 12 ~ 1,
                                   duration_in_month == 24 ~ 2,
                                   duration_in_month == 36 ~ 3,
                                   duration_in_month == 48 ~ 4,
@@ -552,7 +562,7 @@ df_loan_mod <- df_loan %>%
   relocate(end_date, .after = start_date) %>%
   relocate(starts_with("duration"), .after = end_date)
 
-  # levels(df_loan_mod$status)
+  levels(df_loan_mod$status)
 
 ```
 
@@ -562,6 +572,7 @@ df_loan_mod %>%
   group_by(account_id) %>%
   count() %>%
   arrange(desc(n)) %>%
+  ungroup() %>% 
   head()
 
 ```
@@ -569,23 +580,24 @@ df_loan_mod %>%
 Da es pro Account nur jeweils 1 Darlehensvertrag gibt, braucht es für diese Tabelle keine weiteren Anpassungen.
 Es wird nur noch das Präfix "loan." hizugefügt, bevor ein Anfügen an die Gesamttabelle erfolgt.
 ```{r}
-if (!grepl("loan.", names(df_loan_mod)[2])) {
-names(df_loan_mod) <- paste0("loan.", names(df_loan_mod))
+if (!grepl("loan_", names(df_loan_mod)[2])) {
+names(df_loan_mod) <- paste0("loan_", names(df_loan_mod))
 }
 
 ```
  
- ### Zweites Zusammenführen
+#### Zweites Zusammenführen
 
- Loan wird zum Data Frame "df_mod" hinzugefügt.
+Loan wird zum Data Frame "df_mod" hinzugefügt.
 ```{r}
-df_mod <- left_join(df_mod, df_loan_mod, by = c("account.account_id" = "loan.account_id"))
+df_mod <- left_join(df_mod, df_loan_mod, by = c("account_account_id" = "loan_account_id"))
  
 summary(df_mod)
  
 ```
+#### Bedeutung der NA's
 
-Die NA's in den Spalten von "loan." bedeuten, dass bei diesen Konten keine Darlehen hinderlegt sind, analog den Informationen aus den Spalten "order."
+Die NA's in den Spalten von "loan_" bedeuten, dass bei diesen Konten keine Darlehen hinderlegt sind, analog den Informationen aus den Spalten "order_"
  
 Entfernen der nicht mehr benötigten Tabellen aus dem Global Environment.
 ```{r}
@@ -594,15 +606,18 @@ rm(df_loan, df_loan_mod)
 ```
 
  
-#### Data Frame "disposition"
+#### ii. Data Frame "disposition"
  
 Übersicht über das Data Frame
 ```{r}
 glimpse(df_disposition)
+
 ```
-Werte in type umbenennen (Disponent zu User)
-neue Spalte mit Anzahl Benutzer pro Konto (account_user_num)
-Werte der Spalte type in neue Spalten aufteilen mit Bezeichnung und Werten aus client_id und disp_id
+#### Anpassungen
+
+- Werte in der Spalte type umbenennen (Disponent zu User)
+- neue Spalte mit Anzahl Benutzer pro Konto (account_user_num)
+- Werte der Spalte type in neue Spalten aufteilen mit Bezeichnung und Werten aus client_id und disp_id
 ```{r}
 df_disposition_mod <- df_disposition %>% 
    mutate(type = ifelse(c(type == "OWNER"), "OWNER", "USER")) %>% 
@@ -614,7 +629,8 @@ df_disposition_num_user <- df_disposition %>%
     account_id
   ) %>% 
   count() %>% 
-  rename(account.num_of_user = n)
+  rename(account_num_of_user = n) %>% 
+  ungroup()
 
 #Anfügen der neuen Spalte "account.num_of_user" an das df_disposition_mod
 df_disposition_mod <- left_join(df_disposition_mod, df_disposition_num_user, by = "account_id")
@@ -622,20 +638,22 @@ df_disposition_mod <- left_join(df_disposition_mod, df_disposition_num_user, by 
 summary(df_disposition_mod)
  
 ```
+#### Bedeutung der NA's
+
 Die NA's in den Spalten mit den User-Daten kommen daher, dass bei diesen Accounts nur 1 Benutzer (Owner) eingetragen ist.
  
 Wiederum wird den Spalten ein Präfix hinzugefügt (disp.)
 ```{r}
-if (!grepl("disp.", names(df_disposition_mod )[2])) {
-names(df_disposition_mod) <- paste0("disp.", names(df_disposition_mod))
+if (!grepl("disp_", names(df_disposition_mod )[2])) {
+names(df_disposition_mod) <- paste0("disp_", names(df_disposition_mod))
 }
 
 ```
  
-### Drittes Zusammenführen
+### c. Drittes Zusammenführen
  
 ```{r}
-df_mod <- left_join(df_mod, df_disposition_mod, by = c("account.account_id" = "disp.account_id"))
+df_mod <- left_join(df_mod, df_disposition_mod, by = c("account_account_id" = "disp_account_id"))
 
 glimpse(df_mod)
 
@@ -643,28 +661,30 @@ glimpse(df_mod)
 Entfernen der nicht mehr benötigten Tabellen
 ```{r}
 rm(df_disposition, df_disposition_mod, df_disposition_num_user)
+
 ```
 
-#### Data Frame "credit card"
+#### i. Data Frame "credit card"
 ```{r}
 glimpse(df_credit_card)
+
 ```
 Hier braucht es nur eine Umformung der Spalte "type" in Faktor und das Anfügen des Präfixes (card.)
 ```{r}
 df_credit_card_mod <- df_credit_card %>% 
    mutate(across(where(is.character), as.factor))
 
-if (!grepl("card.", names(df_credit_card_mod)[2])) {
-names(df_credit_card_mod) <- paste0("card.", names(df_credit_card_mod))
+if (!grepl("card_", names(df_credit_card_mod)[2])) {
+names(df_credit_card_mod) <- paste0("card_", names(df_credit_card_mod))
 }
     
 glimpse(df_credit_card_mod)
 
 ```
  
-### Viertes Zusammenführen
+### d. Viertes Zusammenführen
 ```{r}
-df_mod <- left_join(df_mod, df_credit_card_mod, by = c("disp.disp_id_OWNER" = "card.disp_id"))
+df_mod <- left_join(df_mod, df_credit_card_mod, by = c("disp_disp_id_OWNER" = "card_disp_id"))
  
 glimpse(df_mod)
  
@@ -672,19 +692,22 @@ glimpse(df_mod)
  
 Überprüfen, ob alle Kreditkarten übernommen wurden
 ```{r}
-summary(df_mod$card.type)
+summary(df_mod$card_type)
+
 ```
 Gesamthaft wurden 892 Kreditkarten-Informationen übernommen.
  
 Entfernen der nicht mehr benötigten Tabellen.
 ```{r}
 rm(df_credit_card, df_credit_card_mod)
+
 ```
  
-#### Data Frame "client"
+#### i. Data Frame "client"
 
 ```{r}
 glimpse(df_client)
+
 ```
 Bei dieser Tabelle wird das Geschlecht in Faktoren umgewandelt und eine zusätzliche Spalte für das Alter bei der Kontoeröffnung erstellt. Diese zusätzliche Spalte kann erst nach dem Zusammenfügen mit den Account-Daten generiert werden.
 Danach können die Informationen in df_mod eingefügt werden. Dazu werden zwei verschiedene Tabellen erstellt, eine für Owner und eine für den User.
@@ -695,83 +718,87 @@ df_client_mod <- df_client %>%
 df_client_user <- df_client_mod
 df_client_owner <- df_client_mod
 
-if (!grepl("user.", names(df_client_user)[2])) {
-names(df_client_user) <- paste0("user.", names(df_client_user))
+if (!grepl("user_", names(df_client_user)[2])) {
+names(df_client_user) <- paste0("user_", names(df_client_user))
 }
  
-if (!grepl("owner.", names(df_client_owner)[2])) {
-names(df_client_owner) <- paste0("owner.", names(df_client_owner))
+if (!grepl("owner_", names(df_client_owner)[2])) {
+names(df_client_owner) <- paste0("owner_", names(df_client_owner))
 }
  
 ```
  
-### Fünftes Zusammenführen
+### e. Fünftes Zusammenführen
 
 ```{r}
-df_mod <- left_join(df_mod, df_client_owner, by = c("disp.client_id_OWNER" = "owner.client_id"))
-df_mod <- left_join(df_mod, df_client_user, by = c("disp.client_id_USER" = "user.client_id"))
+df_mod <- left_join(df_mod, df_client_owner, by = c("disp_client_id_OWNER" = "owner_client_id"))
+df_mod <- left_join(df_mod, df_client_user, by = c("disp_client_id_USER" = "user_client_id"))
+
 ```
 
 Entfernen der nicht mehr benötigten Tabellen "client"
 ```{r}
 rm(df_client, df_client_mod, df_client_owner, df_client_user)
+
 ```
 Spalten werden neu angeordnet und wo sinnvoll, umbenannt:
 
 Umbenennen:
-- disp.client_id_OWNER wird zu owner.client_id,
-- disp.client_id_USER wird zu user.client_id,
-- disp.disp_id_OWNER wird zu owner.disp_id,
-- disp.disp_id_USER wird zu user.disp_id,
-- card.card_id wird zu card.id,
-- loan.loan_id wird zu loan.id,
-- account.account_id wird zu account.id,
--   order.amount_sum_HOUSEHOLD wird zu owner.client_id,
--   order.amount_sum_INSURRANCE wird zu order.amount_insurrance,
--   order.amount_sum_LOAN wird zu order.amount_loan,
--   order.amount_sum_UNKNOWN wird zu order.amount_unknown,
--   order.amount_sum_LEASING wird zu order.amount_leasing,
--   order.payment_type_num_HOUSEHOLD wird zu order.num_household,
--   order.payment_type_num_INSURRANCE wird zu order.num_insurrance,
--   order.payment_type_num_LOAN wird zu order.num_loan,
--   order.payment_type_num_UNKNOWN wird zu order.num_unknown,
--   order.payment_type_num_LEASING wird zu order.num_leasing
+- disp_client_id_OWNER wird zu owner_client_id,
+- disp_client_id_USER wird zu user_client_id,
+- disp_disp_id_OWNER wird zu owner_disp_id,
+- disp_disp_id_USER wird zu user_disp_id,
+- card_card_id wird zu card_id,
+- loan_loan_id wird zu loan_id,
+- account_account_id wird zu account_id,
+-   order_amount_sum_HOUSEHOLD wird zu owner_client_id,
+-   order_amount_sum_INSURRANCE wird zu order_amount_insurrance,
+-   order_amount_sum_LOAN wird zu order_amount_loan,
+-   order_amount_sum_UNKNOWN wird zu order_amount_unknown,
+-   order_amount_sum_LEASING wird zu order_amount_leasing,
+-   order_payment_type_num_HOUSEHOLD wird zu order_num_household,
+-   order_payment_type_num_INSURRANCE wird zu order_num_insurrance,
+-   order_payment_type_num_LOAN wird zu order_num_loan,
+-   order_payment_type_num_UNKNOWN wird zu order_num_unknown,
+-   order_payment_type_num_LEASING wird zu order_num_leasing
 
 ```{r}
 # Spalten umbenennen und neu anordnen
 df_mod  <- df_mod %>%
  rename(
-   owner.client_id = disp.client_id_OWNER,
-   user.client_id = disp.client_id_USER,
-   owner.disp_id = disp.disp_id_OWNER,
-   user.disp_id = disp.disp_id_USER,
-   card.id = card.card_id,
-   loan.id = loan.loan_id,
-   account.id = account.account_id,
-   account.num_of_user = disp.account.num_of_user,
-   order.total_amount_household = order.amount_sum_HOUSEHOLD,
-   order.total_amount_insurrance = order.amount_sum_INSURRANCE,
-   order.total_amount_loan = order.amount_sum_LOAN,
-   order.total_amount_unknown = order.amount_sum_UNKNOWN,
-   order.total_amount_leasing = order.amount_sum_LEASING,
-   order.num_household = order.payment_type_num_HOUSEHOLD,
-   order.num_insurrance = order.payment_type_num_INSURRANCE,
-   order.num_loan = order.payment_type_num_LOAN,
-   order.num_unknown = order.payment_type_num_UNKNOWN,
-   order.num_leasing = order.payment_type_num_LEASING
+   owner_client_id = disp_client_id_OWNER,
+   user_client_id = disp_client_id_USER,
+   owner_disp_id = disp_disp_id_OWNER,
+   user_disp_id = disp_disp_id_USER,
+   card_id = card_card_id,
+   loan_id = loan_loan_id,
+   account_id = account_account_id,
+   account_num_of_user = disp_account_num_of_user,
+   order_total_amount_household = order_amount_sum_HOUSEHOLD,
+   order_total_amount_insurrance = order_amount_sum_INSURRANCE,
+   order_total_amount_loan = order_amount_sum_LOAN,
+   order_total_amount_unknown = order_amount_sum_UNKNOWN,
+   order_total_amount_leasing = order_amount_sum_LEASING,
+   order_num_household = order_payment_type_num_HOUSEHOLD,
+   order_num_insurrance = order_payment_type_num_INSURRANCE,
+   order_num_loan = order_payment_type_num_LOAN,
+   order_num_unknown = order_payment_type_num_UNKNOWN,
+   order_num_leasing = order_payment_type_num_LEASING
  ) 
 
 #zusätzliche Spalte erstellen für das Alter der Owner bei der Kontoeröffnung.
 df_mod <- df_mod %>% 
-  mutate(owner.age_at_account_opening = round(as.numeric(account.opening_date - owner.dateofbirth)/365)) %>% 
-  mutate(user.age_at_account_opening = round(as.numeric(account.opening_date - user.dateofbirth)/365))
+  mutate(owner_age_at_account_opening = round(as.numeric(account_opening_date - owner_dateofbirth)/365)) %>% 
+  mutate(user_age_at_account_opening = round(as.numeric(account_opening_date - user_dateofbirth)/365))
+
 ```
 
-#### Data Frame "District"
+#### i. Data Frame "District"
 
 Übersicht über das Data Frame.
 ```{r}
 glimpse(df_district)
+
 ```
 unemployment_rate_95 in dbl
 commited_crimes_95 in int
@@ -784,110 +811,109 @@ df_district <- df_district %>%
          across(where(is.character), as.factor))
 
 glimpse(df_district)
+
 ```
 Erstellen des Data Frames für den Import in das "df_mod"
 ```{r}
 
 df_district_mod <- df_district
 
-if (!grepl("district.", names(df_district_mod )[2])) {
-names(df_district_mod) <- paste0("district.", names(df_district_mod))
+if (!grepl("district_", names(df_district_mod )[2])) {
+names(df_district_mod) <- paste0("district_", names(df_district_mod))
 }
 
 #Auswahl der Spalten für den Übertrag
 df_district_select <- df_district_mod %>% 
   select(
-    district.district_id,
-    district.name,
-    district.region,
-    district.average_salary,
-    district.inhabitants
+    district_district_id,
+    district_name,
+    district_region,
+    district_average_salary,
+    district_inhabitants
   )
 
 #Erstellen von zwei Data Frames für Account und Owner
 df_district_account <- df_district_select
-if (!grepl("account.", names(df_district_account )[2])) {
-names(df_district_account) <- paste0("account.", names(df_district_account))
+if (!grepl("account_", names(df_district_account )[2])) {
+names(df_district_account) <- paste0("account_", names(df_district_account))
 }
 
 df_district_owner <- df_district_select
-if (!grepl("owner.", names(df_district_owner )[2])) {
-names(df_district_owner) <- paste0("owner.", names(df_district_owner))
+if (!grepl("owner_", names(df_district_owner )[2])) {
+names(df_district_owner) <- paste0("owner_", names(df_district_owner))
 }
+
+rm(df_district)
 
 ```
 
 Die vorbereiteten Observationen können nun dem df_mod hinzugefügt werden.
 ```{r}
-df_mod <- left_join(df_mod, df_district_account, by = c("account.district_id" = "account.district.district_id"))
+df_mod <- left_join(df_mod, df_district_account, by = c("account_district_id" = "account_district_district_id"))
 
-df_mod <- left_join(df_mod, df_district_owner, by = c("account.district_id" = "owner.district.district_id"))
+df_mod <- left_join(df_mod, df_district_owner, by = c("account_district_id" = "owner_district_district_id"))
+
 ```
 
 Entfernen der nicht mehr benötigten Tabellen.
 ```{r}
-rm(df_district, df_district_account, df_district_owner, df_district_select)
+rm(df_district_account, df_district_owner, df_district_select)
+#das df_district wird vorerst noch belassen, ev. wird es in einem späteren Schritt nochmals verwendet
+
 ```
 
 Für das konsolidierte Data Frame werden die Spalten neu angeordnet.
 ```{r}
 #dieser Code verwenden, um das df_cons zu erstellen
 df_mod <- df_mod %>%
-  relocate(starts_with("account")) %>% 
-  relocate(starts_with("owner."), .after = last_col()) %>%
-  relocate(starts_with("user."), .after = last_col()) %>%
+  relocate(starts_with("account_")) %>% 
+  relocate(starts_with("owner_"), .after = last_col()) %>%
+  relocate(starts_with("user_"), .after = last_col()) %>%
   relocate(contains("id"), .after = last_col()) %>% 
-  relocate(account.id)
+  relocate(account_id)
 
 glimpse(df_mod)
 
 ```
+# B. Erste Analysen
 
-```{r}
-#für die Transaktionen nur 1 Account pro Zeile. Wenn mehrere Benutzer auf einem Account: Group by account id und count. Dann die Anzahl als neue Spalte beim Account anfügen mit mutate. Wenn nötig über Hilfs df und dann mittels Account id und %in% einfügen. 
-#Kontostand auf jeweils Ende Monat
-#Summe pro Monat wie viel rein kommt / raus geht
-#Quartalsbezeichnung
-#Können bereits vorhandene Produkte der Bank bezeichnet werden? Wenn JA, Spalte mit Produkten erstellen (z.B. Kunde hat Kreditkarte JA/Nein -> credit card_holder)
-
-```
-
-### Sonderstellung: Bedeutung des Account Owner
+#### a. Sonderstellung: Bedeutung des Account Owner
 
 Wie wir bei der Datenbeschreibung bereits gelesen haben, enthält
 disposition_type die Information über die Rechte der Konten. Deshalb
-wurde  der Eintrag "disponent" in "user" geändert. Denn nur der
-"owner" hat die nötigen Berechtigungen, um Daueraufträge zu erteilen und
-Darlehen zu beantragen.
+wurde  der Eintrag beim Aufbereiten des df_disposition von "disponent" in "user" geändert. Denn nur der "owner" hat die nötigen Berechtigungen, um Daueraufträge zu erteilen und
+Darlehen zu beantragen. So wird die Auswertung übersichtlicher.
 
-```{r}
-
-```
-
-
-### Auf Duplikate überprüfen
-
+#### b. Auf Duplikate überprüfen
 ```{r}
 n_distinct(df_mod)
+
 ```
 Es sind keine Duplikate vorhanden.
 
-#### Data Frame "transaction"
+# C. Data Frame "transaction"
 
-Übersicht über die Tabelle
+Das Data Frame Transaction wird vorerst separat aufbereitet und ersten Analysen unterzogen. Aus den folgenden Analysen werden neue Spalten generiert, welche dann in einem weiteren Schritt in den konsolidierten Datensatz df_cons übernommen werden können. 
+Auch wird während den Analysen entschieden, ob zusätzlich zum konsolidierten Datensatz noch ein Datensatz mit Transaktionsdaten bestehen bleibt, oder ob alles in df_cons zusammengeführt wird.
+
+Übersicht über die Tabelle df_transaction.
 ```{r}
 glimpse(df_transaction)
 
 ```
-Typen ändern von Character in Factors.
+#### Dateitypen anpassen
+
+Characters in Faktoren ändern.
 ```{r}
 df_transaction_mod <- df_transaction %>% 
   mutate(across(where(is.character), as.factor))
 
 summary(df_transaction_mod)
+rm(df_transaction)
 
 ```
-Spalten umbenennen:
+#### Spalten umbenennen
+
 - bank wird zu bank_name
 - account wird zu account_nr
 - type wird zu cashflow
@@ -899,20 +925,25 @@ df_transaction_mod <- df_transaction_mod %>%
     account_nr = account,
     cashflow = type
   )
+
 ```
 
-#### Untersuchen der NA's
+#### a. Untersuchen der NA's
 
 Als erstes beginnen wir mit der neu benannten Spalte cashflow
 ```{r}
 df_transaction_mod %>% 
   filter(is.na(cashflow)) %>% 
   summary()
+
 ```
+
 Die NA's in "cashflow" und "characterization" sind Geldausgänge und können deshalb als Werte in die beiden Spalten imputiert werden. Bei der Spalte "bank_name" fällt auf, dass die Werte leer sind. Deshalb wird dort mit NA's ergänzt.
 Es könnte sich bei diesen Geldbezügen um Bezüge an den Automaten handeln. Dies kann aber erst überprüft werden, wenn diese Informationen mit den Beobachtungen aus der Tabelle mit den Kreditkarten-Informationen abgeglichen werden kann.
 Diese Analyse kann zu einem späteren Zeitpunkt vorgenommen werden.
 
+#### b. Imputieren
+##### Code fertig schreiben
 ```{r}
 #Liste für die gezielte Imputation in "characterization" mit "CASH WIDTHDRAWAL"
 list_na_characterization_for_cashwidthrawal <- df_transaction_mod %>% 
@@ -920,10 +951,18 @@ list_na_characterization_for_cashwidthrawal <- df_transaction_mod %>%
   select(trans_id)
 
 list_transid_for_imputation <- as.list(list_na_characterization_for_cashwidthrawal)
+
+# der Code muss hier noch geschrieben werden. Dazu %in% verwenden.
+
+# das Imputieren der Werte in characterization geschieht mit %in% dazu muss der Code noch gefunden werden. Ist für den Moment nicht so dringend. Für dieses Imputieren wurde die Liste list_na_characterization_for_cashwidthrawal erstellt -> mit %in%
+
+n_row_na <- nrow(list_na_characterization_for_cashwidthrawal)
+  
 ```
 
+#### Cashflow mit "IN" und "OUT" mutieren
 
-#### Imputieren
+Nebst dem Mutieren werden die NA's mit "OUT" imputiert. Dies geht aus der vorgängigen Analyse hervor.
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
   mutate(cashflow = case_when(cashflow == "WITHDRAWAL" ~ "OUT",
@@ -931,13 +970,20 @@ df_transaction_mod <- df_transaction_mod %>%
                               TRUE ~ "OUT")) %>%
   mutate(across(where(is.character), as.factor))
 
-# das Imputieren der Werte in characterization geschieht mit %in% dazu muss der Code noch gefunden werden. Ist für den Moment nicht so dringend. Für dieses Imputieren wurde die Liste list_na_characterization_for_cashwidthrawal erstellt
+head(df_transaction_mod)
 
-n_row_na <- nrow(list_na_characterization_for_cashwidthrawal)
-  
 ```
 
-#### Bilanz Ende Jahr
+```{r}
+rm(list_na_characterization_for_cashwidthrawal, list_transid_for_imputation)
+```
+
+
+### c. Bilanz Ende Jahr
+
+#### Erstellen zusätzlicher Spalten "year" und "month"
+
+Im Data Frame "df_transaction_mod" werden zwei zusätzliche Spalten für das Jahr der Transaktion sowie für den Monat erstellt.
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
   mutate(
@@ -945,6 +991,11 @@ df_transaction_mod <- df_transaction_mod %>%
     month = month(date)
   )
 
+head(df_transaction_mod)
+
+```
+#### durchschnittliche Bilanz
+```{r}
 years_avg <- df_transaction_mod %>% 
   group_by(
     account_id,
@@ -953,7 +1004,8 @@ years_avg <- df_transaction_mod %>%
   ) %>% 
   summarise(amount_mean = mean(amount)) %>% 
   pivot_wider(names_from = cashflow, values_from = amount_mean) %>% 
-  mutate(balance_sheet = IN - OUT) 
+  mutate(balance_sheet = IN - OUT) %>% 
+  ungroup()
 
 balance_sheet <- years_avg %>% 
     select(
@@ -969,36 +1021,9 @@ if (!grepl("balance_sheet_end_of.", names(balance_sheet)[2])) {
 names(balance_sheet) <- paste0("balance_sheet_end_of.", names(balance_sheet))
 }
 
-```
+head(years_avg)
+head(balance_sheet)
 
-#### Kontostand Ende Monat
-
-Als erstes werden die Kontostände per Ende jeden Monats berechnet. Dazu müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da ja bei diesen Kontoständen sowie Geldein- und ausgängen 0 CZK vorhanden sind.
-```{r}
-transaction_cashflow_per_month_and_year_total <- df_transaction_mod %>%
-  group_by(
-    year,
-    month,
-    account_id,
-    cashflow,
-    ) %>%
-  arrange(year, month) %>%
-  summarise(amount_total = sum(amount)) %>%
-  pivot_wider(names_from = cashflow, values_from = amount_total) %>% 
-  mutate(IN = replace_na(IN, 0)) %>% 
-  mutate(OUT = replace_na(OUT, 0)) %>% 
-  mutate(balance = IN - OUT) 
-
-balance_per_month_total <- transaction_cashflow_per_month_and_year_total %>% 
-  select(
-    account_id,
-    year,
-    month,
-    balance
-  ) %>% 
-  pivot_wider(names_from = c(year,month), values_from = balance)
-
-# summary(transaction_cashflow_per_month_and_year_total)
 ```
 Für die Analysen werden noch die jeweiligen mittleren Werte der Kontostände benötigt. Dazu wird ein zusätzliches Data Frame mit den Mittelwerten erstellt.
 ```{r}
@@ -1024,9 +1049,397 @@ balance_per_month_mean <- transaction_cashflow_per_month_and_year_mean %>%
     balance
   ) %>% 
   pivot_wider(names_from = c(year,month), values_from = balance)
+
+head(transaction_cashflow_per_month_and_year_mean)
+head(balance_per_month_mean)
+
+```
+
+#### *wichtige Erkenntnis*
+Eine Überprüfung der Werte hat ergeben, dass dies so nicht gerechnet werden Kann. Es entstehen dabei Rechnungsfehler, da zum Beispiel bei einem Eingang mit meheren Werten der Durchschnitt berechnet wird und wenn dann ein Ausgang mit nur einem Wert vorhanden ist, dieser abgezogen wird, stimmt das Verhältnis der Beträge nicht mehr. Daher wird nur die Berechnung mit den totalen verwendet und damit weiter gearbeitet!
+
+#### Balance Data Frames entfernen
+```{r}
+rm(balance_per_month_mean, balance_per_month_total_lag, balance_sheet_per_years_total, transaction_cashflow_per_month_and_year_mean, transaction_cashflow_per_month_and_year_total)
+
 ```
 
 
+#### C.1. Kontostand Ende Monat
+
+Als erstes werden die Kontostände per Ende jeden Monats berechnet. Dazu müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da ja bei diesen Kontoständen sowie Geldein-/ausgängen 0 CZK vorhanden sind.
+```{r}
+transaction_cashflow_per_month_and_year_total <- df_transaction_mod %>%
+  group_by(
+    year,
+    month,
+    account_id,
+    cashflow,
+    ) %>%
+  arrange(year, month) %>%
+  summarise(amount_total = sum(amount)) %>%
+  pivot_wider(names_from = cashflow, values_from = amount_total) %>%
+  mutate(IN = replace_na(IN, 0)) %>%
+  mutate(OUT = replace_na(OUT, 0)) %>%
+  mutate(balance_sheet = IN - OUT) %>% 
+  ungroup()
+
+head(transaction_cashflow_per_month_and_year_total)
+
+```
+Versuch, eine Funktion für die Berechnung der monatlichen Kontständen zu schreiben.
+```{r}
+# balancefunc <- function()
+#   
+#   if (!grepl("incomes_avg_per.", names(incomes_avg_per_year)[2])) {
+# names(incomes_avg_per_year) <- paste0("incomes_avg_per.", names(incomes_avg_per_year))
+#   }
+
+```
+##### lead und lag
+
+weiterer Versuch mit lead() und lag() den Kontostand Ende Monat auszurechnen:
+```{r}
+balance_per_month_total_lead <- transaction_cashflow_per_month_and_year_total %>% 
+  arrange(account_id) %>% 
+  mutate(account_id_lead = dplyr::lead(account_id)) %>% 
+  mutate(account_id_lead = replace_na(account_id_lead, 0)) %>% 
+  mutate(balance_lead = dplyr::lead(balance_sheet)) %>% 
+  mutate(balance_lead = replace_na(balance_lead, 0)) %>%
+  mutate(balance_per_month = ifelse(c(account_id == account_id_lead), balance_sheet + balance_lead, balance_sheet)) %>% 
+  relocate(account_id_lead)
+  
+
+balance_per_month_total_lag <- transaction_cashflow_per_month_and_year_total %>% 
+  arrange(account_id) %>% 
+  mutate(account_id_lag = dplyr::lag(account_id)) %>% 
+  mutate(account_id_lag = replace_na(account_id_lag, 0)) %>% 
+  relocate(account_id_lag) %>% 
+  mutate(row_num = 1: nrow(.)) %>%
+  mutate(row_num_lag = dplyr::lag(row_num)) %>% 
+  mutate(balance_per_month = ifelse(c(account_id != account_id_lag), balance_sheet, 0)) %>%   mutate(balance_per_month = ifelse(c(account_id == account_id_lag), balance_per_month[row_num_lag] + balance_sheet, balance_per_month))
+
+# (balance_per_month[row_num - 1] + balance_sheet))) 
+
+#  mutate(balance_per_month = ifelse(c(is.na(balance_per_month)), (balance_per_month[row_num - 1] + balance_sheet), balance_per_month))
+  
+  # mutate(balance_per_month = ifelse(c(is.na(balance_per_month)), balance_per_month[row_num - 1] + balance_sheet, balance_per_month))
+                                    
+# balance_per_month[which(balance_per_month %in% c(balance_per_month))] , balance_per_month)) 
+
+# balance_per_month_total_lag %>% 
+#   group_by(account_id) %>% 
+#   slice_head(n = 1) %>% 
+#   summary()
+
+#   pivot_wider(names_from = c(year,month), values_from = balance)
+
+# summary(transaction_cashflow_per_month_and_year_total)
+
+head(balance_per_month_total_lead)
+head(balance_per_month_total_lag)
+
+```
+#### C.2. Suche nach einer anderen Möglichkeit für die monatlichen Kontoauszügen
+
+Im ursprünglichen Datensatz "df_transaction_mod" sind die Kontostände nach jeder Transaktion vorhanden. Es sollte möglich sein, anhand des letzten Datums herauszufinden, welches die letzte Transaktion war und somit welches der Kontostand Ende Monat ist. 
+Dazu wird ein Zufallsgenerator erstellt, um verschiedene Konten genauer zu untersuchen.
+```{r}
+#Zufallsnummer
+n = runif(1, min = 0, max = nrow(df_transaction_mod))
+
+df_transaction_mod %>% 
+  arrange(date) %>%
+  filter(
+    account_id == account_id[n],
+    year == 1995,
+    month == 3
+  ) 
+
+rm(n)
+
+```
+Es fällt auf, dass die letzte Transaktion immer der Betrag 14.6 ist. Es ist immer ein OUT. Diese Hypothese wird nun nochmals überprüft.
+
+```{r}
+df_transaction_mod %>% 
+  filter(
+    amount == 14.6
+  )
+  
+```
+##### Kontogebühren
+Es handelt sich hier vermutlich um Kontogebühren, welche als letzte Transaktion getätigt werden. Nun wird noch nach dem Wert "STATEMENT PAYMENT" gefiltert.
+```{r}
+df_transaction_mod %>% 
+  filter(
+    characterization == "STATEMENT PAYMENT"
+  ) %>% 
+  arrange(desc(amount))
+
+```
+Die Beträge sind nicht immer gleich hoch. Dies soll genauer untersucht werden. Damit die verschiedenen vorkommenden Beträge aufgelistet werden können, wird eine zusätzliche Spalte generiert, in der die Werte zu Faktoren umgewandelt werden. Anschliessend können die Levels angezeigt werden. Die Hypothese ist, dass die Höhe er Beträge Aussagen macht, ob es sich dabei um Privat- oder Geschäftskunden handelt.
+```{r}
+df_statement_payment_levels <- df_transaction_mod %>% 
+  filter(
+    characterization == "STATEMENT PAYMENT"
+  ) %>% 
+  mutate(amount_levels = as.factor(amount))
+
+levels(df_statement_payment_levels$amount_levels)
+
+```
+Es gibt gesamthahft 3 verschieden hohe Gebühren für die Konten: 14.60, 30, 100.
+
+Entfernen des df_statement_payment_levels
+```{r}
+rm(df_statement_payment_levels)
+
+```
+Bei einer späteren Analyse kann versucht werden, die Gebührenhöhe zu erklären.
+Dabei können folgende Fragen beantwortet werden:
+- Handelt es sich bei den Konten mit der Gebühr 100 um Geschäftskonten? 
+- Sind diese Konten in einer bestimmten Filiale oder einem bestimmten District? 
+- Wurden die Kontogebühren über die Jahre erhöht?
+
+Es wird nun aber weiter am Datensatz für die monatlichen Gebühren gearbeitet.
+Dafür muss überprüft werden, ob immer Ende Monat eine Kontogebühr abgebucht wurde.
+
+#### 2.a. Erstellen des Datensatzes für die monatlichen Kontostände
+statement_payment
+```{r}
+statement_payment <- df_transaction_mod %>% 
+  filter(
+    characterization == "STATEMENT PAYMENT"
+  ) %>% 
+  mutate(
+    statement_payment = date
+  ) %>% 
+  select(
+    trans_id,
+    statement_payment
+  )
+
+head(statement_payment)
+
+```
+balance_per_month
+```{r}
+balance_per_month <- df_transaction_mod %>% 
+  select(
+    trans_id
+  ) 
+
+balance_per_month <- left_join(balance_per_month, statement_payment, by = "trans_id")
+
+rm(statement_payment)
+head(balance_per_month)
+
+```
+
+Untersuchen eines zufälligen Accounts
+```{r}
+#Zufallsnummer
+n = runif(1, min = 0, max = nrow(df_transaction_mod))
+
+df_transaction_mod %>% 
+  filter(
+    account_id == account_id[n]
+  ) %>% 
+  arrange(date)
+
+rm(n)
+
+```
+Es gibt Monate, in denen keine Kontogebühren verrechnet wurden. Die Hypothese dazu ist, dass ein Neukunde die ersten drei Monate keine Gebühren zahlt. Dies soll überprüft werden.
+
+##### letzter Tag im Monat
+last_day_in_month
+```{r}
+last_day_in_month <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    year,
+    month
+  ) %>% 
+  mutate(last_day = max(date)) %>% 
+  ungroup()
+
+head(last_day_in_month)
+
+```
+```{r}
+last_day_in_month <- last_day_in_month %>% 
+  filter(
+    date == last_day
+  ) %>% 
+  arrange(
+    account_id,
+    date
+  )
+last_day_in_month
+
+```
+Bei der Kontoeröffnung ist der Amount gleich hoch wie die Balance. Diese Information kann in "characterization" imputiert werden.
+
+##### Kontoeröffnung
+account_opening
+```{r}
+
+account_opening <- df_transaction_mod %>% 
+  filter(
+    amount == balance,
+    cashflow == "IN"
+  ) %>% 
+  mutate(
+    account_opening = date
+  )
+
+head(account_opening)
+
+```
+
+Die Erkenntnisse aus den Kontoeröffnungen werden nun dem Data Frame "balance_per_month" angefügt.
+```{r}
+foo <- account_opening %>% 
+  select(
+    trans_id,
+    account_opening
+  )
+
+balance_per_month <- left_join(balance_per_month, foo, by = "trans_id")
+
+rm(foo)
+head(balance_per_month)
+
+```
+
+```{r}
+foo <- last_day_in_month %>% 
+  select(
+    trans_id,
+    last_day
+  )
+
+balance_per_month <- left_join(balance_per_month, foo, by = "trans_id")
+rm(foo)
+head(balance_per_month)
+
+```
+
+```{r}
+balance_per_month <- left_join(balance_per_month, df_transaction_mod, by = "trans_id")
+head(balance_per_month)
+
+```
+##### auf Duplikate überprüfen
+```{r}
+num <- balance_per_month %>% 
+  filter(
+    !is.na(last_day),
+    is.na(statement_payment),
+    is.na(account_opening)
+    ) %>% 
+  group_by(
+    account_id,
+    year,
+    month
+  ) %>% 
+  ungroup()
+
+nrow(num)
+n_distinct <- num %>% select(account_id, date) %>% n_distinct()
+n_distinct
+
+```
+Es gibt einige Daten, an denen mehrere Zahlungen am selben Tag erfolgten.
+
+#### 2.b. Einzelzahlungen am letzten Tag des Monats
+
+Alle Kontostände pro Monatsende mit nur einer Transaktion können entsprechend ergänzt werden.
+
+balance_per_month
+```{r}
+foo <- balance_per_month %>%
+  filter(
+    !is.na(last_day),
+    is.na(statement_payment),
+    is.na(account_opening)
+    ) %>%
+  group_by(
+    account_id,
+    year,
+    month
+  ) %>%
+  count() %>%
+  ungroup() %>%
+  filter(
+    n == 1
+  ) %>%
+  rename(is_unique = n)
+  
+balance_per_month <- left_join(balance_per_month, foo, by = c("account_id", "year", "month"))
+
+rm(foo)
+head(balance_per_month)
+
+```
+##### mehrere Transaktionen am selben Tag
+
+Nun werden alle Zeilen gekennzeichnet, welche mehrere Transaktionen am Ende des Monats haben und noch nicht zugeordnet werden konnten.
+```{r}
+foo <- balance_per_month %>%
+  filter(
+    !is.na(last_day),
+    is.na(statement_payment),
+    is.na(account_opening)
+    ) %>%
+  group_by(
+    account_id,
+    year,
+    month
+  ) %>%
+  count() %>%
+  ungroup() %>%
+  filter(
+    n > 1
+  ) %>%
+  rename(is_not_unique = n)
+  
+balance_per_month <- left_join(balance_per_month, foo, by = c("account_id", "year", "month"))
+
+rm(foo)
+head(balance_per_month)
+
+```
+
+```{r}
+balance_per_month %>% 
+  filter(
+    !is.na(is_not_unique),
+    !is.na(last_day),
+    is.na(statement_payment),
+    is.na(account_opening)
+  ) %>% 
+  arrange(
+    account_id,
+    date
+  ) %>% 
+  arrange(desc(is_not_unique))
+
+```
+Alle diese Versuche führen nicht zum Ziel.
+
+#### Entfernen der nicht mehr benötigten Tabellen
+```{r}
+rm(account_opening, balance_per_month, balance_per_month_total_lag, balance_per_month_total_lead, balance_sheet, last_day_in_month, num, years_avg, n_distinct, n_row_na, transaction_cashflow_per_month_and_year_total)
+
+```
+
+
+#### Weiterer Versuch, den Kontoendstand pro Monat zu eruieren. (Code von Aaron)
+
+Dazu wird der jeweilige Kontoendstand des Vormonats genommen und von diesem alle Geldein- sowie Ausgänge dazu gerechnet beziehungsweise abgezogen. 
 ```{r}
 
 transaction_cashflow_per_month_and_year <- df_transaction_mod %>%
@@ -1119,821 +1532,396 @@ transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year %>%
 
 # df_transaction_mod %>%
 #   filter(trans_id == 3530447)
-# 
+#
 # df_transaction_mod %>%
 #   filter(account_id == 1 & month == 1 & year == 1996) %>%
 #   arrange(desc(trans_id))
 
 summary(transaction_cashflow_per_month_and_year)
-```
-
-Neu erstellte Spalte mit den Bilanzen an das bestehende df_mod anfügen.
-```{r}
-df_mod <- left_join(df_mod, balance_sheet, by = c("account.id" = "balance_sheet_end_of.account_id"))
+# head(transaction_mod_balance_per_month)
 
 ```
 
-Die durchschnittlichen Einkommen und Ausgaben pro Account und Jahr
+
+#### Überprüfen, ob der die Überlegung so stimmt
+
+Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe ohne Lücken benötigt. Somit kann jederzeit auch den Kontostand am Ende jeden Tages ausgeben.
+Überprüfen, ob die Datumsangaben lückenlos sind.
 ```{r}
-incomes_avg_per_year <- years_avg %>% 
-  select(
-    account_id,
-    IN,
-    year
-  ) %>% 
-  pivot_wider(names_from = year, values_from = IN)
-
-if (!grepl("incomes_avg_per.", names(incomes_avg_per_year)[2])) {
-names(incomes_avg_per_year) <- paste0("incomes_avg_per.", names(incomes_avg_per_year))
-}
-
-outgoes_avg_per_year <- years_avg %>% 
-  select(
-    account_id,
-    OUT,
-    year
-  ) %>% 
-  pivot_wider(names_from = year, values_from = OUT)
-
-if (!grepl("outgoes_avg_per.", names(outgoes_avg_per_year)[2])) {
-names(outgoes_avg_per_year) <- paste0("outgoes_avg_per.", names(outgoes_avg_per_year))
-}
-
-```
-
-Anfügen der beiden neuen Spalten für die arithmetischen Mittel der Einkünfte und Geldrückzüge.
-```{r}
-df_mod <- left_join(df_mod, incomes_avg_per_year, by = c("account.id" = "incomes_avg_per.account_id"))
-
-df_mod <- left_join(df_mod, outgoes_avg_per_year, by = c("account.id" = "outgoes_avg_per.account_id"))
-
-rm(balance_sheet, incomes_avg_per_year, outgoes_avg_per_year, list_na_characterization_for_cashwidthrawal, df_transaction, years_avg)
-
-```
-
-Nun werden die Totalbeträge pro Jahr und und in einem weiteren Schritt pro Monat erstellt.
-
-```{r}
-years_total <- df_transaction_mod %>% 
-  group_by(
-    account_id,
-    cashflow,
-    year
-  ) %>% 
-  summarise(amount_total = sum(amount)) %>% 
-  pivot_wider(names_from = cashflow, values_from = amount_total) %>% 
-  mutate(balance_sheet = IN - OUT) 
-
-balance_sheet_per_years_total <- years_total %>% 
-    select(
-      account_id,
-      year,
-      balance_sheet
-    ) %>% 
-    arrange(year) %>% 
-    pivot_wider(names_from = year, values_from = balance_sheet) %>% 
-    arrange(account_id)
-  
-if (!grepl("balance_sheet_total.", names(balance_sheet_per_years_total)[2])) {
-names(balance_sheet_per_years_total) <- paste0("balance_sheet_total.", names(balance_sheet_per_years_total))
-}
-
-```
-
-Neu erstellte Spalte mit den Bilanzen an das bestehende df_mod anfügen.
-```{r}
-df_mod <- left_join(df_mod, balance_sheet_per_years_total, by = c("account.id" = "balance_sheet_total.account_id"))
-
-```
-
-Die durchschnittlichen Einkommen und Ausgaben pro Account und Jahr
-```{r}
-incomes_total_per_year <- years_total %>% 
-  select(
-    account_id,
-    IN,
-    year
-  ) %>% 
-  pivot_wider(names_from = year, values_from = IN)
-
-if (!grepl("incomes_total_per.", names(incomes_total_per_year)[2])) {
-names(incomes_total_per_year) <- paste0("incomes_total_per.", names(incomes_total_per_year))
-}
-
-outgoes_total_per_year <- years_total %>% 
-  select(
-    account_id,
-    OUT,
-    year
-  ) %>% 
-  pivot_wider(names_from = year, values_from = OUT)
-
-if (!grepl("outgoes_total_per.", names(outgoes_total_per_year)[2])) {
-names(outgoes_total_per_year) <- paste0("outgoes_total_per.", names(outgoes_total_per_year))
-}
-
-```
-
-Anfügen der beiden neuen Spalten für die arithmetischen Mittel der Einkünfte und Geldrückzüge.
-```{r}
-df_mod <- left_join(df_mod, incomes_total_per_year, by = c("account.id" = "incomes_total_per.account_id"))
-
-df_mod <- left_join(df_mod, outgoes_total_per_year, by = c("account.id" = "outgoes_total_per.account_id"))
-```
-
-Transaktionen werden vorerst nicht weiter behandelt. Falls während den folgenden Analysen zusätzliche Informationen aus der Tabelle "transactions" benötigt wird, können diese Daten zu einem späteren Zeitpunkt hinzugefügt werden.
-
-### **Erstellen des konsolidierten Data Frames**
-
-Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
-Folgende Spalten aus dem Data Frame "df_mod" werden nicht mehr benötigt:
-- 
-
-```{r}
-
-# df_cons <- df_mod %>% 
-#   select(-c(
-#     owner.client_id,
-#     owner.disp_id,
-#     user.client_id,
-#     user.disp_id,
-#     user.district_id,
-#     loan.id,
-#     card.id
-#       ))
-
-
-# rm(df_mod)
-```
-
-Übersicht über die Struktur des konsolidierten Datensatzes.
-
-```{r}
-glimpse(df_cons)
-```
-
-## 1. Datengrundlage
-
-Die uns zu Grunde liegenden Daten lassen sich als von der Bank sowie als
-exogen erhoben unterscheiden.
-
-### a. Wie können die Daten noch weiter gruppiert und angeordnet werden, um eine optimale Grundlage für die Analyse zu bilden? (Luca)
-
-```{r}
-
-```
-
-### b. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft dies für alle einzelnen Datensätze zu? (Luca)
-
-```{r}
-
-```
-
-### Zudem wird die Distribution der Datensätze und deren Qualität überprüft. (Luca)
-
-```{r}
-
-```
-
-### c. Die Datenattribute werden alle auf ihre Verteilung sowie ihre Veränderung über die Zeit analysiert. Dabei werden technische Mittel der explorativen Datenanalyse angewendet. (Luca)
-
-```{r}
-
-```
-
-#### i. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens analysiert. (Luca)
-
-```{r}
-
-```
-
-## 2. Korrelationsanalysen
-
-Nachdem die Datenattribute einzeln analysiert und geprüft wurden, sollen
-sie miteinander mittels Korrelationsanalysen betrachtet werden. Dabei
-sollten anfällige Zusammenhänge entdeckt werden.\
-Beispiele für Hypothesen, welche in der Analyse überprüft werden
-könnten, wären:
-
-### a. Für die einzelne Datenattribute:
-
-#### i. In welchem Monat oder Tag wird am meisten Geld abgehoben? (LBZ)
-
-Levels vom Attribut trans_operation ausgeben:
-
-```{r}
-levels(df_cons$trans_operation)
-```
-
-Es gibt zwei verschiedene Arten von Geldabbuchungen. Erstere ist die
-Geldabbuchung beziehungsweise Überweisung und die zweite die Abbuchung
-mittels Kreditkarte. Diese beiden Arten werden getrennt analysiert.
-
-```{r}
-
-levels(df_cons$trans_characterization)
-```
-
-```{r}
-levels(df_cons$trans_operation)
-```
-
-```{r}
-n_card <- df_cons %>% 
+df_transaction_mod %>% 
   filter(
-    trans_cashflow == "OUT",
-    trans_operation == "CREDIT CARD WITHDRAWAL"
-  ) %>% 
+    year == 1995,
+    account_id == 18
+    ) %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange() %>% 
   nrow()
 
-paste("Es wurden", n_card, "Kreditkatenbezüge getätigt.", sep = " ")
-
-rm(n_card, card_withdrawal)
-
 ```
+Am Beispiel des Accounts Nr. 18 ist klar zu erkennen, dass das Datum (mit dem dazugehörenden Kontostand) nur erfasst wurde, wenn auch eine Zahlung getätigt wurde.
 
-Der höchste Betrag, welcher mit der Kreditkarte bezogen wurde:
-
+Nun wird nochmals dieselbe Kontrolle mit dem Account Nr. 18 gemacht wie vor der Anreicherung und mit dem Code von Aaron verglichen.
 ```{r}
-df_cons %>% 
+# Überprüfen, ob der Code von Aaron stimmt:
+transaction_mod_balance_per_month %>% 
   filter(
-    trans_cashflow == "OUT",
-    trans_operation == "CASH WIDTHDRAWAL"
+    account_id == 18
   ) %>% 
   select(
-    trans_amount,
-    trans_date,
-    account_id
-  ) %>% 
-  top_n(1, trans_amount)
-```
-
-Für die weiteren Analysen wird eine zusätzliche Spalte für die Quartale
-eines Jahres benötigt. Dazu wird das Jahr in vier Quartale unterteilt.
-
-```{r}
-summary(df_cons$trans_month)
-```
-
-```{r}
-df_cons <- df_cons %>% 
-  mutate(
-    trans_quarter_year = case_when(
-      (month(trans_date) <= 3) ~ "1. QUARTER",
-      (month(trans_date) >= 4 & month(trans_date) <= 6) ~ "2. QUARTER",
-      (month(trans_date) >= 7 & month(trans_date) <= 9) ~ "3. QUARTER",
-      (month(trans_date) > 9) ~ "4. QUARTER"
-    ),
-    across(
-      where(is.character), 
-      as.factor
-       )
-  ) %>% 
-  relocate(trans_quarter_year, .after = trans_date)
-
-summary(df_cons$trans_quarter_year)
-```
-
-```{r}
-df_cons %>% 
-  filter(
-    # trans_cashflow == "OUT",
-    trans_operation == "CREDIT CARD WITHDRAWAL"
-    # year(trans_date) == 1995,
-    # trans_quarter_year == "1. QUARTER"
-    ) %>% 
-  ggplot(aes(
-    x = account_id,
-    y = trans_amount
+    balance_1993_5,
+    balance_1993_6,
+    balance_1993_7,
+    balance_1993_11,
+    balance_1993_12
   )
-  # , fill = district_name
-  ) +
-  geom_jitter(
-    alpha = 1,
-    width = 30,
-    shape = 3,
-    color = "white"
-  ) +
-  labs(
-    title = "Credit Card Withdrawal", 
-    subtitle = "Withdrawals in 1995, 1st Quarter",
-    x = "Account ID",
-    y = "Amount [CZK]"
-  ) +
-  theme_dark()
+
+df_transaction_mod %>% 
+  filter(
+    account_id == 18
+  ) %>% 
+  arrange(date)
+
+```
+Die Überlegung beim Code von Aaron ist falsch. 
+Zum Beispiel weist der Account 18 bei Aarons Code am 1993-07-25 einen Saldo von 2600 auf aber im ursprünglichen Datensatz hat der Account zu diesem Zeitpunkt einen Saldo von 17200.0
+
+
+#### Entfernen der nicht mehr benötigten Tabellen
+```{r}
+rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month)
 ```
 
-Die meisten Kreditkartenbezüge sind unter 4000 CZK. Die
-Kreditkartenbezüge über 4000 CZK werden in den nächsten Analysen genauer
-untersucht.
 
-Welche Accounts weisen die höchsten Bezüge an welchen Daten auf?
+## C.3. Letzter Kontostand am Ende des Tages
+
+Dazu werden zwei Data Frames erstellt. Eines, so wie es in den Daten bereits vorhanden ist und das zweite mit gerechneten Kontoständen, um die Reihenfolge zu eruieren. Im gleichen Zug werden noch Spalten für Soll ("debit") und Haben ("credit") erstellt.
 
 ```{r}
-df_cons %>% 
+#Erstellen der neuen Spalten debit und credit
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(debit = if_else(cashflow == "OUT", amount, 0)) %>% 
+  mutate(credit = if_else(cashflow == "IN", amount, 0))
+head(df_transaction_mod)
+
+```
+##### 3.a. Test am Account 1274
+
+Der Account 1274 weist am 1998-11-30 sieben Zahlungen auf. Nun soll mittels Code die letzte Zahlung eruiert werden und somit auch der Kontostand am Ende des Tages.
+```{r}
+account1274 <- df_transaction_mod %>% 
   filter(
-    trans_operation == "CREDIT CARD WITHDRAWAL"
+    account_id == 1274,
+    date == "1998-11-30"
   ) %>% 
+  arrange(date)
+account1274
+
+```
+Um einen Kontrollwert zu erhalten, werden die Kontobewegungen von Hand ausgerechnet. Somit dient das Ergebnis als Referenzwert für die spätere Codekontrolle.
+```{r}
+account1274_helper <- account1274 %>% 
+  mutate(balance_helper = if_else(cashflow == "IN", balance - amount, balance + amount)) %>% 
   select(
-    trans_amount,
-    trans_date, 
-    account_id
+    trans_id,
+    account_id,
+    date,
+    debit,
+    credit,
+    balance_helper
   ) %>% 
-  arrange(
-    desc(trans_amount)
+  rename(balance = balance_helper) %>% 
+  arrange(balance)
+
+account1274_first <- account1274 %>% 
+  select(
+    trans_id,
+    account_id,
+    date,
+    debit,
+    credit,
+    balance
   ) %>% 
-  top_n(1, trans_amount)
+  arrange(balance)
+
+account1274_first
+account1274_helper
+
 ```
 
-7 mal wurde in den Jahren '97 und '98 von versichiedenen Konten 8000
-bezogen. Auffallend ist, dass der Account mit der Nummer 3654 drei mal
-erscheint. Es stellt sich die Frage, ob am selben Datum mehrmals mit der
-Kreditkarte vom selben Konto Geld abgehoben wurde. Dies soll nun
-überprüft werden.
+Die letzte Transaktion an diesem Tag ist die Transaktions ID 374342 mit einer Abbuchung von 30 CZK und dem Kontoendstand von 94088.0 CZK. 
+Dies wird nun versucht mittels Code zu erreichen. 
 
 ```{r}
-df_cons %>% 
-  filter(
-    trans_operation == "CREDIT CARD WITHDRAWAL"
-  ) %>% 
+
+account1274_first %>% 
+  anti_join(account1274_helper, by = c("account_id", "date", "balance"))
+
+```
+Somit sollte der Code funktionieren. Er kann nun auf das gesamte Data Frame df_trans_mod angewendet werden.
+
+##### Entfernen der nicht mehr benötigeten Tabellen
+```{r}
+rm(account1274, account1274_first, account1274_helper)
+```
+
+
+
+#### 3.b. Überblick über die Anzahl Transaktionen am selben Tag über alle Observationen
+```{r}
+df_transaction_mod %>%
   group_by(
-    trans_date,
-    account_id
-  ) %>% 
-  count() %>% 
-  arrange(desc(n))
+    account_id,
+    date
+    ) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  ungroup()
+
 ```
 
+
+#### 3.c. Erstellen der Hilfstabellen
+
+Es werden zwei Hilfstabellen erstellt. Die erste Tabelle ist ein Data Frame mit allen Spalten des df_transaction_mod. Die zweite Tabelle wird mit der jeweiligen Account-id, dem Transaktionsdatum und dem ausgerechneten Kontostand vor der Transaktion erstellt.
 ```{r}
-df_cons %>% 
+
+end_of_day_first <- df_transaction_mod %>% 
+  mutate(balance_per_month = round(balance)) %>% 
+  mutate(across(c("account_id", "date", "balance"), as.character))
+
+end_of_day_helper <- df_transaction_mod %>%
+  mutate(balance_per_month = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
+  mutate(across(c("account_id", "date", "balance"), as.character))
+
+  
+head(end_of_day_first)
+head(end_of_day_helper)
+```
+#### 3.d. Funktion anti_join()
+Nun können die beiden Hilfstabellen verglichen werden. Der jeweilige Betrag im Data Frame end_of_day_first welcher nicht auch im end_of_day_helper vorkommt, ist der Monatsendstand.
+Dies wird mit der Funkton anti_join gebildet.
+```{r}
+balance_end_of_day <- end_of_day_first %>%
+  anti_join(end_of_day_helper, by = c("account_id", "date", "balance"))
+```
+
+
+##### 3.e. Überprüfung
+Für die erste Kontrolle werden wiederum die Account_id und das Datum gruppiert und gezählt, wieviele Transaktionen pro Tag in der Tabelle enthalten sind.
+```{r}
+balance_end_of_day %>%
+  group_by(
+    account_id,
+    date
+    ) %>%
+  count() %>%
+  arrange(desc(n)) %>% 
+  ungroup()
+```
+Es sind immer noch mehrere Transaktionen pro Tag vorhanden. Dies wird genauer untersucht.
+Dazu werden die Observationen in den verschiedenen Tabellen verglichen.
+
+```{r}
+end_of_day_first %>%
   filter(
-    trans_date == "1998-01-25",
-    account_id == 96
+    date == "1998-11-30",
+    account_id == 9814
   )
 ```
 
-Es fällt auf, dass bei einigen Kreditkartenbezügen ein
-order_payment_type angegeben ist. Zudem wurden die Bezüge dem
-Account-Owner und dem User zugeordnet. Da bei den zugrunde liegenden
-Daten nur das Transaktionsdatum ohne die Transaktionszeit vorliegt,
-können wir nicht abschliessend beurteilen, ob es sich hier um doppelte
-Erfassung oder tatsächlich getätigte Bezüge handelt. Wir gehen davon
-aus, dass es sich um Doppelerfassungen handelt. Um dies zu verifizieren
-muss geschaut werden, ob der User mehr Bezüge aufweist als der Owner.
 
 ```{r}
-df_cons %>% 
+end_of_day_helper %>%
   filter(
-    trans_cashflow == "OUT"
-  ) %>% 
-  ggplot(aes(
-    x = trans_amount
-    , fill = disp_type
-  )) +
-  geom_histogram(
-    position = "dodge"
-    # , bins = 100
-  ) +
-  labs(
-    title = "Cash outgoes", 
-    subtitle = "Comparison between Account Owner and User",
-    x = "Amount [CZK]",
-    y = "Number of Transactions",
-    fill = "Disposition type"
-  ) + 
-  scale_y_log10() +
-  theme_light() 
+    date == "1998-11-30",
+    account_id == 9814
+  )
 ```
 
-Diese Analyse bestätigt die Vermutung, dass es sich bei den Werten um
-Doppelerfassungen handelt. Deshalb werden die User für die nächsten
-Analysen ausgeschlossen.
-
 ```{r}
-df_cons %>% 
+balance_end_of_day %>%
   filter(
-    trans_operation == "CREDIT CARD WITHDRAWAL",
-    disp_type == "OWNER",
-    # !is.na(card_type),
-    order_payment_type == "UNKNOWN"
-  ) %>% 
-  group_by(
-    trans_date,
-    card_id
-  ) %>% 
-  # summarise(amount_max = max(trans_amount)) %>% 
-  # arrange(desc(amount_max))
-  summarise(amount_avg = mean(trans_amount)) %>% 
-  arrange(desc(amount_avg)) %>% 
-  head()
+    date == "1998-11-30",
+    account_id == 9814
+  )
 ```
 
-Kreditkartenbezüge über 4000 CZK.
+```{r}
+A <- end_of_day_first %>%
+  filter(
+    date == "1998-11-30",
+    account_id == 9814
+  ) %>%
+  select(account_id, date, balance)
+
+B <- end_of_day_helper %>%
+  filter(
+    date == "1998-11-30",
+    account_id == 9814
+  ) %>%
+  select(account_id, date, balance)
+
+C <- balance_end_of_day %>%
+  filter(
+    date == "1998-11-30",
+    account_id == 9814
+  ) %>%
+  select(account_id, date, balance)
+
+```
+
 
 ```{r}
-df_cons %>% 
+anti_join(A, B, by = c("balance"))
+```
+```{r}
+glimpse(A)
+```
+```{r}
+glimpse(B)
+```
+```{r}
+anti_join(A, B, by = 'balance')
+```
+```{r}
+rm(A,B,C)
+```
+
+```{r}
+df1 <- data.frame(team=c('C', 'D', 'E','A', 'B'),
+                  points=c(21501.9, 14, 19, 24, 21487.3))
+
+df2 <- data.frame(team=c('A', 'B', 'C', 'F', 'G'),
+                  points=c(12, 14, 21402.7, 33, 21501.9))
+
+anti_join(df1, df2, by='points')
+```
+
+```{r}
+rm(df1,df2)
+```
+
+
+##### Kontrolle mit Account 1274
+
+
+```{r}
+balance_end_of_day %>%
   filter(
-    trans_operation == "CREDIT CARD WITHDRAWAL",
-    disp_type == "OWNER",
-    trans_amount > 4000
-  ) %>% 
-  ggplot(
-    aes(
-      x = trans_date,
-      y = trans_amount,
-      color = order_payment_type,
-      fill = order_payment_type
+      account_id == 1274,
+      date == "1998-11-30"
     )
-  ) + 
-  geom_point(
-    show.legend = FALSE
-  ) +
-  facet_wrap(vars(order_payment_type)) +
-             # scales = "free_x") +
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5),
-    axis.line = element_line(color = "white")
-  ) +
-  labs(
-    title = "Credit Card withdrawals",
-    subtitle = "all over 4'000 CZK",
-    x = "Transaction Date",
-    y = "Amount [CZK]"
-  )
-             
 ```
 
-Vermutlich können viele Kreditkartenbezüge über 4000 CZK nicht am
-Automaten getätigt, sondern müssen am Schalter unter Angabe für den
-Verwendungszweck abgehoben werden.
+#### Anreichern der fehlenden Daten in den Attributen "Date" und "Balance"
 
-Hypothese: Um die Feiertage (Weihnachten und Ostern) wird mehr Geld mit
-der Kreditkarte bezogen. Dazu werden nur die Bezüge "UNKONWN" und "NA"
-aus order_payment_type angeschaut.
-
+Nach den eben gewonnenen Erkenntnissen werden nun das Datum und der Kontostand an den fehlenden Tagen ergänzt.
 ```{r}
-#Korrelation Kreditkartenbezüge Unknown oder NA und Monate
-
-df_cons %>% 
-  filter(
-    order_payment_type == "UNKONWN" 
-    | is.na(order_payment_type),
-   trans_operation == "CREDIT CARD WITHDRAWAL",
-   disp_type == "OWNER"
-  ) %>% 
-  group_by(
-    year = year(trans_date),
-    month = month(trans_date),
-    account_id
-  ) %>% 
-  summarise(amount_avg = round(mean(trans_amount))) %>% 
-  arrange(desc(amount_avg))
-
-```
-
-```{r}
-#nach unikaten Transaction ID filtern
-df_cons %>% 
-  # distinct(trans_id) %>% 
-  filter(
-    order_payment_type == "UNKONWN" 
-    | is.na(order_payment_type),
-   trans_operation == "CREDIT CARD WITHDRAWAL",
-   # disp_type == "OWNER"
-   # trans_id == unique(trans_id)
-  ) %>% 
-  group_by(
-    year = year(trans_date),
-    month = month(trans_date),
-    account_id
-  ) %>% 
-  mutate(amount_avg = round(mean(trans_amount))) %>%
-  ggplot(aes(
-    x = month,
-    y = amount_avg,
-    # fill = trans_date
-    )) +
-  geom_point() +
-  # geom_boxplot() +
-  facet_wrap(vars(year))
-
-
-```
-
-### Cluster Kreditkartenbezüge
-
-```{r}
-#Clustering mit Jahresumsatz, user und owner, Art der Verbuchung (wofür wurde das Geld gebraucht), District.
-#Korrelation zwischen Kreditkartenbezügen über 4000 und den Geldeingängen
-
-dist_credit_card <- df_cons %>% 
-  select(
-    trans_id,
-    trans_amount,
-    trans_date, 
-    trans_operation,
-    trans_cashflow
-  ) %>% 
-  drop_na() %>%
-  distinct() %>%
-  mutate_if(is.numeric, .funs = funs(scale)) %>%
-  head() %>%
-  dist()
-
-glimpse(dist_credit_card)
-  
-hc_credit_card <- hclust(dist_credit_card, method = "complete")
-
-dend_credit_card <- as.dendrogram(hc_credit_card) 
-
-
-plot(dend_credit_card)
-```
-
-```{r}
-set.seed(42)
-
-df_cons %>% 
-  select(
-    trans_id,
-    trans_amount,
-    trans_date, 
-    trans_operation,
-    trans_cashflow
-  ) %>% 
-  drop_na() %>%
-  distinct(trans_id) %>%
-  scale -> credit_card_cluster
-
-
-
-kmeans_credit_card_2 <- kmeans(credit_card_cluster, centers = 2, nstart = 10)
-kmeans_credit_card_3 <- kmeans(credit_card_cluster, centers = 3, nstart = 10)
-kmeans_credit_card_4 <- kmeans(credit_card_cluster, centers = 4, nstart = 10)
-kmeans_credit_card_5 <- kmeans(credit_card_cluster, centers = 5, nstart = 10)
-kmeans_credit_card_6 <- kmeans(credit_card_cluster, centers = 6, nstart = 10)  
-
-
-streuung_innerhalb <- c(kmeans_credit_card_2$tot.withinss,
-kmeans_credit_card_3$tot.withinss,
-kmeans_credit_card_4$tot.withinss,
-kmeans_credit_card_5$tot.withinss,
-kmeans_credit_card_6$tot.withinss)
-
-streuung_df <- data_frame(
-streuung_innerhalb,
-anzahl_cluster = 2:6
-)
-
-ggplot(streuung_df) +
-aes(x = anzahl_cluster,
-y = streuung_innerhalb) +
-geom_col() +
-geom_line()
-```
-
-#### ii. Zu welchem Zeitpunkt wird am meisten Geld überwiesen? (LBZ)
-
-```{r}
-
-```
-
-#### iii. Welche Datenattribute beschreiben den Kundenstamm und wie können Kundengruppen definiert werden? (LBZ)
-
-```{r}
-
-```
-
-#### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus? (Christian)
-
-```{r}
-#Muss noch angepasst werden. Inputdaten fehlerhaft. 
-
-#Filter that every Account only occurs once
-df_cons_temp <- df_cons %>%
-  group_by(account_date ) %>%
-  filter(row_number() == 1)
-
-ggplot(data = df_cons_temp, aes(x = account_date)) +
-  geom_histogram(binwidth = 15, fill = "#88B8AC") +
-  labs(title = "Opening of Account", subtitle = "subtitle") +
-  xlab("Year") +
-  ylab("Count") +
-  theme_light()
-
-
-rm(df_cons_temp)
-```
-
-#### iv. Wie sieht die Altersverteilung dieser Kunden aus und was kann daraus hergeleitet werden? (Christian)
-
-```{r}
-#Change dateofbirth of clients with lubridate and calculate age
-df_cons$current_age <- as.numeric(difftime(Sys.Date(), df_cons$dateofbirth, units = "weeks")) / 52.25
-#Schaltjahr berücksichtigen und Alter nicht über 100
-
-#Round Age to the next full Number
-df_cons$current_age <- floor(df_cons$current_age)
-
-#Relocate rows so new column "current_age" is next to dateofbirth
-df_cons <- df_cons %>%
-  relocate(current_age, .after = dateofbirth)
-
-
-#Create Barplot with distrbution of age 
-df_cons_temp <- df_cons %>%
-  group_by(account_id) %>%
-  filter(row_number() == 1)
-
-  ggplot(data = df_cons_temp, aes(current_age)) +
-  geom_bar(fill = "#88B8AC") +
-  labs(title = "Distribution of Customer Age", subtitle = "Male and Female combined") +
-  xlab("Age in Years") +
-  ylab("Count") +
-  theme_light()
-
-rm(df_cons_temp)
-
-```
-
-#### v. Neue Fragestellung (Aaron)
-
-```{r}
-
-```
-
-#### vi. Wie sieht die Verteilung von Kreditkartentypen auf die Population der Kreditkarten aus?
-
-```{r}
-
-df_cons_credit_card_by_type <- df_cons %>%
-  filter(!is.na(card_id)) %>%
-  group_by(card_id) %>%
-  mutate(card_type = card_type) %>%
-  mutate(count = sum(n())) %>%
-  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-  select(sex, count, frequency, card_type) %>% 
-  distinct()
-
-df_cons_credit_card_by_type
-
-ggplot(df_cons_credit_card_by_type, aes(fill = card_type, x = sex, y = count)) +
-  labs(title = "Distribution of Credit Card Type per Sex", subtitle = "The percentage displayed on the plot is the frequency of the type over the whole population.") +
-  geom_bar(position="fill", stat="identity") +
-  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-  xlab("Sex") +
-  ylab("Count") +
-  labs(fill = "Card Type", )
-  
-  
-```
-
-#### vii. Wie sieht die Verteilung der Typen von Dispositionen aus?
-
-```{r}
-
-
-df_cons_distribution_disposition_type <- df_cons %>%
-  filter(!is.na(disp_id)) %>%
-  group_by(disp_id) %>%
-  mutate(disp_type = disp_type) %>%
-  mutate(count = sum(n())) %>%
-  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-  select(sex, count, frequency, disp_type) %>% 
-  distinct()
-
-df_cons_distribution_disposition_type
-
-ggplot(df_cons_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
-  labs(title = "Distribution of disposition types", subtitle = "") +
-  geom_bar(position="fill", stat="identity") +
-  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-  xlab("Sex") +
-  ylab("Count") +
-  labs(fill = "Disposition Type")
-```
-
-#### viii. Was ist der am beliebtesten Modus einer Transaktion? (Aaron)
-
-```{r}
-df_cons_transaction_type_per_quarter <- df_cons %>%
-  filter(!is.na(trans_id)) %>%
-  group_by(trans_id) %>%
-  mutate(trans_characterization = trans_characterization) %>%
-  mutate(trans_quarter_year = trans_quarter_year) %>%
-  mutate(count = sum(n())) %>%
-  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-  select(trans_quarter_year, count, frequency, trans_characterization) %>% 
-  distinct()
-
-df_cons_transaction_type_per_quarter
-
-ggplot(df_cons_transaction_type_per_quarter, aes(fill = trans_characterization, x = trans_quarter_year, y = count)) +
-  labs(title = "Distribution of transaction types per quarters", subtitle = "") +
-  geom_bar(position="fill", stat="identity") +
-  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-  xlab("Quarter") +
-  ylab("Count") +
-  labs(fill = "Transaction Type")
-
-```
-
-#### ix. Aus welchen Gründen (Charakterisierung) werden Transaktion durchgeführt und wie sieht die Verteilung dieser aus? (Aaron)
-
-```{r}
-
-```
-
-#### x. In welchen Distrikten gibt es den höchsten Lohn? (Aaron)
-
-```{r}
-# df_cons_transaction_type_per_quarter <- df_cons %>%
-#   group_by(district_id) %>%
-#   mutate(average_salary = average_salary) %>%
-#   mutate(district = district_name)
+# balance_end_of_day <- balance_end_of_day %>%
+#   group_by(account_id) %>%
+#   complete(date = seq.Date(min(date), max(date), by = "day")) 
+# # %>%
+# #   fill(balance)
 # 
-# df_cons_transaction_type_per_quarter
+# balance_end_of_day %>% 
+#   filter(
+#       account_id == 1,
+#       date == "1995-08-31"
+#     )
+
+```
+
+#### Anfügen der Kontostände an das df_transaction_mod
+```{r}
+# balance_end_of_day_join <- balance_end_of_day %>% 
+#   select(
+#     trans_id,
+#     balance
+#   ) %>% 
+#   rename(balance_end_of_day = balance)
 # 
-# ggplot(df_cons_transaction_type_per_quarter, aes(x=average_salary, fill=district)) + 
-#   geom_bar( ) +
-#   xlab("District") +
-#   ylab("Average Salary") +
-#   labs(fill = "District Name")
+# df_transaction_mod <- left_join(df_transaction_mod, balance_end_of_day_join, by = "trans_id")
 
 ```
 
-#### xi. Können neue Sonderangebote/Pakete geschaffen werden für die am meist verdienenden Kunden? (Aaron)
+#### Entfernen der nicht mehr benötigten Tabellen
+```{r}
+# rm(balance_end_of_day, balance_end_of_day_join)
+```
 
 ```{r}
+# df_transaction_mod %>% 
+#   filter(
+#     account_id == 1,
+#     date == "1996-05-13"
+  # )
+```
+#### NA's in balance_end_of_day
+
+Die NA's in balance_end_of_day sind überall dort entstanden, wo es mehrere Zahlungen am selben Tag gibt und die Zahlung nicht die letzte war. Dies kann nun komplettiert werden zusammen mit dem Ergänzen der Tage. Somit wird ein lückenloser Ablauf der Kontobewegungen erreicht.
+
+#### Anreichern der fehlenden Daten in den Attributen "Date" und "Balance"
+
+Nach den eben gewonnenen Erkenntnissen werden nun das Datum und der Kontostand an den fehlenden Tagen ergänzt.
+```{r}
+# df_transaction_mod_complete <- df_transaction_mod %>% 
+#   group_by(account_id) %>% 
+#   complete(date = seq.Date(min(date), max(date), by = "day")) %>% 
+#   fill(balance_end_of_day,
+#        year,
+#        month)
+# 
+# head(df_transaction_mod_complete)
 
 ```
+```{r}
+# df_transaction_mod_complete %>% 
+#   filter(
+#     account_id == 1,
+#     date == "1996-05-13"
+#   )
+```
+Die Anreicherung der Daten nimmt jeweils den letzten Betrag und führt diesen weiter. Da die Reihenfolge aber so nicht mit den Transaktionen übereinstimmt, muss für das Anreichern jeweils das Datum und der Account gruppiert werden. 
+```{r}
+# df_transaction_mod_complete <- df_transaction_mod %>% 
+#   group_by(account_id) %>% 
+#   complete(date = seq.Date(min(date), max(date), by = "day")) %>% 
+#   ungroup() %>% 
+#   arrange(
+#     account_id,
+#     date
+#   )
+# 
+# head(df_transaction_mod_complete)
 
-### b. Für Korrelationen zwischen Datenattributen:
-
-#### i. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt werden und bei bereits laufenden Krediten können Massnahmen getroffen werden.
+```
 
 ```{r}
-
+# df_transaction_mod_complete <- df_transaction_mod_complete %>% 
+#   group_by(
+#     account_id,
+#     date
+#   ) %>% 
+#   fill(year,
+#        month,
+#        balance_end_of_day
+#        )
+# 
+# head(df_transaction_mod_complete)
 ```
-
-#### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
-
-```{r, warning = FALSE}
-#Make plot with count of different Payment methods ("trans_operation") over time
-df_cons %>%
-  ggplot(mapping = aes(x = trans_date, fill = trans_operation)) +
-  geom_histogram(binwidth = 5) +
-  facet_wrap(~ trans_operation, ncol = 2, scales = "free_y") +
-  labs(title = "Overwiev distribution of Transaction methods used from 1993 to 1999 ", subtitle = "Y-axis set independently", fill = "Method of Transaction" ) +
-  xlab("Years") +
-  ylab("Count") +
-   theme(legend.position = "none") +
-  scale_x_date(date_labels="%y",date_breaks ="1 year", date_minor_breaks = "1 month") +
-  theme(axis.text.x = element_text(size = 8, angle=90,vjust =0.2)) 
-
-```
-
-#### iii. Wie viele der Kunden verwenden eine Kreditkarte von den Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können Angebote für spezifische Kundengruppen erstellt werden?
 
 ```{r}
-
+# df_transaction_mod_complete %>% 
+#   filter(
+#     account_id == 1,
+#     date == "1996-05-13"
+#   )
 ```
 
-#### iv. Korrelationsanalyse zwischen den Bankdaten und den soziodemografischen Daten.
 
-### 1. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es diese Unterschiede? Was unterscheidet diese Distrikte?
 
-```{r}
 
-```
 
-### 2. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug zu den restlichen Einwohnern? Können durch diese Zahlen neue Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden führen?
 
-```{r}
 
-```
-
-### 3. Wie sieht die Entwicklung des Einkommens im Bezug zu den Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.
-
-```{r}
-
-```
-
-#### v. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu unterteilen?
-
-```{r}
-
-```
-
-#### vi. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer aus? Kann aus der Grafik ein Trend ausgelesen werden?
-
-```{r}
-
-```
-
-### 3. Welches Potenzial haben jegliche Datenobjekte und mit Hilfe welcher Mittel kann das beste Produkt daraus generiert werden? (Aaron) und jeder der noch kann....
-
-```{r}
-
-```
