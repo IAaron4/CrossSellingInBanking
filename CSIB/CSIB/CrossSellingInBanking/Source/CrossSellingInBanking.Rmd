@@ -1593,7 +1593,26 @@ rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month)
 ```
 
 
-## C.3. Letzter Kontostand am Ende des Tages
+## C.3. Kontostand am Ende des Tages
+
+### 3.a. Überblick über die Anzahl Transaktionen am selben Tag über alle Observationen
+
+Es werden nur die ersten 6 Zeilen mit den häufigsten Transaktionen am selben Tag ausgedruckt.
+```{r}
+df_transaction_mod %>%
+  group_by(
+    account_id,
+    date
+    ) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  ungroup() %>% 
+  head()
+
+```
+Es gibt mehrere Tage und unterschiedliche Konten, welche mehr als eine Transaktion pro Tag verzeichnet hat. Oft sind diese Tage am Ende eines Monats. Im vorliegenden Datensatz sind es maximal 7 Transaktionen pro Tag.
+Die Überlegung ist nun folgende: da es sich beim vorliegenden Datensatz bei der Balance um den Betrag nach der Transaktion handelt, kann in der Umkehr der Saldo vor der Transaktion ausgerechnet werden. Dieser ausgerechnete Saldo kann im Anschluss mit dem Saldo des bestehenden Datensatzes abgeglichen werden. Somit ist schnell klar, welche Transaktion die Letzte des Tage ist und welchen Saldo das Konto am Ende des Tages aufweist. 
+
 
 Dazu werden zwei Data Frames erstellt. Eines, so wie es in den Daten bereits vorhanden ist und das zweite mit gerechneten Kontoständen, um die Reihenfolge zu eruieren. Im gleichen Zug werden noch Spalten für Soll ("debit") und Haben ("credit") erstellt.
 
@@ -1665,20 +1684,285 @@ Somit sollte der Code funktionieren. Er kann nun auf das gesamte Data Frame df_t
 rm(account1274, account1274_first, account1274_helper)
 ```
 
+#### zweite Überprüfung mit dem Konto 7418	ohne Datumseinschränkung
 
-
-#### 3.b. Überblick über die Anzahl Transaktionen am selben Tag über alle Observationen
 ```{r}
-df_transaction_mod %>%
+# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) und Filtern des Accounts auf die Nr. 7418
+account7418	<- df_transaction_mod %>% 
+  mutate(balance_end_day = balance) %>% 
+  mutate(across(c(account_id, date, balance_end_day))) %>% 
+  filter(account_id == 7418) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des Hilfsdatensatzes mit den Saldi vor der Transaktion
+account7418_helper <- df_transaction_mod %>% 
+  filter(account_id == 7418) %>% 
+  mutate(balance_end_day = if_else(cashflow == "IN", balance - amount, balance + amount)) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
+account7418_balance_end_day <- account7418 %>% 
+  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
+
+# Zählen, wieviele Transkationen an einem Tag vorkommen
+account7418_balance_end_day %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  head()
+  
+```
+Aus noch unerklärlichen Gründen werden nicht alle Attribute so erkannt, dass das gewünschte Ergebnis eintritt. Es sind nach wie vor maximal 5 Transaktionen pro Tag vorhanden.
+
+Die Saldi weisen Nachkommastellen auf. Dies könnte eine mögliche Fehlerquelle sein. Deshalb wird der jeweilige Saldobetrag gerundet.
+```{r}
+# Entfernen der vorher generierten Datensätzen
+rm(account7418, account7418_balance_end_day, account7418_helper)
+
+# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag und Filtern des Accounts auf die Nr. 7418
+account7418	<- df_transaction_mod %>% 
+  mutate(balance_end_day = round(balance)) %>% 
+  filter(account_id == 7418) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion
+account7418_helper <- df_transaction_mod %>% 
+  filter(account_id == 7418) %>% 
+  mutate(balance_end_day = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
+account7418_balance_end_day <- account7418 %>% 
+  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
+
+# Zählen, wieviele Transkationen an einem Tag vorkommen
+account7418_balance_end_day %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  head()
+
+# write.csv(account7418, "..\\Test\\account7418.csv", row.names=FALSE)
+# write.csv(account7418_helper, "..\\Test\\account7418_helper.csv", row.names=FALSE)
+```
+Es gibt nach wie vor mehrfache Transaktionen am selben Tag. Nun nur noch maximal 2. 
+eine weitere Möglichkeit des Fehlers könnte im Datentyp liegen. Im vorliegenden Datensatz werden verschiedene Datentypen miteinander verglichen. Um diesen Umstand zu eliminieren werden alle Spalten für den Vergleich im Datentyp aneinander angepasst. Hierzu bietet sich der Typ character an.
+```{r}
+# Entfernen der vorher generierten Datensätzen
+rm(account7418, account7418_balance_end_day, account7418_helper)
+
+# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag, Typenkonvertierung in character und Filtern des Accounts auf die Nr. 7418
+account7418	<- df_transaction_mod %>% 
+  mutate(balance_end_day = round(balance)) %>% 
+  mutate(across(c(account_id, date, balance_end_day), as.character)) %>% 
+  filter(account_id == 7418) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion und Typenkonvertierung in character.
+account7418_helper <- df_transaction_mod %>% 
+  filter(account_id == 7418) %>% 
+  mutate(balance_end_day = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
+  mutate(across(c(account_id, date, balance_end_day), as.character)) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
+account7418_balance_end_day <- account7418 %>% 
+  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
+
+# Zählen, wieviele Transkationen an einem Tag vorkommen
+account7418_balance_end_day %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  head()
+
+```
+Die Typenkonvertierung in character hat keine Effekt gebracht.
+
+Nun wird versucht, mit dem Datentyp factor das Ziel zu erreichen.
+```{r}
+# Entfernen der vorher generierten Datensätzen
+rm(account7418, account7418_balance_end_day, account7418_helper)
+
+# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag, Typenkonvertierung in factor und Filtern des Accounts auf die Nr. 7418
+account7418	<- df_transaction_mod %>% 
+  mutate(balance_end_day = round(balance)) %>% 
+  mutate(across(c(account_id, date, balance_end_day), as.factor)) %>% 
+  filter(account_id == 7418) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion und Typenkonvertierung in factor.
+account7418_helper <- df_transaction_mod %>% 
+  filter(account_id == 7418) %>% 
+  mutate(balance_end_day = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
+  mutate(across(c(account_id, date, balance_end_day), as.factor)) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
+account7418_balance_end_day <- account7418 %>% 
+  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
+
+# Zählen, wieviele Transkationen an einem Tag vorkommen
+account7418_balance_end_day %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  head()
+
+```
+Leider ist auch dieser Versuch negativ. Die Daten werden nun genauer untersucht.
+```{r}
+# Entfernen der vorher generierten Datensätzen
+rm(account7418, account7418_balance_end_day, account7418_helper)
+
+# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag und Filtern des Accounts auf die Nr. 7418
+account7418	<- df_transaction_mod %>% 
+  mutate(balance_end_day = round(balance)) %>% 
+  filter(account_id == 7418) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion
+account7418_helper <- df_transaction_mod %>% 
+  filter(account_id == 7418) %>% 
+  mutate(balance_end_day = if_else(cashflow == "IN", round(round(balance) - round(amount)), round(round(balance) + round(amount)))) %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  )
+
+# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
+account7418_balance_end_day <- account7418 %>% 
+  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
+
+# Zählen, wieviele Transkationen an einem Tag vorkommen
+account7418_balance_end_day %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  head()
+
+```
+So wie es scheint, handelt es sich um Rundungsfehler. Denn je nach Zeitpunkt des rundens gibt es andere Ergebnisse. Dieser Umstand wird im Ursprungsdatensatz und mit gerechneten Werten verglichen.
+```{r}
+# Entfernen der vorher generierten Datensätzen
+rm(account7418, account7418_balance_end_day, account7418_helper)
+
+# Beträge und Saldo in zusätzlichen Spalten mit gerundeten Beträgen und Saldi vor und nach der Transaktion sowie der Dateityp in integer konvertiert.
+df_transaction_mod	<- df_transaction_mod %>% 
+  mutate(balance_round = round(balance)) %>% 
+  mutate(amount_round = round(amount)) %>% 
+  mutate(across(c("balance_round", "amount_round"), as.integer)) %>% 
+  mutate(balance_before_transaction = if_else(cashflow == "IN", 
+                                              balance_round - amount_round, 
+                                              balance_round + amount_round)) %>% 
+  mutate(balance_after_transaction = if_else(cashflow == "IN", 
+                                             balance_before_transaction + amount_round, 
+                                             balance_before_transaction - amount_round))
+
+dfA <- df_transaction_mod %>% 
+  mutate(balance_antijoin = balance_after_transaction) %>% 
+  select(
+    trans_id,
+    account_id,
+    date,
+    balance_antijoin
+  )
+
+  
+dfB <- df_transaction_mod %>% 
+  mutate(balance_antijoin = balance_before_transaction) %>% 
+  select(
+    trans_id,
+    account_id,
+    date,
+    balance_antijoin
+  )         
+  
+df_antijoin <- dfA %>% 
+  anti_join(dfB, by = c("account_id", "date", "balance_antijoin"))
+
+df_antijoin %>% 
   group_by(
     account_id,
     date
-    ) %>%
-  count() %>%
-  arrange(desc(n)) %>%
-  ungroup()
-
+  ) %>% 
+  count() %>% 
+  arrange(desc(n))
 ```
+#### Überprüfen auf Rundungs- oder Rechenfehler
+
+Es wird eine zusätzliche Spalte erstellt mit dem Vergleich der beiden Inhalte von Balance_round und Balance after transaction
+```{r}
+rm(dfA, dfB, df_antijoin)
+
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(balance_equal = if_else(balance_round == balance_after_transaction, TRUE, FALSE)) %>% 
+  mutate(across(c("balance_equal"), as.factor))
+
+summary(df_transaction_mod$balance_equal)
+```
+Es sind keine Rundungs- oder Rechenfehler vorhanden.
+
+#### Abgleich der Saldi vor und nach der Transaktion mittels %in% Operator
+
+```{r}
+dfB <- df_transaction_mod %>% 
+  select(
+    account_id,
+    date,
+    balance_before_transaction
+  ) %>% 
+  group_by(
+    account_id,
+    date
+  )
+
+df <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    date
+  ) %>% 
+  mutate(filter = df_transaction_mod$balance_round %in% dfB$balance_before_transaction)
+```
+
+
 
 
 #### 3.c. Erstellen der Hilfstabellen
