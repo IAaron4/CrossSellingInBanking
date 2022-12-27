@@ -978,10 +978,20 @@ df_transaction_mod <- df_transaction_mod %>%
 head(df_transaction_mod)
 
 ```
+
 #### Entfernen der nicht mehr benötigten data frames.
 ```{r}
 
 rm(list_na_characterization_for_cashwidthrawal, list_transid_for_imputation)
+
+```
+
+#### Vobereitung des Datum-Attributes {Year}_Q{Quarter} per transaction
+
+```{r}
+
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(quarter = zoo::as.yearqtr(date))
 
 ```
 
@@ -1222,6 +1232,32 @@ rm(n)
 ```
 
 Es gibt Monate, in denen keine Kontogebühren verrechnet wurden. Die Hypothese dazu ist, dass ein Neukunde die ersten drei Monate keine Gebühren zahlt. Dies soll überprüft werden.
+##### letzter Tag im Monat
+last_day_in_month
+```{r}
+last_day_in_month <- df_transaction_mod %>% 
+  group_by(
+    account_id,
+    year,
+    month
+  ) %>% 
+  mutate(last_day = max(date)) %>% 
+  ungroup()
+
+head(last_day_in_month)
+
+```
+
+```{r}
+last_day_in_month <- last_day_in_month %>% 
+  filter(
+    date == last_day
+  ) %>% 
+  arrange(
+    account_id,
+    date
+  )
+```
 
 Bei der Kontoeröffnung ist der Amount gleich hoch wie die Balance. Diese Information kann in "characterization" imputiert werden.
 
@@ -1373,7 +1409,10 @@ balance_per_month %>%
     date
   ) %>%
   arrange(desc(is_not_unique))
- ``` 
+
+
+```
+
 Alle diese Versuche führen nicht zum Ziel.
 
 #### Entfernen der nicht mehr benötigten Tabellen
@@ -1489,13 +1528,16 @@ transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year_mod
 
 summary(transaction_cashflow_per_month_and_year)
 
-```
 
+df_mod <- left_join(df_mod, transaction_mod_balance_per_month, by = c("account_id" = "account_id"))
+
+```
 
 #### Überprüfen, ob die Überlegung so stimmt
 
 Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe ohne Lücken benötigt. Somit kann jederzeit auch den Kontostand am Ende jeden Tages ausgeben.
 Überprüfen, ob die Datumsangaben lückenlos sind.
+
 ```{r}
 df_transaction_mod %>% 
   filter(
@@ -1537,10 +1579,89 @@ Zum Beispiel weist der Account 18 bei Aarons Code am 1993-07-25 einen Saldo von 
 #### Entfernen der nicht mehr benötigten Tabellen
 ```{r}
 
-rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month)
+rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month, transaction_cashflow_per_month_and_year_modified)
 
 ```
 
+### Vierteljähriges Einkommen und Ausgaben per Jahr
+
+```{r}
+
+transaction_cashflow_per_quarter_and_year <- df_transaction_mod %>%
+  group_by(
+    account_id,
+    cashflow,
+    quarter,
+    year,
+  ) %>%
+  summarise(amount_sum = sum(amount)) %>%
+  # arrange(year, month) %>%
+  pivot_wider(names_from = c(cashflow, quarter), values_from = amount_sum)
+
+str(transaction_cashflow_per_quarter_and_year)
+
+transaction_cashflow_per_quarter_and_year_modified <- transaction_cashflow_per_quarter_and_year %>%
+  replace(is.na(transaction_cashflow_per_quarter_and_year), 0) 
+
+transaction_cashflow_per_quarter_and_year_modified %>%
+  mutate(account_id = account_id) %>%
+  mutate('1993_Q1_Expenses' = 'OUT_1993 Q1') %>%
+  mutate('1993_Q2_Expenses' = 'OUT_1993 Q2') %>%
+  mutate('1993_Q3_Expenses' = 'OUT_1993 Q3') %>%
+  mutate('1993_Q4_Expenses' = 'OUT_1993 Q4') %>%
+  mutate('1994_Q1_Expenses' = 'OUT_1994 Q1') %>%
+  mutate('1994_Q2_Expenses' = 'OUT_1994 Q2') %>%
+  mutate('1994_Q3_Expenses' = 'OUT_1994 Q3') %>%
+  mutate('1994_Q4_Expenses' = 'OUT_1994 Q4') %>%
+  mutate('1995_Q1_Expenses' = 'OUT_1995 Q1') %>%
+  mutate('1995_Q2_Expenses' = 'OUT_1995 Q2') %>%
+  mutate('1995_Q3_Expenses' = 'OUT_1995 Q3') %>%
+  mutate('1995_Q4_Expenses' = 'OUT_1995 Q4') %>%
+  mutate('1996_Q1_Expenses' = 'OUT_1996 Q1') %>%
+  mutate('1996_Q2_Expenses' = 'OUT_1996 Q2') %>%
+  mutate('1996_Q3_Expenses' = 'OUT_1996 Q3') %>%
+  mutate('1996_Q2_Expenses' = 'OUT_1996 Q4') %>%
+  mutate('1997_Q1_Expenses' = 'OUT_1997 Q1') %>%
+  mutate('1997_Q2_Expenses' = 'OUT_1997 Q2') %>%
+  mutate('1997_Q3_Expenses' = 'OUT_1997 Q3') %>%
+  mutate('1997_Q4_Expenses' = 'OUT_1997 Q4') %>%
+  mutate('1998_Q1_Expenses' = 'OUT_1998 Q1') %>%
+  mutate('1998_Q2_Expenses' = 'OUT_1998 Q2') %>%
+  mutate('1998_Q3_Expenses' = 'OUT_1998 Q3') %>%
+  mutate('1998_Q4_Expenses' = 'OUT_1998 Q4') %>%
+  mutate('1993_Q1_Income' = 'IN_1993 Q1') %>%
+  mutate('1993_Q2_Income' = 'IN_1993 Q2') %>%
+  mutate('1993_Q3_Income' = 'IN_1993 Q3') %>%
+  mutate('1993_Q4_Income' = 'IN_1993 Q4') %>%
+  mutate('1994_Q1_Income' = 'IN_1994 Q1') %>%
+  mutate('1994_Q2_Income' = 'IN_1994 Q2') %>%
+  mutate('1994_Q3_Income' = 'IN_1994 Q3') %>%
+  mutate('1994_Q4_Income' = 'IN_1994 Q4') %>%
+  mutate('1995_Q1_Income' = 'IN_1995 Q1') %>%
+  mutate('1995_Q2_Income' = 'IN_1995 Q2') %>%
+  mutate('1995_Q3_Income' = 'IN_1995 Q3') %>%
+  mutate('1995_Q4_Income' = 'IN_1995 Q4') %>%
+  mutate('1996_Q1_Income' = 'IN_1996 Q1') %>%
+  mutate('1996_Q2_Income' = 'IN_1996 Q2') %>%
+  mutate('1996_Q3_Income' = 'IN_1996 Q3') %>%
+  mutate('1996_Q4_Income' = 'IN_1996 Q4') %>%
+  mutate('1997_Q1_Income' = 'IN_1997 Q1') %>%
+  mutate('1997_Q2_Income' = 'IN_1997 Q2') %>%
+  mutate('1997_Q3_Income' = 'IN_1997 Q3') %>%
+  mutate('1997_Q4_Income' = 'IN_1997 Q4') %>%
+  mutate('1998_Q1_Income' = 'IN_1998 Q1') %>%
+  mutate('1998_Q2_Income' = 'IN_1998 Q2') %>%
+  mutate('1998_Q3_Income' = 'IN_1998 Q3') %>%
+  mutate('1998_Q4_Income' = 'IN_1998 Q4')
+
+```
+
+#### Entfernen der nicht mehr benötigten Tabellen
+```{r}
+
+rm(transaction_cashflow_per_quarter_and_year, transaction_cashflow_per_quarter_and_year_modified)
+
+```
 
 ## C.3. Kontostand am Ende des Tages
 
@@ -1889,162 +2010,139 @@ summary(df_transaction_mod$balance_equal)
 ```
 Es sind keine Rundungs- oder Rechenfehler vorhanden.
 
-#### Abgleich der Saldi vor und nach der Transaktion mittels %in% Operator
-
-```{r}
-dfB <- df_transaction_mod %>% 
-  select(
-    account_id,
-    date,
-    balance_before_transaction
-  ) %>% 
-  group_by(
-    account_id,
-    date
-  )
-
-df <- df_transaction_mod %>% 
-  group_by(
-    account_id,
-    date
-  ) %>% 
-  mutate(filter = df_transaction_mod$balance_round %in% dfB$balance_before_transaction)
-```
-
-
-
 
 #### 3.c. Erstellen der Hilfstabellen
 
 Es werden zwei Hilfstabellen erstellt. Die erste Tabelle ist ein Data Frame mit allen Spalten des df_transaction_mod. Die zweite Tabelle wird mit der jeweiligen Account-id, dem Transaktionsdatum und dem ausgerechneten Kontostand vor der Transaktion erstellt.
 ```{r}
 
-end_of_day_first <- df_transaction_mod %>% 
-  mutate(balance_per_month = round(balance)) %>% 
-  mutate(across(c("account_id", "date", "balance"), as.character))
+# end_of_day_first <- df_transaction_mod %>% 
+#   mutate(balance_per_month = round(balance)) %>% 
+#   mutate(across(c("account_id", "date", "balance"), as.character))
+# 
+# end_of_day_helper <- df_transaction_mod %>%
+#   mutate(balance_per_month = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
+#   mutate(across(c("account_id", "date", "balance"), as.character))
+# 
+#   
+# head(end_of_day_first)
+# head(end_of_day_helper)
 
-end_of_day_helper <- df_transaction_mod %>%
-  mutate(balance_per_month = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
-  mutate(across(c("account_id", "date", "balance"), as.character))
-
-  
-head(end_of_day_first)
-head(end_of_day_helper)
 ```
 #### 3.d. Funktion anti_join()
 Nun können die beiden Hilfstabellen verglichen werden. Der jeweilige Betrag im Data Frame end_of_day_first welcher nicht auch im end_of_day_helper vorkommt, ist der Monatsendstand.
 Dies wird mit der Funkton anti_join gebildet.
 ```{r}
-balance_end_of_day <- end_of_day_first %>%
-  anti_join(end_of_day_helper, by = c("account_id", "date", "balance"))
+# balance_end_of_day <- end_of_day_first %>%
+#   anti_join(end_of_day_helper, by = c("account_id", "date", "balance"))
 ```
 
 
 ##### 3.e. Überprüfung
 Für die erste Kontrolle werden wiederum die Account_id und das Datum gruppiert und gezählt, wieviele Transaktionen pro Tag in der Tabelle enthalten sind.
 ```{r}
-balance_end_of_day %>%
-  group_by(
-    account_id,
-    date
-    ) %>%
-  count() %>%
-  arrange(desc(n)) %>% 
-  ungroup()
+# balance_end_of_day %>%
+#   group_by(
+#     account_id,
+#     date
+#     ) %>%
+#   count() %>%
+#   arrange(desc(n)) %>% 
+#   ungroup()
 ```
 Es sind immer noch mehrere Transaktionen pro Tag vorhanden. Dies wird genauer untersucht.
 Dazu werden die Observationen in den verschiedenen Tabellen verglichen.
 
-```{r}
-end_of_day_first %>%
-  filter(
-    date == "1998-11-30",
-    account_id == 9814
-  )
-```
-
-
-```{r}
-end_of_day_helper %>%
-  filter(
-    date == "1998-11-30",
-    account_id == 9814
-  )
-```
-
-```{r}
-balance_end_of_day %>%
-  filter(
-    date == "1998-11-30",
-    account_id == 9814
-  )
-```
-
-```{r}
-A <- end_of_day_first %>%
-  filter(
-    date == "1998-11-30",
-    account_id == 9814
-  ) %>%
-  select(account_id, date, balance)
-
-B <- end_of_day_helper %>%
-  filter(
-    date == "1998-11-30",
-    account_id == 9814
-  ) %>%
-  select(account_id, date, balance)
-
-C <- balance_end_of_day %>%
-  filter(
-    date == "1998-11-30",
-    account_id == 9814
-  ) %>%
-  select(account_id, date, balance)
-
-```
-
-
-```{r}
-anti_join(A, B, by = c("balance"))
-```
-```{r}
-glimpse(A)
-```
-```{r}
-glimpse(B)
-```
-```{r}
-anti_join(A, B, by = 'balance')
-```
-```{r}
-rm(A,B,C)
-```
-
-```{r}
-df1 <- data.frame(team=c('C', 'D', 'E','A', 'B'),
-                  points=c(21501.9, 14, 19, 24, 21487.3))
-
-df2 <- data.frame(team=c('A', 'B', 'C', 'F', 'G'),
-                  points=c(12, 14, 21402.7, 33, 21501.9))
-
-anti_join(df1, df2, by='points')
-```
-
-```{r}
-rm(df1,df2)
-```
-
-
-##### Kontrolle mit Account 1274
-
-
-```{r}
-balance_end_of_day %>%
-  filter(
-      account_id == 1274,
-      date == "1998-11-30"
-    )
+# ```{r}
+# end_of_day_first %>%
+#   filter(
+#     date == "1998-11-30",
+#     account_id == 9814
+#   )
+# ```
+# 
+# 
+# ```{r}
+# end_of_day_helper %>%
+#   filter(
+#     date == "1998-11-30",
+#     account_id == 9814
+#   )
+# ```
+# 
+# ```{r}
+# balance_end_of_day %>%
+#   filter(
+#     date == "1998-11-30",
+#     account_id == 9814
+#   )
+# ```
+# 
+# ```{r}
+# A <- end_of_day_first %>%
+#   filter(
+#     date == "1998-11-30",
+#     account_id == 9814
+#   ) %>%
+#   select(account_id, date, balance)
+# 
+# B <- end_of_day_helper %>%
+#   filter(
+#     date == "1998-11-30",
+#     account_id == 9814
+#   ) %>%
+#   select(account_id, date, balance)
+# 
+# C <- balance_end_of_day %>%
+#   filter(
+#     date == "1998-11-30",
+#     account_id == 9814
+#   ) %>%
+#   select(account_id, date, balance)
+# 
+# ```
+# 
+# 
+# ```{r}
+# anti_join(A, B, by = c("balance"))
+# ```
+# ```{r}
+# glimpse(A)
+# ```
+# ```{r}
+# glimpse(B)
+# ```
+# ```{r}
+# anti_join(A, B, by = 'balance')
+# ```
+# ```{r}
+# rm(A,B,C)
+# ```
+# 
+# ```{r}
+# df1 <- data.frame(team=c('C', 'D', 'E','A', 'B'),
+#                   points=c(21501.9, 14, 19, 24, 21487.3))
+# 
+# df2 <- data.frame(team=c('A', 'B', 'C', 'F', 'G'),
+#                   points=c(12, 14, 21402.7, 33, 21501.9))
+# 
+# anti_join(df1, df2, by='points')
+# ```
+# 
+# ```{r}
+# rm(df1,df2)
+# ```
+# 
+# 
+# ##### Kontrolle mit Account 1274
+# 
+# 
+# ```{r}
+# balance_end_of_day %>%
+#   filter(
+#       account_id == 1274,
+#       date == "1998-11-30"
+#     )
 ```
 
 #### Anreichern der fehlenden Daten in den Attributen "Date" und "Balance"
@@ -2150,7 +2248,6 @@ Die Anreicherung der Daten nimmt jeweils den letzten Betrag und führt diesen we
 #     account_id == 1,
 #     date == "1996-05-13"
 #   )
-```
 
 ### **D. Erstellen des konsolidierten Data Frames**
 
