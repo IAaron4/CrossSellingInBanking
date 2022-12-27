@@ -1492,7 +1492,7 @@ summary(transaction_cashflow_per_month_and_year)
 ```
 
 
-#### Überprüfen, ob der die Überlegung so stimmt
+#### Überprüfen, ob die Überlegung so stimmt
 
 Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe ohne Lücken benötigt. Somit kann jederzeit auch den Kontostand am Ende jeden Tages ausgeben.
 Überprüfen, ob die Datumsangaben lückenlos sind.
@@ -2150,4 +2150,687 @@ Die Anreicherung der Daten nimmt jeweils den letzten Betrag und führt diesen we
 #     account_id == 1,
 #     date == "1996-05-13"
 #   )
+```
+
+### **D. Erstellen des konsolidierten Data Frames**
+
+Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
+ 
+```{r}
+# df_cons <- df_mod
+# 
+# save(balance_per_month, file = "balance_per_month")
+```
+
+
+Übersicht über die Struktur des konsolidierten Datensatzes.
+
+```{r}
+# glimpse(df_cons)
+```
+
+## 1. Datengrundlage
+
+Die uns zu Grunde liegenden Daten lassen sich als von der Bank sowie als
+exogen erhoben unterscheiden.
+
+### a. Wie können die Daten noch weiter gruppiert und angeordnet werden, um eine optimale Grundlage für die Analyse zu bilden? (Luca)
+
+```{r}
+
+```
+
+### b. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft dies für alle einzelnen Datensätze zu? (Luca)
+
+```{r}
+
+```
+
+### Zudem wird die Distribution der Datensätze und deren Qualität überprüft. (Luca)
+
+```{r}
+
+```
+
+### c. Die Datenattribute werden alle auf ihre Verteilung sowie ihre Veränderung über die Zeit analysiert. Dabei werden technische Mittel der explorativen Datenanalyse angewendet. (Luca)
+
+```{r}
+
+```
+
+#### i. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens analysiert. (Luca)
+
+```{r}
+
+```
+
+## 2. Korrelationsanalysen
+
+Nachdem die Datenattribute einzeln analysiert und geprüft wurden, sollen
+sie miteinander mittels Korrelationsanalysen betrachtet werden. Dabei
+sollten anfällige Zusammenhänge entdeckt werden.\
+Beispiele für Hypothesen, welche in der Analyse überprüft werden
+könnten, wären:
+
+### a. Für die einzelne Datenattribute:
+
+#### i. In welchem Monat oder Tag wird am meisten Geld abgehoben? (LBZ)
+
+Levels vom Attribut trans_operation ausgeben:
+
+```{r}
+# levels(df_cons$trans_operation)
+```
+
+Es gibt zwei verschiedene Arten von Geldabbuchungen. Erstere ist die
+Geldabbuchung beziehungsweise Überweisung und die zweite die Abbuchung
+mittels Kreditkarte. Diese beiden Arten werden getrennt analysiert.
+
+```{r}
+
+# levels(df_cons$trans_characterization)
+```
+
+```{r}
+# levels(df_cons$trans_operation)
+```
+
+```{r}
+# n_card <- df_cons %>% 
+#   filter(
+#     trans_cashflow == "OUT",
+#     trans_operation == "CREDIT CARD WITHDRAWAL"
+#   ) %>% 
+#   nrow()
+# 
+# paste("Es wurden", n_card, "Kreditkatenbezüge getätigt.", sep = " ")
+# 
+# # rm(n_card, card_withdrawal)
+
+```
+
+Der höchste Betrag, welcher mit der Kreditkarte bezogen wurde:
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_cashflow == "OUT",
+#     trans_operation == "CASH WIDTHDRAWAL"
+#   ) %>% 
+#   select(
+#     trans_amount,
+#     trans_date,
+#     account_id
+#   ) %>% 
+#   top_n(1, trans_amount)
+```
+
+Für die weiteren Analysen wird eine zusätzliche Spalte für die Quartale
+eines Jahres benötigt. Dazu wird das Jahr in vier Quartale unterteilt.
+
+```{r}
+# summary(df_cons$trans_month)
+```
+
+```{r}
+# df_cons <- df_cons %>% 
+#   mutate(
+#     trans_quarter_year = case_when(
+#       (month(trans_date) <= 3) ~ "1. QUARTER",
+#       (month(trans_date) >= 4 & month(trans_date) <= 6) ~ "2. QUARTER",
+#       (month(trans_date) >= 7 & month(trans_date) <= 9) ~ "3. QUARTER",
+#       (month(trans_date) > 9) ~ "4. QUARTER"
+#     ),
+#     across(
+#       where(is.character), 
+#       as.factor
+#        )
+#   ) %>% 
+#   relocate(trans_quarter_year, .after = trans_date)
+# 
+# summary(df_cons$trans_quarter_year)
+```
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     # trans_cashflow == "OUT",
+#     trans_operation == "CREDIT CARD WITHDRAWAL"
+#     # year(trans_date) == 1995,
+#     # trans_quarter_year == "1. QUARTER"
+#     ) %>% 
+#   ggplot(aes(
+#     x = account_id,
+#     y = trans_amount
+#   )
+#   # , fill = district_name
+#   ) +
+#   geom_jitter(
+#     alpha = 1,
+#     width = 30,
+#     shape = 3,
+#     color = "white"
+#   ) +
+#   labs(
+#     title = "Credit Card Withdrawal", 
+#     subtitle = "Withdrawals in 1995, 1st Quarter",
+#     x = "Account ID",
+#     y = "Amount [CZK]"
+#   ) +
+#   theme_dark()
+```
+
+Die meisten Kreditkartenbezüge sind unter 4000 CZK. Die
+Kreditkartenbezüge über 4000 CZK werden in den nächsten Analysen genauer
+untersucht.
+
+Welche Accounts weisen die höchsten Bezüge an welchen Daten auf?
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_operation == "CREDIT CARD WITHDRAWAL"
+#   ) %>% 
+#   select(
+#     trans_amount,
+#     trans_date, 
+#     account_id
+#   ) %>% 
+#   arrange(
+#     desc(trans_amount)
+#   ) %>% 
+#   top_n(1, trans_amount)
+```
+
+7 mal wurde in den Jahren '97 und '98 von versichiedenen Konten 8000
+bezogen. Auffallend ist, dass der Account mit der Nummer 3654 drei mal
+erscheint. Es stellt sich die Frage, ob am selben Datum mehrmals mit der
+Kreditkarte vom selben Konto Geld abgehoben wurde. Dies soll nun
+überprüft werden.
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_operation == "CREDIT CARD WITHDRAWAL"
+#   ) %>% 
+#   group_by(
+#     trans_date,
+#     account_id
+#   ) %>% 
+#   count() %>% 
+#   arrange(desc(n))
+```
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_date == "1998-01-25",
+#     account_id == 96
+#   )
+```
+
+Es fällt auf, dass bei einigen Kreditkartenbezügen ein
+order_payment_type angegeben ist. Zudem wurden die Bezüge dem
+Account-Owner und dem User zugeordnet. Da bei den zugrunde liegenden
+Daten nur das Transaktionsdatum ohne die Transaktionszeit vorliegt,
+können wir nicht abschliessend beurteilen, ob es sich hier um doppelte
+Erfassung oder tatsächlich getätigte Bezüge handelt. Wir gehen davon
+aus, dass es sich um Doppelerfassungen handelt. Um dies zu verifizieren
+muss geschaut werden, ob der User mehr Bezüge aufweist als der Owner.
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_cashflow == "OUT"
+#   ) %>% 
+#   ggplot(aes(
+#     x = trans_amount
+#     , fill = disp_type
+#   )) +
+#   geom_histogram(
+#     position = "dodge"
+#     # , bins = 100
+#   ) +
+#   labs(
+#     title = "Cash outgoes", 
+#     subtitle = "Comparison between Account Owner and User",
+#     x = "Amount [CZK]",
+#     y = "Number of Transactions",
+#     fill = "Disposition type"
+#   ) + 
+#   scale_y_log10() +
+#   theme_light() 
+```
+
+Diese Analyse bestätigt die Vermutung, dass es sich bei den Werten um
+Doppelerfassungen handelt. Deshalb werden die User für die nächsten
+Analysen ausgeschlossen.
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_operation == "CREDIT CARD WITHDRAWAL",
+#     disp_type == "OWNER",
+#     # !is.na(card_type),
+#     order_payment_type == "UNKNOWN"
+#   ) %>% 
+#   group_by(
+#     trans_date,
+#     card_id
+#   ) %>% 
+#   # summarise(amount_max = max(trans_amount)) %>% 
+#   # arrange(desc(amount_max))
+#   summarise(amount_avg = mean(trans_amount)) %>% 
+#   arrange(desc(amount_avg)) %>% 
+#   head()
+```
+
+Kreditkartenbezüge über 4000 CZK.
+
+```{r}
+# df_cons %>% 
+#   filter(
+#     trans_operation == "CREDIT CARD WITHDRAWAL",
+#     disp_type == "OWNER",
+#     trans_amount > 4000
+#   ) %>% 
+#   ggplot(
+#     aes(
+#       x = trans_date,
+#       y = trans_amount,
+#       color = order_payment_type,
+#       fill = order_payment_type
+#     )
+#   ) + 
+#   geom_point(
+#     show.legend = FALSE
+#   ) +
+#   facet_wrap(vars(order_payment_type)) +
+#              # scales = "free_x") +
+#   theme_light() +
+#   theme(
+#     axis.text.x = element_text(angle = 90, vjust = 0.5),
+#     axis.line = element_line(color = "white")
+#   ) +
+#   labs(
+#     title = "Credit Card withdrawals",
+#     subtitle = "all over 4'000 CZK",
+#     x = "Transaction Date",
+#     y = "Amount [CZK]"
+#   )
+             
+```
+
+Vermutlich können viele Kreditkartenbezüge über 4000 CZK nicht am
+Automaten getätigt, sondern müssen am Schalter unter Angabe für den
+Verwendungszweck abgehoben werden.
+
+Hypothese: Um die Feiertage (Weihnachten und Ostern) wird mehr Geld mit
+der Kreditkarte bezogen. Dazu werden nur die Bezüge "UNKONWN" und "NA"
+aus order_payment_type angeschaut.
+
+```{r}
+# #Korrelation Kreditkartenbezüge Unknown oder NA und Monate
+# 
+# df_cons %>% 
+#   filter(
+#     order_payment_type == "UNKONWN" 
+#     | is.na(order_payment_type),
+#    trans_operation == "CREDIT CARD WITHDRAWAL",
+#    disp_type == "OWNER"
+#   ) %>% 
+#   group_by(
+#     year = year(trans_date),
+#     month = month(trans_date),
+#     account_id
+#   ) %>% 
+#   summarise(amount_avg = round(mean(trans_amount))) %>% 
+#   arrange(desc(amount_avg))
+
+```
+
+```{r}
+# #nach unikaten Transaction ID filtern
+# df_cons %>% 
+#   # distinct(trans_id) %>% 
+#   filter(
+#     order_payment_type == "UNKONWN" 
+#     | is.na(order_payment_type),
+#    trans_operation == "CREDIT CARD WITHDRAWAL",
+#    # disp_type == "OWNER"
+#    # trans_id == unique(trans_id)
+#   ) %>% 
+#   group_by(
+#     year = year(trans_date),
+#     month = month(trans_date),
+#     account_id
+#   ) %>% 
+#   mutate(amount_avg = round(mean(trans_amount))) %>%
+#   ggplot(aes(
+#     x = month,
+#     y = amount_avg,
+#     # fill = trans_date
+#     )) +
+#   geom_point() +
+#   # geom_boxplot() +
+#   facet_wrap(vars(year))
+
+
+```
+
+### Cluster Kreditkartenbezüge
+
+```{r}
+# #Clustering mit Jahresumsatz, user und owner, Art der Verbuchung (wofür wurde das Geld gebraucht), District.
+# #Korrelation zwischen Kreditkartenbezügen über 4000 und den Geldeingängen
+# 
+# dist_credit_card <- df_cons %>% 
+#   select(
+#     trans_id,
+#     trans_amount,
+#     trans_date, 
+#     trans_operation,
+#     trans_cashflow
+#   ) %>% 
+#   drop_na() %>%
+#   distinct() %>%
+#   mutate_if(is.numeric, .funs = funs(scale)) %>%
+#   head() %>%
+#   dist()
+# 
+# glimpse(dist_credit_card)
+#   
+# hc_credit_card <- hclust(dist_credit_card, method = "complete")
+# 
+# dend_credit_card <- as.dendrogram(hc_credit_card) 
+# 
+# 
+# plot(dend_credit_card)
+```
+
+```{r}
+# set.seed(42)
+# 
+# df_cons %>% 
+#   select(
+#     trans_id,
+#     trans_amount,
+#     trans_date, 
+#     trans_operation,
+#     trans_cashflow
+#   ) %>% 
+#   drop_na() %>%
+#   distinct(trans_id) %>%
+#   scale -> credit_card_cluster
+# 
+# 
+# 
+# kmeans_credit_card_2 <- kmeans(credit_card_cluster, centers = 2, nstart = 10)
+# kmeans_credit_card_3 <- kmeans(credit_card_cluster, centers = 3, nstart = 10)
+# kmeans_credit_card_4 <- kmeans(credit_card_cluster, centers = 4, nstart = 10)
+# kmeans_credit_card_5 <- kmeans(credit_card_cluster, centers = 5, nstart = 10)
+# kmeans_credit_card_6 <- kmeans(credit_card_cluster, centers = 6, nstart = 10)  
+# 
+# 
+# streuung_innerhalb <- c(kmeans_credit_card_2$tot.withinss,
+# kmeans_credit_card_3$tot.withinss,
+# kmeans_credit_card_4$tot.withinss,
+# kmeans_credit_card_5$tot.withinss,
+# kmeans_credit_card_6$tot.withinss)
+# 
+# streuung_df <- data_frame(
+# streuung_innerhalb,
+# anzahl_cluster = 2:6
+# )
+# 
+# ggplot(streuung_df) +
+# aes(x = anzahl_cluster,
+# y = streuung_innerhalb) +
+# geom_col() +
+# geom_line()
+```
+
+#### ii. Zu welchem Zeitpunkt wird am meisten Geld überwiesen? (LBZ)
+
+```{r}
+
+```
+
+#### iii. Welche Datenattribute beschreiben den Kundenstamm und wie können Kundengruppen definiert werden? (LBZ)
+
+```{r}
+
+```
+
+#### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus? (Christian)
+
+```{r}
+# #Muss noch angepasst werden. Inputdaten fehlerhaft. 
+# 
+# #Filter that every Account only occurs once
+# df_cons_temp <- df_cons %>%
+#   group_by(account_date ) %>%
+#   filter(row_number() == 1)
+# 
+# ggplot(data = df_cons_temp, aes(x = account_date)) +
+#   geom_histogram(binwidth = 15, fill = "#88B8AC") +
+#   labs(title = "Opening of Account", subtitle = "subtitle") +
+#   xlab("Year") +
+#   ylab("Count") +
+#   theme_light()
+# 
+# 
+# # rm(df_cons_temp)
+```
+
+#### iv. Wie sieht die Altersverteilung dieser Kunden aus und was kann daraus hergeleitet werden? (Christian)
+
+```{r}
+# #Change dateofbirth of clients with lubridate and calculate age
+# df_cons$current_age <- as.numeric(difftime(Sys.Date(), df_cons$dateofbirth, units = "weeks")) / 52.25
+# #Schaltjahr berücksichtigen und Alter nicht über 100
+# 
+# #Round Age to the next full Number
+# df_cons$current_age <- floor(df_cons$current_age)
+# 
+# #Relocate rows so new column "current_age" is next to dateofbirth
+# df_cons <- df_cons %>%
+#   relocate(current_age, .after = dateofbirth)
+# 
+# 
+# #Create Barplot with distrbution of age 
+# df_cons_temp <- df_cons %>%
+#   group_by(account_id) %>%
+#   filter(row_number() == 1)
+# 
+#   ggplot(data = df_cons_temp, aes(current_age)) +
+#   geom_bar(fill = "#88B8AC") +
+#   labs(title = "Distribution of Customer Age", subtitle = "Male and Female combined") +
+#   xlab("Age in Years") +
+#   ylab("Count") +
+#   theme_light()
+# 
+# # rm(df_cons_temp)
+
+```
+
+#### v. Neue Fragestellung (Aaron)
+
+```{r}
+
+```
+
+#### vi. Wie sieht die Verteilung von Kreditkartentypen auf die Population der Kreditkarten aus?
+
+```{r}
+
+# df_cons_credit_card_by_type <- df_cons %>%
+#   filter(!is.na(card_id)) %>%
+#   group_by(card_id) %>%
+#   mutate(card_type = card_type) %>%
+#   mutate(count = sum(n())) %>%
+#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+#   select(sex, count, frequency, card_type) %>% 
+#   distinct()
+# 
+# df_cons_credit_card_by_type
+# 
+# ggplot(df_cons_credit_card_by_type, aes(fill = card_type, x = sex, y = count)) +
+#   labs(title = "Distribution of Credit Card Type per Sex", subtitle = "The percentage displayed on the plot is the frequency of the type over the whole population.") +
+#   geom_bar(position="fill", stat="identity") +
+#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+#   xlab("Sex") +
+#   ylab("Count") +
+#   labs(fill = "Card Type", )
+#   
+#   
+```
+
+#### vii. Wie sieht die Verteilung der Typen von Dispositionen aus?
+
+```{r}
+
+# 
+# df_cons_distribution_disposition_type <- df_cons %>%
+#   filter(!is.na(disp_id)) %>%
+#   group_by(disp_id) %>%
+#   mutate(disp_type = disp_type) %>%
+#   mutate(count = sum(n())) %>%
+#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+#   select(sex, count, frequency, disp_type) %>% 
+#   distinct()
+# 
+# df_cons_distribution_disposition_type
+# 
+# ggplot(df_cons_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
+#   labs(title = "Distribution of disposition types", subtitle = "") +
+#   geom_bar(position="fill", stat="identity") +
+#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+#   xlab("Sex") +
+#   ylab("Count") +
+#   labs(fill = "Disposition Type")
+```
+
+#### viii. Was ist der am beliebtesten Modus einer Transaktion? (Aaron)
+
+```{r}
+# df_cons_transaction_type_per_quarter <- df_cons %>%
+#   filter(!is.na(trans_id)) %>%
+#   group_by(trans_id) %>%
+#   mutate(trans_characterization = trans_characterization) %>%
+#   mutate(trans_quarter_year = trans_quarter_year) %>%
+#   mutate(count = sum(n())) %>%
+#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+#   select(trans_quarter_year, count, frequency, trans_characterization) %>% 
+#   distinct()
+# 
+# df_cons_transaction_type_per_quarter
+# 
+# ggplot(df_cons_transaction_type_per_quarter, aes(fill = trans_characterization, x = trans_quarter_year, y = count)) +
+#   labs(title = "Distribution of transaction types per quarters", subtitle = "") +
+#   geom_bar(position="fill", stat="identity") +
+#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+#   xlab("Quarter") +
+#   ylab("Count") +
+#   labs(fill = "Transaction Type")
+
+```
+
+#### ix. Aus welchen Gründen (Charakterisierung) werden Transaktion durchgeführt und wie sieht die Verteilung dieser aus? (Aaron)
+
+```{r}
+
+```
+
+#### x. In welchen Distrikten gibt es den höchsten Lohn? (Aaron)
+
+```{r}
+# df_cons_transaction_type_per_quarter <- df_cons %>%
+#   group_by(district_id) %>%
+#   mutate(average_salary = average_salary) %>%
+#   mutate(district = district_name)
+# 
+# df_cons_transaction_type_per_quarter
+# 
+# ggplot(df_cons_transaction_type_per_quarter, aes(x=average_salary, fill=district)) + 
+#   geom_bar( ) +
+#   xlab("District") +
+#   ylab("Average Salary") +
+#   labs(fill = "District Name")
+
+```
+
+#### xi. Können neue Sonderangebote/Pakete geschaffen werden für die am meist verdienenden Kunden? (Aaron)
+
+```{r}
+
+```
+
+### b. Für Korrelationen zwischen Datenattributen:
+
+#### i. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt werden und bei bereits laufenden Krediten können Massnahmen getroffen werden.
+
+```{r}
+
+```
+
+#### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
+
+```{r, warning = FALSE}
+# #Make plot with count of different Payment methods ("trans_operation") over time
+# df_cons %>%
+#   ggplot(mapping = aes(x = trans_date, fill = trans_operation)) +
+#   geom_histogram(binwidth = 5) +
+#   facet_wrap(~ trans_operation, ncol = 2, scales = "free_y") +
+#   labs(title = "Overwiev distribution of Transaction methods used from 1993 to 1999 ", subtitle = "Y-axis set independently", fill = "Method of Transaction" ) +
+#   xlab("Years") +
+#   ylab("Count") +
+#    theme(legend.position = "none") +
+#   scale_x_date(date_labels="%y",date_breaks ="1 year", date_minor_breaks = "1 month") +
+#   theme(axis.text.x = element_text(size = 8, angle=90,vjust =0.2)) 
+
+```
+
+#### iii. Wie viele der Kunden verwenden eine Kreditkarte von den Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können Angebote für spezifische Kundengruppen erstellt werden?
+
+```{r}
+
+```
+
+#### iv. Korrelationsanalyse zwischen den Bankdaten und den soziodemografischen Daten.
+
+### 1. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es diese Unterschiede? Was unterscheidet diese Distrikte?
+
+```{r}
+
+```
+
+### 2. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug zu den restlichen Einwohnern? Können durch diese Zahlen neue Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden führen?
+
+```{r}
+
+```
+
+### 3. Wie sieht die Entwicklung des Einkommens im Bezug zu den Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.
+
+```{r}
+
+```
+
+#### v. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu unterteilen?
+
+```{r}
+
+```
+
+#### vi. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer aus? Kann aus der Grafik ein Trend ausgelesen werden?
+
+```{r}
+
+```
+
+### 3. Welches Potenzial haben jegliche Datenobjekte und mit Hilfe welcher Mittel kann das beste Produkt daraus generiert werden? (Aaron) und jeder der noch kann....
+
+```{r}
+
 ```
