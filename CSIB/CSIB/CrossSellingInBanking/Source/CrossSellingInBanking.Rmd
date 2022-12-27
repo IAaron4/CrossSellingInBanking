@@ -898,6 +898,7 @@ Auch wird während den Analysen entschieden, ob zusätzlich zum konsolidierten D
 
 Übersicht über die Tabelle df_transaction.
 ```{r}
+
 glimpse(df_transaction)
 
 ```
@@ -905,10 +906,12 @@ glimpse(df_transaction)
 
 Characters in Faktoren ändern.
 ```{r}
+
 df_transaction_mod <- df_transaction %>% 
   mutate(across(where(is.character), as.factor))
 
 summary(df_transaction_mod)
+glimpse(df_transaction_mod)
 rm(df_transaction)
 
 ```
@@ -919,6 +922,7 @@ rm(df_transaction)
 - type wird zu cashflow
 
 ```{r}
+
 df_transaction_mod <- df_transaction_mod %>% 
   rename(
     bank_name = bank,
@@ -932,6 +936,7 @@ df_transaction_mod <- df_transaction_mod %>%
 
 Als erstes beginnen wir mit der neu benannten Spalte cashflow
 ```{r}
+
 df_transaction_mod %>% 
   filter(is.na(cashflow)) %>% 
   summary()
@@ -973,9 +978,11 @@ df_transaction_mod <- df_transaction_mod %>%
 head(df_transaction_mod)
 
 ```
-
+#### Entfernen der nicht mehr benötigten data frames.
 ```{r}
+
 rm(list_na_characterization_for_cashwidthrawal, list_transid_for_imputation)
+
 ```
 
 
@@ -1050,7 +1057,6 @@ balance_per_month_mean <- transaction_cashflow_per_month_and_year_mean %>%
   ) %>% 
   pivot_wider(names_from = c(year,month), values_from = balance)
 
-head(transaction_cashflow_per_month_and_year_mean)
 head(balance_per_month_mean)
 
 ```
@@ -1064,60 +1070,28 @@ rm(balance_per_month_mean, balance_per_month_total_lag, balance_sheet_per_years_
 
 ```
 
+##### Lead und Lag (1. Versuch für die Transformierung des transaction frames.)
 
-#### C.1. Kontostand Ende Monat
-
-Als erstes werden die Kontostände per Ende jeden Monats berechnet. Dazu müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da ja bei diesen Kontoständen sowie Geldein-/ausgängen 0 CZK vorhanden sind.
+2. Versuch mit lead() und lag() den Kontostand Ende Monat auszurechnen:
 ```{r}
-transaction_cashflow_per_month_and_year_total <- df_transaction_mod %>%
-  group_by(
-    year,
-    month,
-    account_id,
-    cashflow,
-    ) %>%
-  arrange(year, month) %>%
-  summarise(amount_total = sum(amount)) %>%
-  pivot_wider(names_from = cashflow, values_from = amount_total) %>%
-  mutate(IN = replace_na(IN, 0)) %>%
-  mutate(OUT = replace_na(OUT, 0)) %>%
-  mutate(balance_sheet = IN - OUT) %>% 
-  ungroup()
-
-head(transaction_cashflow_per_month_and_year_total)
-
-```
-Versuch, eine Funktion für die Berechnung der monatlichen Kontständen zu schreiben.
-```{r}
-# balancefunc <- function()
+# balance_per_month_total_lead <- transaction_cashflow_per_month_and_year_total %>% 
+#   arrange(account_id) %>% 
+#   mutate(account_id_lead = dplyr::lead(account_id)) %>% 
+#   mutate(account_id_lead = replace_na(account_id_lead, 0)) %>% 
+#   mutate(balance_lead = dplyr::lead(balance_sheet)) %>% 
+#   mutate(balance_lead = replace_na(balance_lead, 0)) %>%
+#   mutate(balance_per_month = ifelse(c(account_id == account_id_lead), balance_sheet + balance_lead, balance_sheet)) %>% 
+#   relocate(account_id_lead)
 #   
-#   if (!grepl("incomes_avg_per.", names(incomes_avg_per_year)[2])) {
-# names(incomes_avg_per_year) <- paste0("incomes_avg_per.", names(incomes_avg_per_year))
-#   }
-
-```
-##### lead und lag
-
-weiterer Versuch mit lead() und lag() den Kontostand Ende Monat auszurechnen:
-```{r}
-balance_per_month_total_lead <- transaction_cashflow_per_month_and_year_total %>% 
-  arrange(account_id) %>% 
-  mutate(account_id_lead = dplyr::lead(account_id)) %>% 
-  mutate(account_id_lead = replace_na(account_id_lead, 0)) %>% 
-  mutate(balance_lead = dplyr::lead(balance_sheet)) %>% 
-  mutate(balance_lead = replace_na(balance_lead, 0)) %>%
-  mutate(balance_per_month = ifelse(c(account_id == account_id_lead), balance_sheet + balance_lead, balance_sheet)) %>% 
-  relocate(account_id_lead)
-  
-
-balance_per_month_total_lag <- transaction_cashflow_per_month_and_year_total %>% 
-  arrange(account_id) %>% 
-  mutate(account_id_lag = dplyr::lag(account_id)) %>% 
-  mutate(account_id_lag = replace_na(account_id_lag, 0)) %>% 
-  relocate(account_id_lag) %>% 
-  mutate(row_num = 1: nrow(.)) %>%
-  mutate(row_num_lag = dplyr::lag(row_num)) %>% 
-  mutate(balance_per_month = ifelse(c(account_id != account_id_lag), balance_sheet, 0)) %>%   mutate(balance_per_month = ifelse(c(account_id == account_id_lag), balance_per_month[row_num_lag] + balance_sheet, balance_per_month))
+# 
+# balance_per_month_total_lag <- transaction_cashflow_per_month_and_year_total %>% 
+#   arrange(account_id) %>% 
+#   mutate(account_id_lag = dplyr::lag(account_id)) %>% 
+#   mutate(account_id_lag = replace_na(account_id_lag, 0)) %>% 
+#   relocate(account_id_lag) %>% 
+#   mutate(row_num = 1: nrow(.)) %>%
+#   mutate(row_num_lag = dplyr::lag(row_num)) %>% 
+#   mutate(balance_per_month = ifelse(c(account_id != account_id_lag), balance_sheet, 0)) %>%   mutate(balance_per_month = ifelse(c(account_id == account_id_lag), balance_per_month[row_num_lag] + balance_sheet, balance_per_month))
 
 # (balance_per_month[row_num - 1] + balance_sheet))) 
 
@@ -1136,8 +1110,8 @@ balance_per_month_total_lag <- transaction_cashflow_per_month_and_year_total %>%
 
 # summary(transaction_cashflow_per_month_and_year_total)
 
-head(balance_per_month_total_lead)
-head(balance_per_month_total_lag)
+# head(balance_per_month_total_lead)
+# head(balance_per_month_total_lag)
 
 ```
 #### C.2. Suche nach einer anderen Möglichkeit für die monatlichen Kontoauszügen
@@ -1148,33 +1122,26 @@ Dazu wird ein Zufallsgenerator erstellt, um verschiedene Konten genauer zu unter
 #Zufallsnummer
 n = runif(1, min = 0, max = nrow(df_transaction_mod))
 
-df_transaction_mod %>% 
+df_transaction_mod %>%
   arrange(date) %>%
   filter(
     account_id == account_id[n],
     year == 1995,
     month == 3
-  ) 
+  )
 
 rm(n)
 
 ```
 Es fällt auf, dass die letzte Transaktion immer der Betrag 14.6 ist. Es ist immer ein OUT. Diese Hypothese wird nun nochmals überprüft.
 
-```{r}
-df_transaction_mod %>% 
-  filter(
-    amount == 14.6
-  )
-  
-```
 ##### Kontogebühren
 Es handelt sich hier vermutlich um Kontogebühren, welche als letzte Transaktion getätigt werden. Nun wird noch nach dem Wert "STATEMENT PAYMENT" gefiltert.
 ```{r}
-df_transaction_mod %>% 
+df_transaction_mod %>%
   filter(
     characterization == "STATEMENT PAYMENT"
-  ) %>% 
+  ) %>%
   arrange(desc(amount))
 
 ```
@@ -1193,6 +1160,7 @@ Es gibt gesamthahft 3 verschieden hohe Gebühren für die Konten: 14.60, 30, 100
 
 Entfernen des df_statement_payment_levels
 ```{r}
+
 rm(df_statement_payment_levels)
 
 ```
@@ -1208,13 +1176,13 @@ Dafür muss überprüft werden, ob immer Ende Monat eine Kontogebühr abgebucht 
 #### 2.a. Erstellen des Datensatzes für die monatlichen Kontostände
 statement_payment
 ```{r}
-statement_payment <- df_transaction_mod %>% 
+statement_payment <- df_transaction_mod %>%
   filter(
     characterization == "STATEMENT PAYMENT"
-  ) %>% 
+  ) %>%
   mutate(
     statement_payment = date
-  ) %>% 
+  ) %>%
   select(
     trans_id,
     statement_payment
@@ -1225,10 +1193,11 @@ head(statement_payment)
 ```
 balance_per_month
 ```{r}
-balance_per_month <- df_transaction_mod %>% 
+
+balance_per_month <- df_transaction_mod %>%
   select(
     trans_id
-  ) 
+  )
 
 balance_per_month <- left_join(balance_per_month, statement_payment, by = "trans_id")
 
@@ -1237,60 +1206,34 @@ head(balance_per_month)
 
 ```
 
-Untersuchen eines zufälligen Accounts
+Test für die Darstellung eines zufälligen Accounts in dem 'df_transaction_mod' DF.
 ```{r}
 #Zufallsnummer
 n = runif(1, min = 0, max = nrow(df_transaction_mod))
 
-df_transaction_mod %>% 
+df_transaction_mod %>%
   filter(
     account_id == account_id[n]
-  ) %>% 
+  ) %>%
   arrange(date)
 
 rm(n)
 
 ```
+
 Es gibt Monate, in denen keine Kontogebühren verrechnet wurden. Die Hypothese dazu ist, dass ein Neukunde die ersten drei Monate keine Gebühren zahlt. Dies soll überprüft werden.
 
-##### letzter Tag im Monat
-last_day_in_month
-```{r}
-last_day_in_month <- df_transaction_mod %>% 
-  group_by(
-    account_id,
-    year,
-    month
-  ) %>% 
-  mutate(last_day = max(date)) %>% 
-  ungroup()
-
-head(last_day_in_month)
-
-```
-```{r}
-last_day_in_month <- last_day_in_month %>% 
-  filter(
-    date == last_day
-  ) %>% 
-  arrange(
-    account_id,
-    date
-  )
-last_day_in_month
-
-```
 Bei der Kontoeröffnung ist der Amount gleich hoch wie die Balance. Diese Information kann in "characterization" imputiert werden.
 
 ##### Kontoeröffnung
 account_opening
 ```{r}
 
-account_opening <- df_transaction_mod %>% 
+account_opening <- df_transaction_mod %>%
   filter(
     amount == balance,
     cashflow == "IN"
-  ) %>% 
+  ) %>%
   mutate(
     account_opening = date
   )
@@ -1301,7 +1244,7 @@ head(account_opening)
 
 Die Erkenntnisse aus den Kontoeröffnungen werden nun dem Data Frame "balance_per_month" angefügt.
 ```{r}
-foo <- account_opening %>% 
+foo <- account_opening %>%
   select(
     trans_id,
     account_opening
@@ -1315,7 +1258,7 @@ head(balance_per_month)
 ```
 
 ```{r}
-foo <- last_day_in_month %>% 
+foo <- last_day_in_month %>%
   select(
     trans_id,
     last_day
@@ -1334,21 +1277,23 @@ head(balance_per_month)
 ```
 ##### auf Duplikate überprüfen
 ```{r}
-num <- balance_per_month %>% 
+num <- balance_per_month %>%
   filter(
     !is.na(last_day),
     is.na(statement_payment),
     is.na(account_opening)
-    ) %>% 
+    ) %>%
   group_by(
     account_id,
     year,
     month
-  ) %>% 
+  ) %>%
   ungroup()
 
 nrow(num)
+
 n_distinct <- num %>% select(account_id, date) %>% n_distinct()
+
 n_distinct
 
 ```
@@ -1377,10 +1322,11 @@ foo <- balance_per_month %>%
     n == 1
   ) %>%
   rename(is_unique = n)
-  
+
 balance_per_month <- left_join(balance_per_month, foo, by = c("account_id", "year", "month"))
 
 rm(foo)
+
 head(balance_per_month)
 
 ```
@@ -1405,32 +1351,33 @@ foo <- balance_per_month %>%
     n > 1
   ) %>%
   rename(is_not_unique = n)
-  
+
 balance_per_month <- left_join(balance_per_month, foo, by = c("account_id", "year", "month"))
 
 rm(foo)
+
 head(balance_per_month)
 
 ```
 
 ```{r}
-balance_per_month %>% 
+balance_per_month %>%
   filter(
     !is.na(is_not_unique),
     !is.na(last_day),
     is.na(statement_payment),
     is.na(account_opening)
-  ) %>% 
+  ) %>%
   arrange(
     account_id,
     date
-  ) %>% 
+  ) %>%
   arrange(desc(is_not_unique))
-
-```
+ ``` 
 Alle diese Versuche führen nicht zum Ziel.
 
 #### Entfernen der nicht mehr benötigten Tabellen
+ 
 ```{r}
 rm(account_opening, balance_per_month, balance_per_month_total_lag, balance_per_month_total_lead, balance_sheet, last_day_in_month, num, years_avg, n_distinct, n_row_na, transaction_cashflow_per_month_and_year_total)
 
@@ -1439,7 +1386,7 @@ rm(account_opening, balance_per_month, balance_per_month_total_lag, balance_per_
 
 #### Weiterer Versuch, den Kontoendstand pro Monat zu eruieren. (Code von Aaron)
 
-Dazu wird der jeweilige Kontoendstand des Vormonats genommen und von diesem alle Geldein- sowie Ausgänge dazu gerechnet beziehungsweise abgezogen. 
+Dazu wird der jeweilige Kontoendstand des Vormonats genommen und von diesem alle Geldein- sowie Ausgänge dazu gerechnet beziehungsweise abgezogen. Wir erstellen ein Hilf-Data-Frame für die Geldein- und Ausgänge, in diesem Date Frame werden nach der zuweisung der Werte jeglich NA's zu einem numeric values 0 umformatiert. Nachfolgend wir eine Balance für jeden Monat erstellt.
 ```{r}
 
 transaction_cashflow_per_month_and_year <- df_transaction_mod %>%
@@ -1449,13 +1396,22 @@ transaction_cashflow_per_month_and_year <- df_transaction_mod %>%
     year,
     month
   ) %>%
-  summarise(amount_mean = mean(amount)) %>%
+  summarise(amount_sum = sum(amount)) %>%
   # arrange(year, month) %>%
-  pivot_wider(names_from = c(cashflow,year,month), values_from = amount_mean)
+  pivot_wider(names_from = c(cashflow,year,month), values_from = amount_sum)
+
+
 
 str(transaction_cashflow_per_month_and_year)
 
-transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year %>%
+transaction_cashflow_per_month_and_year
+
+transaction_cashflow_per_month_and_year_modified <- transaction_cashflow_per_month_and_year %>%
+  replace(is.na(transaction_cashflow_per_month_and_year), 0) 
+
+transaction_cashflow_per_month_and_year_modified
+
+transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year_modified %>%
   mutate(account_id = account_id) %>%
   mutate(balance_1993_1 = IN_1993_1 - OUT_1993_1) %>%
   mutate(balance_1993_2 = balance_1993_1 + (IN_1993_2 - OUT_1993_2)) %>%
@@ -1528,17 +1484,10 @@ transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year %>%
   mutate(balance_1998_9 = balance_1998_8 + (IN_1998_9 - OUT_1998_9)) %>%
   mutate(balance_1998_10 = balance_1998_9 + (IN_1998_10 - OUT_1998_10)) %>%
   mutate(balance_1998_11 = balance_1998_10 + (IN_1998_11 - OUT_1998_11)) %>%
-  mutate(balance_1998_12 = balance_1998_11 + (IN_1998_12 - OUT_1998_12))
-
-# df_transaction_mod %>%
-#   filter(trans_id == 3530447)
-#
-# df_transaction_mod %>%
-#   filter(account_id == 1 & month == 1 & year == 1996) %>%
-#   arrange(desc(trans_id))
+  mutate(balance_1998_12 = balance_1998_11 + (IN_1998_12 - OUT_1998_12)) %>%
+  select(account_id, balance_1993_1, balance_1993_2,balance_1993_3, balance_1993_4, balance_1993_5, balance_1993_6, balance_1993_7, balance_1993_8, balance_1993_9, balance_1993_10, balance_1993_11, balance_1993_12, balance_1994_1, balance_1994_2, balance_1994_3, balance_1994_4, balance_1994_5, balance_1994_6, balance_1994_7, balance_1994_8, balance_1994_9, balance_1994_10, balance_1994_11, balance_1994_12, balance_1995_1, balance_1995_2, balance_1995_3, balance_1995_4, balance_1995_5, balance_1995_6, balance_1995_7, balance_1995_8, balance_1995_9, balance_1995_10,balance_1995_11,balance_1995_12, balance_1996_1, balance_1996_2, balance_1996_3, balance_1996_4, balance_1996_5, balance_1996_6, balance_1996_7, balance_1996_8, balance_1996_9, balance_1996_10, balance_1996_11, balance_1996_12, balance_1997_1, balance_1997_2, balance_1997_3, balance_1997_4, balance_1997_5, balance_1997_6, balance_1997_7, balance_1997_8, balance_1997_9, balance_1997_10, balance_1997_11, balance_1997_12,balance_1998_1, balance_1998_2, balance_1998_3, balance_1998_4, balance_1998_5, balance_1998_6, balance_1998_7, balance_1998_8, balance_1998_9, balance_1998_10, balance_1998_11, balance_1998_12)
 
 summary(transaction_cashflow_per_month_and_year)
-# head(transaction_mod_balance_per_month)
 
 ```
 
@@ -1555,8 +1504,7 @@ df_transaction_mod %>%
     ) %>% 
   group_by(date) %>% 
   count() %>% 
-  arrange() %>% 
-  nrow()
+  arrange()
 
 ```
 Am Beispiel des Accounts Nr. 18 ist klar zu erkennen, dass das Datum (mit dem dazugehörenden Kontostand) nur erfasst wurde, wenn auch eine Zahlung getätigt wurde.
@@ -1569,11 +1517,10 @@ transaction_mod_balance_per_month %>%
     account_id == 18
   ) %>% 
   select(
-    balance_1993_5,
-    balance_1993_6,
-    balance_1993_7,
-    balance_1993_11,
-    balance_1993_12
+    balance_1995_1,
+    balance_1995_2,
+    balance_1995_3,
+    balance_1995_4
   )
 
 df_transaction_mod %>% 
@@ -1589,7 +1536,9 @@ Zum Beispiel weist der Account 18 bei Aarons Code am 1993-07-25 einen Saldo von 
 
 #### Entfernen der nicht mehr benötigten Tabellen
 ```{r}
+
 rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month)
+
 ```
 
 
@@ -2202,10 +2151,3 @@ Die Anreicherung der Daten nimmt jeweils den letzten Betrag und führt diesen we
 #     date == "1996-05-13"
 #   )
 ```
-
-
-
-
-
-
-
