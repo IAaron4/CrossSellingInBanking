@@ -1654,6 +1654,10 @@ transaction_cashflow_per_quarter_and_year_modified %>%
   mutate('1998_Q3_Income' = 'IN_1998 Q3') %>%
   mutate('1998_Q4_Income' = 'IN_1998 Q4')
 
+summary(transaction_cashflow_per_month_and_year)
+
+df_mod <- left_join(df_mod, transaction_cashflow_per_quarter_and_year_modified, by = c("account_id" = "account_id"))
+
 ```
 
 #### Entfernen der nicht mehr benötigten Tabellen
