@@ -93,11 +93,18 @@ library(visdat)
 library(DT)
 library(patchwork)
 library(ggpubr)
+library(ggplot2)
 library(rpart.plot)
 library(tidymodels)
 library(lubridate)
 library(cluster)
 library(imputeTS)
+#Used to display district information in a map of the Czech Republic.
+library(RCzechia)
+library(readxl)
+library(httr)
+
+
 tidymodels_prefer()
 ```
 
@@ -1654,7 +1661,7 @@ transaction_cashflow_per_quarter_and_year_modified %>%
   mutate('1998_Q3_Income' = 'IN_1998 Q3') %>%
   mutate('1998_Q4_Income' = 'IN_1998 Q4')
 
-summary(transaction_cashflow_per_month_and_year)
+summary(transaction_cashflow_per_quarter_and_year_modified)
 
 df_mod <- left_join(df_mod, transaction_cashflow_per_quarter_and_year_modified, by = c("account_id" = "account_id"))
 
@@ -2057,98 +2064,6 @@ Für die erste Kontrolle werden wiederum die Account_id und das Datum gruppiert 
 Es sind immer noch mehrere Transaktionen pro Tag vorhanden. Dies wird genauer untersucht.
 Dazu werden die Observationen in den verschiedenen Tabellen verglichen.
 
-# ```{r}
-# end_of_day_first %>%
-#   filter(
-#     date == "1998-11-30",
-#     account_id == 9814
-#   )
-# ```
-# 
-# 
-# ```{r}
-# end_of_day_helper %>%
-#   filter(
-#     date == "1998-11-30",
-#     account_id == 9814
-#   )
-# ```
-# 
-# ```{r}
-# balance_end_of_day %>%
-#   filter(
-#     date == "1998-11-30",
-#     account_id == 9814
-#   )
-# ```
-# 
-# ```{r}
-# A <- end_of_day_first %>%
-#   filter(
-#     date == "1998-11-30",
-#     account_id == 9814
-#   ) %>%
-#   select(account_id, date, balance)
-# 
-# B <- end_of_day_helper %>%
-#   filter(
-#     date == "1998-11-30",
-#     account_id == 9814
-#   ) %>%
-#   select(account_id, date, balance)
-# 
-# C <- balance_end_of_day %>%
-#   filter(
-#     date == "1998-11-30",
-#     account_id == 9814
-#   ) %>%
-#   select(account_id, date, balance)
-# 
-# ```
-# 
-# 
-# ```{r}
-# anti_join(A, B, by = c("balance"))
-# ```
-# ```{r}
-# glimpse(A)
-# ```
-# ```{r}
-# glimpse(B)
-# ```
-# ```{r}
-# anti_join(A, B, by = 'balance')
-# ```
-# ```{r}
-# rm(A,B,C)
-# ```
-# 
-# ```{r}
-# df1 <- data.frame(team=c('C', 'D', 'E','A', 'B'),
-#                   points=c(21501.9, 14, 19, 24, 21487.3))
-# 
-# df2 <- data.frame(team=c('A', 'B', 'C', 'F', 'G'),
-#                   points=c(12, 14, 21402.7, 33, 21501.9))
-# 
-# anti_join(df1, df2, by='points')
-# ```
-# 
-# ```{r}
-# rm(df1,df2)
-# ```
-# 
-# 
-# ##### Kontrolle mit Account 1274
-# 
-# 
-# ```{r}
-# balance_end_of_day %>%
-#   filter(
-#       account_id == 1274,
-#       date == "1998-11-30"
-#     )
-```
-
 #### Anreichern der fehlenden Daten in den Attributen "Date" und "Balance"
 
 Nach den eben gewonnenen Erkenntnissen werden nun das Datum und der Kontostand an den fehlenden Tagen ergänzt.
@@ -2254,6 +2169,8 @@ Die Anreicherung der Daten nimmt jeweils den letzten Betrag und führt diesen we
 #   )
 
 ### **D. Erstellen des konsolidierten Data Frames**
+
+```
 
 Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
  
@@ -2841,23 +2758,61 @@ aus order_payment_type angeschaut.
 
 ```{r}
 
+df_district_mod
+
 ```
 
 #### x. In welchen Distrikten gibt es den höchsten Lohn? (Aaron)
 
 ```{r}
-# df_cons_transaction_type_per_quarter <- df_cons %>%
+
+#Preparation of the geographical data of the RCzechia data frame.
+geographical_data <- RCzechia::okresy("low") 
+
+str(geographical_data)
+
+str(df_district_mod)
+
+df_district_mod <- df_district_mod %>% mutate(
+  district_name = as.character(district_name),
+  district_name = ifelse(district_name == "Hl.m. Praha", "Praha", district_name)
+  )
+
+df_district_mod <- df_district_mod %>%
+  arrange(district_name)
+
+geographical_data <- geographical_data %>%
+  arrange(NAZ_LAU1)
+  
+df_district_mod_names <- cbind(df_district_mod, original_name = geographical_data$NAZ_LAU1) %>%
+  select(district_name, original_name, district_average_salary)
+
+df_average_salary_per_district_including_geo_data <- left_join(df_district_mod_names, geographical_data, by = c("original_name" = "NAZ_LAU1"))
+
+
+ggplot(data = df_average_salary_per_district_including_geo_data) +
+  geom_sf(aes(fill = district_average_salary, geometry= geometry), colour = NA) +
+  geom_sf(data = republika("low"), color = "gray30", fill = NA) +
+  scale_fill_viridis_c(trans = "log", labels = scales::comma) +
+  labs(title = "Average Salary per District",
+       fill = "Average Salary") +
+  theme(legend.text.align = 1,
+        legend.title.align = 0.5)
+
+#geographical_data$NAZ_LAU1
+# %>% # data shapefile
+#   inner_join(src, by = "NAZ_LAU1")
+
+#df_salary_per_district <- left_join(external_data_districts, df_district_mod, by = c("account_id" = "account_id"))
+
+# df_salary_per_district <- df_district_mod %>%
 #   group_by(district_id) %>%
 #   mutate(average_salary = average_salary) %>%
-#   mutate(district = district_name)
+#   mutate(district = district_name) %>%
 # 
-# df_cons_transaction_type_per_quarter
 # 
-# ggplot(df_cons_transaction_type_per_quarter, aes(x=average_salary, fill=district)) + 
-#   geom_bar( ) +
-#   xlab("District") +
-#   ylab("Average Salary") +
-#   labs(fill = "District Name")
+# ggplot(df_salary_per_district, aes(x=average_salary, fill=district)) +
+  
 
 ```
 
