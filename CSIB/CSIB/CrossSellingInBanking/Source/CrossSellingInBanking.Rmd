@@ -1598,8 +1598,7 @@ transaction_cashflow_per_quarter_and_year <- df_transaction_mod %>%
   group_by(
     account_id,
     cashflow,
-    quarter,
-    year,
+    quarter
   ) %>%
   summarise(amount_sum = sum(amount)) %>%
   # arrange(year, month) %>%
@@ -1627,7 +1626,7 @@ transaction_cashflow_per_quarter_and_year_modified %>%
   mutate('1996_Q1_Expenses' = 'OUT_1996 Q1') %>%
   mutate('1996_Q2_Expenses' = 'OUT_1996 Q2') %>%
   mutate('1996_Q3_Expenses' = 'OUT_1996 Q3') %>%
-  mutate('1996_Q2_Expenses' = 'OUT_1996 Q4') %>%
+  mutate('1996_Q4_Expenses' = 'OUT_1996 Q4') %>%
   mutate('1997_Q1_Expenses' = 'OUT_1997 Q1') %>%
   mutate('1997_Q2_Expenses' = 'OUT_1997 Q2') %>%
   mutate('1997_Q3_Expenses' = 'OUT_1997 Q3') %>%
@@ -1659,7 +1658,8 @@ transaction_cashflow_per_quarter_and_year_modified %>%
   mutate('1998_Q1_Income' = 'IN_1998 Q1') %>%
   mutate('1998_Q2_Income' = 'IN_1998 Q2') %>%
   mutate('1998_Q3_Income' = 'IN_1998 Q3') %>%
-  mutate('1998_Q4_Income' = 'IN_1998 Q4')
+  mutate('1998_Q4_Income' = 'IN_1998 Q4') %>%
+  select(account_id, '1993_Q1_Expenses', '1993_Q2_Expenses', '1993_Q3_Expenses', '1993_Q4_Expenses', '1994_Q1_Expenses', '1994_Q2_Expenses', '1994_Q3_Expenses', '1994_Q4_Expenses', '1995_Q1_Expenses', '1995_Q2_Expenses', '1995_Q3_Expenses', '1995_Q4_Expenses', '1996_Q1_Expenses', '1996_Q2_Expenses', '1996_Q3_Expenses', '1996_Q4_Expenses', '1997_Q1_Expenses', '1997_Q2_Expenses', '1997_Q3_Expenses', '1997_Q4_Expenses', '1998_Q1_Expenses', '1998_Q2_Expenses', '1998_Q3_Expenses', '1998_Q4_Expenses', '1993_Q1_Income', '1993_Q2_Income', '1993_Q3_Income', '1993_Q4_Income', '1994_Q1_Income', '1994_Q2_Income', '1994_Q3_Income', '1994_Q4_Income', '1995_Q1_Income', '1995_Q2_Income', '1995_Q3_Income', '1995_Q4_Income', '1996_Q1_Income', '1996_Q2_Income', '1996_Q3_Income', '1996_Q4_Income', '1997_Q1_Income', '1997_Q2_Income', '1997_Q3_Income', '1997_Q4_Income', '1998_Q1_Income', '1998_Q2_Income', '1998_Q3_Income', '1998_Q4_Income')
 
 summary(transaction_cashflow_per_quarter_and_year_modified)
 
@@ -2682,26 +2682,25 @@ aus order_payment_type angeschaut.
 
 ```{r}
 
-# df_cons_credit_card_by_type <- df_cons %>%
-#   filter(!is.na(card_id)) %>%
-#   group_by(card_id) %>%
-#   mutate(card_type = card_type) %>%
-#   mutate(count = sum(n())) %>%
-#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-#   select(sex, count, frequency, card_type) %>% 
-#   distinct()
-# 
-# df_cons_credit_card_by_type
-# 
-# ggplot(df_cons_credit_card_by_type, aes(fill = card_type, x = sex, y = count)) +
-#   labs(title = "Distribution of Credit Card Type per Sex", subtitle = "The percentage displayed on the plot is the frequency of the type over the whole population.") +
-#   geom_bar(position="fill", stat="identity") +
-#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-#   xlab("Sex") +
-#   ylab("Count") +
-#   labs(fill = "Card Type", )
-#   
-#   
+df_credit_card_by_type <- df_mod %>%
+  filter(!is.na(card_id)) %>%
+  select(card_type, owner_sex) %>%
+  group_by(card_type, owner_sex) %>%
+  summarise(n = n()) %>%
+  mutate(prop = paste0((round(prop.table(n), 3))," %")) %>%
+  ungroup()
+
+df_credit_card_by_type
+
+ggplot(df_credit_card_by_type, aes(fill = card_type, x = owner_sex, y = n)) +
+  labs(title = "Distribution of Credit Card Type per Sex", subtitle = "The percentage displayed on the plot is the frequency of the type over the whole population.") +
+  geom_col(position = "fill") + 
+  geom_text(aes(label = prop), position = position_fill(vjust = 0.5)) +
+  xlab("Sex") +
+  ylab("Count") +
+  labs(fill = "Card Type")
+
+   
 ```
 
 #### vii. Wie sieht die Verteilung der Typen von Dispositionen aus?
@@ -2732,26 +2731,23 @@ aus order_payment_type angeschaut.
 #### viii. Was ist der am beliebtesten Modus einer Transaktion? (Aaron)
 
 ```{r}
-# df_cons_transaction_type_per_quarter <- df_cons %>%
-#   filter(!is.na(trans_id)) %>%
-#   group_by(trans_id) %>%
-#   mutate(trans_characterization = trans_characterization) %>%
-#   mutate(trans_quarter_year = trans_quarter_year) %>%
-#   mutate(count = sum(n())) %>%
-#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-#   select(trans_quarter_year, count, frequency, trans_characterization) %>% 
-#   distinct()
-# 
-# df_cons_transaction_type_per_quarter
-# 
-# ggplot(df_cons_transaction_type_per_quarter, aes(fill = trans_characterization, x = trans_quarter_year, y = count)) +
-#   labs(title = "Distribution of transaction types per quarters", subtitle = "") +
-#   geom_bar(position="fill", stat="identity") +
-#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-#   xlab("Quarter") +
-#   ylab("Count") +
-#   labs(fill = "Transaction Type")
+df_transaction_type_count <- df_transaction_mod %>%
+  filter(!is.na(trans_id)) %>%
+  group_by(characterization, quarter) %>%
+  mutate(count = sum(n())) %>%
+  select(count, characterization, quarter) %>%
+  distinct()
 
+df_transaction_type_count
+
+ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = count)) +
+  labs(title = "Distribution of transaction types per quarters", subtitle = "") +
+  geom_bar(position="stack", stat="identity") +
+  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+  xlab("Quarter") +
+  ylab("Count") +
+  labs(fill = "Transaction Type") +
+  facet_wrap(vars(characterization))
 ```
 
 #### ix. Aus welchen Gründen (Charakterisierung) werden Transaktion durchgeführt und wie sieht die Verteilung dieser aus? (Aaron)
@@ -2762,11 +2758,14 @@ df_district_mod
 
 ```
 
-#### x. In welchen Distrikten gibt es den höchsten Lohn? (Aaron)
+#### x. Verteilung der Kundschaft auf die Distrikte in Tschechien. (Aaron)
+
+
+##### Vorbereitung der externen geografischen Daten für die Visualisierung in einer Kartenansicht. 
 
 ```{r}
 
-#Preparation of the geographical data of the RCzechia data frame.
+#Preparation of the geographical data of the RCzechia package.
 geographical_data <- RCzechia::okresy("low") 
 
 str(geographical_data)
@@ -2783,12 +2782,54 @@ df_district_mod <- df_district_mod %>%
 
 geographical_data <- geographical_data %>%
   arrange(NAZ_LAU1)
-  
+
+```
+
+##### x. i. Die Anzahl der Kunden in den einzelnen Distrikten.
+
+```{r}
+
+df_customers_per_district <- df_mod %>%
+  group_by(account_district_name) %>%
+  mutate(count = sum(n())) %>%
+  select(account_district_name, count) %>%
+  distinct()
+
+df_customers_per_district
+
+df_customers_per_district <- df_customers_per_district %>% mutate(
+    district_name = as.character(account_district_name),
+    district_name = ifelse(account_district_name == "Hl.m. Praha", "Praha", district_name)
+  ) %>%
+  arrange(account_district_name)
+
+df_customers_per_district <- cbind(df_customers_per_district, original_district_name = geographical_data$NAZ_LAU1) %>%
+  select(district_name, original_district_name, count)
+
+
+df_customers_per_district_incl_geo_data <- left_join(df_customers_per_district, geographical_data, by = c("original_district_name" = "NAZ_LAU1"))
+
+ggplot(data = df_customers_per_district_incl_geo_data) +
+  geom_sf(aes(fill = count, geometry = geometry), colour = NA) +
+  geom_sf(data = republika("low"), color = "gray30", fill = NA) +
+  scale_fill_viridis_c(trans = "log", labels = scales::comma) +
+  labs(title = "Distribution of customer location in the districts",
+       fill = "Customers") +
+  theme(legend.text.align = 1,
+        legend.title.align = 0.5)
+
+
+
+```
+
+##### x. ii. Der Durchschnittliche Lohn in den verschiedenen Distrikten
+
+```{r}
+
 df_district_mod_names <- cbind(df_district_mod, original_name = geographical_data$NAZ_LAU1) %>%
   select(district_name, original_name, district_average_salary)
 
 df_average_salary_per_district_including_geo_data <- left_join(df_district_mod_names, geographical_data, by = c("original_name" = "NAZ_LAU1"))
-
 
 ggplot(data = df_average_salary_per_district_including_geo_data) +
   geom_sf(aes(fill = district_average_salary, geometry= geometry), colour = NA) +
@@ -2799,26 +2840,15 @@ ggplot(data = df_average_salary_per_district_including_geo_data) +
   theme(legend.text.align = 1,
         legend.title.align = 0.5)
 
-#geographical_data$NAZ_LAU1
-# %>% # data shapefile
-#   inner_join(src, by = "NAZ_LAU1")
-
-#df_salary_per_district <- left_join(external_data_districts, df_district_mod, by = c("account_id" = "account_id"))
-
-# df_salary_per_district <- df_district_mod %>%
-#   group_by(district_id) %>%
-#   mutate(average_salary = average_salary) %>%
-#   mutate(district = district_name) %>%
-# 
-# 
-# ggplot(df_salary_per_district, aes(x=average_salary, fill=district)) +
-  
 
 ```
+
 
 #### xi. Können neue Sonderangebote/Pakete geschaffen werden für die am meist verdienenden Kunden? (Aaron)
 
 ```{r}
+
+
 
 ```
 
