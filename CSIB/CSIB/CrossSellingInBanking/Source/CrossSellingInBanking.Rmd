@@ -1154,7 +1154,7 @@ Es fällt auf, dass die letzte Transaktion immer der Betrag 14.6 ist. Es ist imm
 
 ##### Kontogebühren
 Es handelt sich hier vermutlich um Kontogebühren, welche als letzte Transaktion getätigt werden. Nun wird noch nach dem Wert "STATEMENT PAYMENT" gefiltert.
-```{r}
+```{r, results='hide'}
 df_transaction_mod %>%
   filter(
     characterization == "STATEMENT PAYMENT"
@@ -1163,7 +1163,7 @@ df_transaction_mod %>%
 
 ```
 Die Beträge sind nicht immer gleich hoch. Dies soll genauer untersucht werden. Damit die verschiedenen vorkommenden Beträge aufgelistet werden können, wird eine zusätzliche Spalte generiert, in der die Werte zu Faktoren umgewandelt werden. Anschliessend können die Levels angezeigt werden. Die Hypothese ist, dass die Höhe er Beträge Aussagen macht, ob es sich dabei um Privat- oder Geschäftskunden handelt.
-```{r}
+```{r, results='hide'}
 df_statement_payment_levels <- df_transaction_mod %>% 
   filter(
     characterization == "STATEMENT PAYMENT"
@@ -1224,7 +1224,7 @@ head(balance_per_month)
 ```
 
 Test für die Darstellung eines zufälligen Accounts in dem 'df_transaction_mod' DF.
-```{r}
+```{r , results='hide'}
 #Zufallsnummer
 n = runif(1, min = 0, max = nrow(df_transaction_mod))
 
@@ -1403,7 +1403,7 @@ head(balance_per_month)
 
 ```
 
-```{r}
+```{r, results='hide'}
 balance_per_month %>%
   filter(
     !is.na(is_not_unique),
@@ -1446,16 +1446,12 @@ transaction_cashflow_per_month_and_year <- df_transaction_mod %>%
   # arrange(year, month) %>%
   pivot_wider(names_from = c(cashflow,year,month), values_from = amount_sum)
 
-
-
-str(transaction_cashflow_per_month_and_year)
-
-transaction_cashflow_per_month_and_year
+head(transaction_cashflow_per_month_and_year)
 
 transaction_cashflow_per_month_and_year_modified <- transaction_cashflow_per_month_and_year %>%
   replace(is.na(transaction_cashflow_per_month_and_year), 0) 
 
-transaction_cashflow_per_month_and_year_modified
+head(transaction_cashflow_per_month_and_year_modified)
 
 transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year_modified %>%
   mutate(account_id = account_id) %>%
@@ -1533,7 +1529,7 @@ transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year_mod
   mutate(balance_1998_12 = balance_1998_11 + (IN_1998_12 - OUT_1998_12)) %>%
   select(account_id, balance_1993_1, balance_1993_2,balance_1993_3, balance_1993_4, balance_1993_5, balance_1993_6, balance_1993_7, balance_1993_8, balance_1993_9, balance_1993_10, balance_1993_11, balance_1993_12, balance_1994_1, balance_1994_2, balance_1994_3, balance_1994_4, balance_1994_5, balance_1994_6, balance_1994_7, balance_1994_8, balance_1994_9, balance_1994_10, balance_1994_11, balance_1994_12, balance_1995_1, balance_1995_2, balance_1995_3, balance_1995_4, balance_1995_5, balance_1995_6, balance_1995_7, balance_1995_8, balance_1995_9, balance_1995_10,balance_1995_11,balance_1995_12, balance_1996_1, balance_1996_2, balance_1996_3, balance_1996_4, balance_1996_5, balance_1996_6, balance_1996_7, balance_1996_8, balance_1996_9, balance_1996_10, balance_1996_11, balance_1996_12, balance_1997_1, balance_1997_2, balance_1997_3, balance_1997_4, balance_1997_5, balance_1997_6, balance_1997_7, balance_1997_8, balance_1997_9, balance_1997_10, balance_1997_11, balance_1997_12,balance_1998_1, balance_1998_2, balance_1998_3, balance_1998_4, balance_1998_5, balance_1998_6, balance_1998_7, balance_1998_8, balance_1998_9, balance_1998_10, balance_1998_11, balance_1998_12)
 
-summary(transaction_cashflow_per_month_and_year)
+str(transaction_cashflow_per_month_and_year)
 
 
 df_mod <- left_join(df_mod, transaction_mod_balance_per_month, by = c("account_id" = "account_id"))
@@ -1661,7 +1657,7 @@ transaction_cashflow_per_quarter_and_year_modified %>%
   mutate('1998_Q4_Income' = 'IN_1998 Q4') %>%
   select(account_id, '1993_Q1_Expenses', '1993_Q2_Expenses', '1993_Q3_Expenses', '1993_Q4_Expenses', '1994_Q1_Expenses', '1994_Q2_Expenses', '1994_Q3_Expenses', '1994_Q4_Expenses', '1995_Q1_Expenses', '1995_Q2_Expenses', '1995_Q3_Expenses', '1995_Q4_Expenses', '1996_Q1_Expenses', '1996_Q2_Expenses', '1996_Q3_Expenses', '1996_Q4_Expenses', '1997_Q1_Expenses', '1997_Q2_Expenses', '1997_Q3_Expenses', '1997_Q4_Expenses', '1998_Q1_Expenses', '1998_Q2_Expenses', '1998_Q3_Expenses', '1998_Q4_Expenses', '1993_Q1_Income', '1993_Q2_Income', '1993_Q3_Income', '1993_Q4_Income', '1994_Q1_Income', '1994_Q2_Income', '1994_Q3_Income', '1994_Q4_Income', '1995_Q1_Income', '1995_Q2_Income', '1995_Q3_Income', '1995_Q4_Income', '1996_Q1_Income', '1996_Q2_Income', '1996_Q3_Income', '1996_Q4_Income', '1997_Q1_Income', '1997_Q2_Income', '1997_Q3_Income', '1997_Q4_Income', '1998_Q1_Income', '1998_Q2_Income', '1998_Q3_Income', '1998_Q4_Income')
 
-summary(transaction_cashflow_per_quarter_and_year_modified)
+head(transaction_cashflow_per_quarter_and_year_modified)
 
 df_mod <- left_join(df_mod, transaction_cashflow_per_quarter_and_year_modified, by = c("account_id" = "account_id"))
 
@@ -2707,25 +2703,24 @@ ggplot(df_credit_card_by_type, aes(fill = card_type, x = owner_sex, y = n)) +
 
 ```{r}
 
-# 
-# df_cons_distribution_disposition_type <- df_cons %>%
-#   filter(!is.na(disp_id)) %>%
-#   group_by(disp_id) %>%
-#   mutate(disp_type = disp_type) %>%
-#   mutate(count = sum(n())) %>%
-#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-#   select(sex, count, frequency, disp_type) %>% 
-#   distinct()
-# 
-# df_cons_distribution_disposition_type
-# 
-# ggplot(df_cons_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
-#   labs(title = "Distribution of disposition types", subtitle = "") +
-#   geom_bar(position="fill", stat="identity") +
-#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-#   xlab("Sex") +
-#   ylab("Count") +
-#   labs(fill = "Disposition Type")
+df_distribution_disposition_type <- df_mod %>%
+  filter(!is.na(disp_id)) %>%
+  group_by(disp_id) %>%
+  mutate(disp_type = disp_type) %>%
+  mutate(count = sum(n())) %>%
+  mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
+  select(sex, count, frequency, disp_type) %>%
+  distinct()
+
+df_distribution_disposition_type
+
+ggplot(df_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
+  labs(title = "Distribution of disposition types", subtitle = "") +
+  geom_bar(position="fill", stat="identity") +
+  #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+  xlab("Sex") +
+  ylab("Count") +
+  labs(fill = "Disposition Type")
 ```
 
 #### viii. Was ist der am beliebtesten Modus einer Transaktion? (Aaron)
@@ -2747,14 +2742,14 @@ ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = 
   xlab("Quarter") +
   ylab("Count") +
   labs(fill = "Transaction Type") +
-  facet_wrap(vars(characterization))
+  facet_wrap(vars(characterization), ncol = 4)
 ```
 
 #### ix. Aus welchen Gründen (Charakterisierung) werden Transaktion durchgeführt und wie sieht die Verteilung dieser aus? (Aaron)
 
 ```{r}
 
-df_district_mod
+
 
 ```
 
