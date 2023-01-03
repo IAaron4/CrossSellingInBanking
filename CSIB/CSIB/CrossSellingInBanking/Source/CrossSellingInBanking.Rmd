@@ -1087,50 +1087,59 @@ rm(balance_per_month_mean, balance_per_month_total_lag, balance_sheet_per_years_
 
 ```
 
-##### Lead und Lag (1. Versuch für die Transformierung des transaction frames.)
+#### C.1. Kontostand Ende Monat
 
-2. Versuch mit lead() und lag() den Kontostand Ende Monat auszurechnen:
+Als erstes werden die Kontostände per Ende jeden Monats berechnet. Dazu müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da ja bei diesen Kontoständen sowie Geldein-/ausgängen 0 CZK vorhanden sind.
 ```{r}
-# balance_per_month_total_lead <- transaction_cashflow_per_month_and_year_total %>% 
-#   arrange(account_id) %>% 
-#   mutate(account_id_lead = dplyr::lead(account_id)) %>% 
-#   mutate(account_id_lead = replace_na(account_id_lead, 0)) %>% 
-#   mutate(balance_lead = dplyr::lead(balance_sheet)) %>% 
-#   mutate(balance_lead = replace_na(balance_lead, 0)) %>%
-#   mutate(balance_per_month = ifelse(c(account_id == account_id_lead), balance_sheet + balance_lead, balance_sheet)) %>% 
-#   relocate(account_id_lead)
-#   
-# 
-# balance_per_month_total_lag <- transaction_cashflow_per_month_and_year_total %>% 
-#   arrange(account_id) %>% 
-#   mutate(account_id_lag = dplyr::lag(account_id)) %>% 
-#   mutate(account_id_lag = replace_na(account_id_lag, 0)) %>% 
-#   relocate(account_id_lag) %>% 
-#   mutate(row_num = 1: nrow(.)) %>%
-#   mutate(row_num_lag = dplyr::lag(row_num)) %>% 
-#   mutate(balance_per_month = ifelse(c(account_id != account_id_lag), balance_sheet, 0)) %>%   mutate(balance_per_month = ifelse(c(account_id == account_id_lag), balance_per_month[row_num_lag] + balance_sheet, balance_per_month))
+transaction_cashflow_per_month_and_year_total <- df_transaction_mod %>%
+  group_by(
+    year,
+    month,
+    account_id,
+    cashflow,
+    ) %>%
+  arrange(year, month) %>%
+  summarise(amount_total = sum(amount)) %>%
+  pivot_wider(names_from = cashflow, values_from = amount_total) %>%
+  mutate(IN = replace_na(IN, 0)) %>%
+  mutate(OUT = replace_na(OUT, 0)) %>%
+  mutate(balance_sheet = IN - OUT) %>% 
+  ungroup()
 
-# (balance_per_month[row_num - 1] + balance_sheet))) 
-
-#  mutate(balance_per_month = ifelse(c(is.na(balance_per_month)), (balance_per_month[row_num - 1] + balance_sheet), balance_per_month))
-  
-  # mutate(balance_per_month = ifelse(c(is.na(balance_per_month)), balance_per_month[row_num - 1] + balance_sheet, balance_per_month))
-                                    
-# balance_per_month[which(balance_per_month %in% c(balance_per_month))] , balance_per_month)) 
-
-# balance_per_month_total_lag %>% 
-#   group_by(account_id) %>% 
-#   slice_head(n = 1) %>% 
-#   summary()
-
-#   pivot_wider(names_from = c(year,month), values_from = balance)
-
-# summary(transaction_cashflow_per_month_and_year_total)
-
-# head(balance_per_month_total_lead)
-# head(balance_per_month_total_lag)
+head(transaction_cashflow_per_month_and_year_total)
 
 ```
+Leider ist kein Erfolg zu verzeichnen.
+
+##### lead und lag
+
+Weiterer Versuch mit lead() und lag() den Kontostand Ende Monat auszurechnen:
+```{r}
+balance_per_month_total_lead <- transaction_cashflow_per_month_and_year_total %>% 
+  arrange(account_id) %>% 
+  mutate(account_id_lead = dplyr::lead(account_id)) %>% 
+  mutate(account_id_lead = replace_na(account_id_lead, 0)) %>% 
+  mutate(balance_lead = dplyr::lead(balance_sheet)) %>% 
+  mutate(balance_lead = replace_na(balance_lead, 0)) %>%
+  mutate(balance_per_month = ifelse(c(account_id == account_id_lead), balance_sheet + balance_lead, balance_sheet)) %>% 
+  relocate(account_id_lead)
+  
+
+balance_per_month_total_lag <- transaction_cashflow_per_month_and_year_total %>% 
+  arrange(account_id) %>% 
+  mutate(account_id_lag = dplyr::lag(account_id)) %>% 
+  mutate(account_id_lag = replace_na(account_id_lag, 0)) %>% 
+  relocate(account_id_lag) %>% 
+  mutate(row_num = 1: nrow(.)) %>%
+  mutate(row_num_lag = dplyr::lag(row_num)) %>% 
+  mutate(balance_per_month = ifelse(c(account_id != account_id_lag), balance_sheet, 0)) %>%   mutate(balance_per_month = ifelse(c(account_id == account_id_lag), balance_per_month[row_num_lag] + balance_sheet, balance_per_month))
+
+head(balance_per_month_total_lead)
+head(balance_per_month_total_lag)
+
+```
+Auch dies führt nicht zum gewünschten Ergebnis.
+
 #### C.2. Suche nach einer anderen Möglichkeit für die monatlichen Kontoauszügen
 
 Im ursprünglichen Datensatz "df_transaction_mod" sind die Kontostände nach jeder Transaktion vorhanden. Es sollte möglich sein, anhand des letzten Datums herauszufinden, welches die letzte Transaktion war und somit welches der Kontostand Ende Monat ist. 
@@ -1151,6 +1160,13 @@ rm(n)
 
 ```
 Es fällt auf, dass die letzte Transaktion immer der Betrag 14.6 ist. Es ist immer ein OUT. Diese Hypothese wird nun nochmals überprüft.
+```{r}
+df_transaction_mod %>% 
+  filter(
+    amount == 14.6
+  )
+  
+```
 
 ##### Kontogebühren
 Es handelt sich hier vermutlich um Kontogebühren, welche als letzte Transaktion getätigt werden. Nun wird noch nach dem Wert "STATEMENT PAYMENT" gefiltert.
@@ -1237,8 +1253,8 @@ df_transaction_mod %>%
 rm(n)
 
 ```
-
 Es gibt Monate, in denen keine Kontogebühren verrechnet wurden. Die Hypothese dazu ist, dass ein Neukunde die ersten drei Monate keine Gebühren zahlt. Dies soll überprüft werden.
+
 ##### letzter Tag im Monat
 last_day_in_month
 ```{r}
@@ -1264,6 +1280,8 @@ last_day_in_month <- last_day_in_month %>%
     account_id,
     date
   )
+last_day_in_month
+
 ```
 
 Bei der Kontoeröffnung ist der Amount gleich hoch wie die Balance. Diese Information kann in "characterization" imputiert werden.
@@ -1417,7 +1435,6 @@ balance_per_month %>%
   ) %>%
   arrange(desc(is_not_unique))
 
-
 ```
 
 Alle diese Versuche führen nicht zum Ziel.
@@ -1538,7 +1555,7 @@ df_mod <- left_join(df_mod, transaction_mod_balance_per_month, by = c("account_i
 
 #### Überprüfen, ob die Überlegung so stimmt
 
-Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe ohne Lücken benötigt. Somit kann jederzeit auch den Kontostand am Ende jeden Tages ausgeben.
+Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe ohne Lücken benötigt. Somit kann jederzeit auch den Kontostand am Ende jeden Tages ausgeben werden.
 Überprüfen, ob die Datumsangaben lückenlos sind.
 
 ```{r}
@@ -1549,7 +1566,7 @@ df_transaction_mod %>%
     ) %>% 
   group_by(date) %>% 
   count() %>% 
-  arrange()
+  nrow()
 
 ```
 Am Beispiel des Accounts Nr. 18 ist klar zu erkennen, dass das Datum (mit dem dazugehörenden Kontostand) nur erfasst wurde, wenn auch eine Zahlung getätigt wurde.
@@ -1562,10 +1579,10 @@ transaction_mod_balance_per_month %>%
     account_id == 18
   ) %>% 
   select(
-    balance_1995_1,
-    balance_1995_2,
-    balance_1995_3,
-    balance_1995_4
+    balance_1993_5,
+    balance_1993_6,
+    balance_1993_7,
+    balance_1993_8
   )
 
 df_transaction_mod %>% 
@@ -1575,8 +1592,7 @@ df_transaction_mod %>%
   arrange(date)
 
 ```
-Die Überlegung beim Code von Aaron ist falsch. 
-Zum Beispiel weist der Account 18 bei Aarons Code am 1993-07-25 einen Saldo von 2600 auf aber im ursprünglichen Datensatz hat der Account zu diesem Zeitpunkt einen Saldo von 17200.0
+Das Resultat des Codes sieht korrekt aus. Es wird versucht, den Code selber umzuschreiben um dies später im Rahmen von grossen Daten anwenden zu können.
 
 
 #### Entfernen der nicht mehr benötigten Tabellen
@@ -1691,14 +1707,17 @@ Es gibt mehrere Tage und unterschiedliche Konten, welche mehr als eine Transakti
 Die Überlegung ist nun folgende: da es sich beim vorliegenden Datensatz bei der Balance um den Betrag nach der Transaktion handelt, kann in der Umkehr der Saldo vor der Transaktion ausgerechnet werden. Dieser ausgerechnete Saldo kann im Anschluss mit dem Saldo des bestehenden Datensatzes abgeglichen werden. Somit ist schnell klar, welche Transaktion die Letzte des Tage ist und welchen Saldo das Konto am Ende des Tages aufweist. 
 
 
-Dazu werden zwei Data Frames erstellt. Eines, so wie es in den Daten bereits vorhanden ist und das zweite mit gerechneten Kontoständen, um die Reihenfolge zu eruieren. Im gleichen Zug werden noch Spalten für Soll ("debit") und Haben ("credit") erstellt.
+Dazu werden zwei Data Frames erstellt. Eines, so wie es in den Daten bereits vorhanden ist und das zweite mit gerechneten Kontoständen, um die Reihenfolge zu eruieren. Im gleichen Zug werden noch Spalten für Soll ("outgoes") und Haben ("credit") erstellt.
 
 ```{r}
-#Erstellen der neuen Spalten debit und credit
-df_transaction_mod <- df_transaction_mod %>% 
-  mutate(debit = if_else(cashflow == "OUT", amount, 0)) %>% 
-  mutate(credit = if_else(cashflow == "IN", amount, 0))
-head(df_transaction_mod)
+#Erstellen der neuen Spalten outgoes und incomes
+df_transaction_mod <- df_transaction_mod %>%
+  mutate(outgoes = ifelse(cashflow == "OUT", amount, 0)) %>%
+  mutate(incomes = ifelse(cashflow == "IN", amount, 0)) %>%
+  mutate(balance_before_transaction = if_else(cashflow == "IN", balance - amount, balance + amount)) %>% 
+  mutate(across(c(outgoes, incomes), as.integer))
+  
+  head(df_transaction_mod)
 
 ```
 ##### 3.a. Test am Account 1274
@@ -1711,6 +1730,7 @@ account1274 <- df_transaction_mod %>%
     date == "1998-11-30"
   ) %>% 
   arrange(date)
+
 account1274
 
 ```
@@ -1722,8 +1742,8 @@ account1274_helper <- account1274 %>%
     trans_id,
     account_id,
     date,
-    debit,
-    credit,
+    outgoes,
+    incomes,
     balance_helper
   ) %>% 
   rename(balance = balance_helper) %>% 
@@ -1734,8 +1754,8 @@ account1274_first <- account1274 %>%
     trans_id,
     account_id,
     date,
-    debit,
-    credit,
+    outgoes,
+    incomes,
     balance
   ) %>% 
   arrange(balance)
@@ -1754,433 +1774,1010 @@ account1274_first %>%
   anti_join(account1274_helper, by = c("account_id", "date", "balance"))
 
 ```
-Somit sollte der Code funktionieren. Er kann nun auf das gesamte Data Frame df_trans_mod angewendet werden.
+Die Balance wird nun gerundet um Nachkommastellen zu eliminieren.
+```{r}
+account1274_round <- account1274 %>% 
+  mutate(balance = round(balance)) %>% 
+  mutate(balance_before_transaction_round = round(balance_before_transaction)) %>% 
+  mutate(amount_round = round(amount)) %>% 
+  relocate(balance,
+           balance_before_transaction,
+           balance_before_transaction_round,
+           amount,
+           amount_round,
+           date,
+           cashflow)
+```
+
+#### Erkenntnis zur Rundung von amount und balance
+Wenn die Rundung der beiden Spalten schon vor dem Rechnen ausgeführt wird, werden falsche Endbeträge ausgegeben. Das Runden darf erst am Schluss geschehen.
+Beim Runden vor dem Ausrechnen der Saldi weisen die ausgerechneten Saldi Rundungsfehler auf.
+
+#### Erstellen zusätzlicher Spalten für die Saldo-Berechnung
+Um diesen Rundungsfehler zu umgehen, werden zwei zusätzliche Spalten erstellt mit den berechneten Saldi vor und nach der Transaktion.
+```{r}
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(balance_before_transaction = ifelse(cashflow == "IN", balance - amount, balance + amount)) %>% 
+  mutate(balance = balance) %>% 
+  relocate(balance,
+           balance,
+           balance_before_transaction)
+
+```
+Die neu berechneten Saldi werden auf das Beispiel mit dem Account 1274 angewendet und zum Schluss gerundet.
+```{r}
+rm(account1274_first, account1274_helper)
+
+account1274_helper <- account1274 %>% 
+  select(
+    account_id,
+    date,
+    balance_before_transaction
+  ) %>% 
+  rename(balance = balance_before_transaction) %>% 
+  mutate(balance = round(balance)) %>% 
+  arrange(balance)
+
+account1274_first <- account1274 %>% 
+   select(
+    account_id,
+    date,
+    balance
+  ) %>% 
+  rename(balance = balance) %>% 
+  mutate(balance = round(balance)) %>% 
+  arrange(balance)
+
+account1274_first
+account1274_helper
+```
 
 ##### Entfernen der nicht mehr benötigeten Tabellen
 ```{r}
 rm(account1274, account1274_first, account1274_helper)
 ```
 
-#### zweite Überprüfung mit dem Konto 7418	ohne Datumseinschränkung
+#### zweite Überprüfung mit dem Konto 1274 ohne Datumseinschränkung
 
 ```{r}
-# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) und Filtern des Accounts auf die Nr. 7418
-account7418	<- df_transaction_mod %>% 
-  mutate(balance_end_day = balance) %>% 
-  mutate(across(c(account_id, date, balance_end_day))) %>% 
-  filter(account_id == 7418) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des Hilfsdatensatzes mit den Saldi vor der Transaktion
-account7418_helper <- df_transaction_mod %>% 
-  filter(account_id == 7418) %>% 
-  mutate(balance_end_day = if_else(cashflow == "IN", balance - amount, balance + amount)) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
-account7418_balance_end_day <- account7418 %>% 
-  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
-
-# Zählen, wieviele Transkationen an einem Tag vorkommen
-account7418_balance_end_day %>% 
-  group_by(date) %>% 
-  count() %>% 
-  arrange(desc(n)) %>% 
-  head()
-  
-```
-Aus noch unerklärlichen Gründen werden nicht alle Attribute so erkannt, dass das gewünschte Ergebnis eintritt. Es sind nach wie vor maximal 5 Transaktionen pro Tag vorhanden.
-
-Die Saldi weisen Nachkommastellen auf. Dies könnte eine mögliche Fehlerquelle sein. Deshalb wird der jeweilige Saldobetrag gerundet.
-```{r}
-# Entfernen der vorher generierten Datensätzen
-rm(account7418, account7418_balance_end_day, account7418_helper)
-
-# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag und Filtern des Accounts auf die Nr. 7418
-account7418	<- df_transaction_mod %>% 
-  mutate(balance_end_day = round(balance)) %>% 
-  filter(account_id == 7418) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion
-account7418_helper <- df_transaction_mod %>% 
-  filter(account_id == 7418) %>% 
-  mutate(balance_end_day = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
-account7418_balance_end_day <- account7418 %>% 
-  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
-
-# Zählen, wieviele Transkationen an einem Tag vorkommen
-account7418_balance_end_day %>% 
-  group_by(date) %>% 
-  count() %>% 
-  arrange(desc(n)) %>% 
-  head()
-
-# write.csv(account7418, "..\\Test\\account7418.csv", row.names=FALSE)
-# write.csv(account7418_helper, "..\\Test\\account7418_helper.csv", row.names=FALSE)
-```
-Es gibt nach wie vor mehrfache Transaktionen am selben Tag. Nun nur noch maximal 2. 
-eine weitere Möglichkeit des Fehlers könnte im Datentyp liegen. Im vorliegenden Datensatz werden verschiedene Datentypen miteinander verglichen. Um diesen Umstand zu eliminieren werden alle Spalten für den Vergleich im Datentyp aneinander angepasst. Hierzu bietet sich der Typ character an.
-```{r}
-# Entfernen der vorher generierten Datensätzen
-rm(account7418, account7418_balance_end_day, account7418_helper)
-
-# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag, Typenkonvertierung in character und Filtern des Accounts auf die Nr. 7418
-account7418	<- df_transaction_mod %>% 
-  mutate(balance_end_day = round(balance)) %>% 
-  mutate(across(c(account_id, date, balance_end_day), as.character)) %>% 
-  filter(account_id == 7418) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion und Typenkonvertierung in character.
-account7418_helper <- df_transaction_mod %>% 
-  filter(account_id == 7418) %>% 
-  mutate(balance_end_day = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
-  mutate(across(c(account_id, date, balance_end_day), as.character)) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
-account7418_balance_end_day <- account7418 %>% 
-  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
-
-# Zählen, wieviele Transkationen an einem Tag vorkommen
-account7418_balance_end_day %>% 
-  group_by(date) %>% 
-  count() %>% 
-  arrange(desc(n)) %>% 
-  head()
-
-```
-Die Typenkonvertierung in character hat keine Effekt gebracht.
-
-Nun wird versucht, mit dem Datentyp factor das Ziel zu erreichen.
-```{r}
-# Entfernen der vorher generierten Datensätzen
-rm(account7418, account7418_balance_end_day, account7418_helper)
-
-# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag, Typenkonvertierung in factor und Filtern des Accounts auf die Nr. 7418
-account7418	<- df_transaction_mod %>% 
-  mutate(balance_end_day = round(balance)) %>% 
-  mutate(across(c(account_id, date, balance_end_day), as.factor)) %>% 
-  filter(account_id == 7418) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion und Typenkonvertierung in factor.
-account7418_helper <- df_transaction_mod %>% 
-  filter(account_id == 7418) %>% 
-  mutate(balance_end_day = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
-  mutate(across(c(account_id, date, balance_end_day), as.factor)) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
-account7418_balance_end_day <- account7418 %>% 
-  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
-
-# Zählen, wieviele Transkationen an einem Tag vorkommen
-account7418_balance_end_day %>% 
-  group_by(date) %>% 
-  count() %>% 
-  arrange(desc(n)) %>% 
-  head()
-
-```
-Leider ist auch dieser Versuch negativ. Die Daten werden nun genauer untersucht.
-```{r}
-# Entfernen der vorher generierten Datensätzen
-rm(account7418, account7418_balance_end_day, account7418_helper)
-
-# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) mit gerundetem Betrag und Filtern des Accounts auf die Nr. 7418
-account7418	<- df_transaction_mod %>% 
-  mutate(balance_end_day = round(balance)) %>% 
-  filter(account_id == 7418) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des Hilfsdatensatzes mit den gerundeten Saldi vor der Transaktion
-account7418_helper <- df_transaction_mod %>% 
-  filter(account_id == 7418) %>% 
-  mutate(balance_end_day = if_else(cashflow == "IN", round(round(balance) - round(amount)), round(round(balance) + round(amount)))) %>% 
-  select(
-    account_id,
-    date,
-    balance_end_day
-  )
-
-# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
-account7418_balance_end_day <- account7418 %>% 
-  anti_join(account7418_helper, by = c("account_id", "date", "balance_end_day"))
-
-# Zählen, wieviele Transkationen an einem Tag vorkommen
-account7418_balance_end_day %>% 
-  group_by(date) %>% 
-  count() %>% 
-  arrange(desc(n)) %>% 
-  head()
-
-```
-So wie es scheint, handelt es sich um Rundungsfehler. Denn je nach Zeitpunkt des rundens gibt es andere Ergebnisse. Dieser Umstand wird im Ursprungsdatensatz und mit gerechneten Werten verglichen.
-```{r}
-# Entfernen der vorher generierten Datensätzen
-rm(account7418, account7418_balance_end_day, account7418_helper)
-
-# Beträge und Saldo in zusätzlichen Spalten mit gerundeten Beträgen und Saldi vor und nach der Transaktion sowie der Dateityp in integer konvertiert.
-df_transaction_mod	<- df_transaction_mod %>% 
-  mutate(balance_round = round(balance)) %>% 
-  mutate(amount_round = round(amount)) %>% 
-  mutate(across(c("balance_round", "amount_round"), as.integer)) %>% 
-  mutate(balance_before_transaction = if_else(cashflow == "IN", 
-                                              balance_round - amount_round, 
-                                              balance_round + amount_round)) %>% 
-  mutate(balance_after_transaction = if_else(cashflow == "IN", 
-                                             balance_before_transaction + amount_round, 
-                                             balance_before_transaction - amount_round))
-
-dfA <- df_transaction_mod %>% 
-  mutate(balance_antijoin = balance_after_transaction) %>% 
+# Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) und Filtern des Accounts auf die Nr. 1274
+account1274_round	<- df_transaction_mod %>% 
+  filter(account_id == 1274) %>% 
   select(
     trans_id,
     account_id,
     date,
-    balance_antijoin
-  )
+    balance
+  ) %>% 
+  mutate(balance = round(balance))
 
-  
-dfB <- df_transaction_mod %>% 
-  mutate(balance_antijoin = balance_before_transaction) %>% 
+# Erstellen des Hilfsdatensatzes für die Funktion anti_join()
+account1274_helper_round <- df_transaction_mod %>% 
+  filter(account_id == 1274) %>% 
   select(
-    trans_id,
     account_id,
     date,
-    balance_antijoin
-  )         
-  
-df_antijoin <- dfA %>% 
-  anti_join(dfB, by = c("account_id", "date", "balance_antijoin"))
+    balance_before_transaction
+  ) %>% 
+  mutate(balance = round(balance_before_transaction))
 
-df_antijoin %>% 
+# Erstellen des ersten Datensatzes ohne die Inhalte des Zweiten.
+account1274_result_round   <- account1274_round %>% 
+  anti_join(account1274_helper_round, by = c("account_id", "date", "balance"))
+
+# Zählen, wieviele Transkationen an einem Tag vorkommen
+account1274_result_round %>% 
+  group_by(date) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  head()
+  
+```
+Dies scheint gut funktioniert zu haben.
+
+#### Entfernen der nicht mehr benötigten Tabellen aus dem Global Environment
+```{r}
+# Entfernen der vorher generierten Datensätzen
+rm(account1247_round, account1274_helper_round, account1274_result, account1274_result_round, account1274_round)
+```
+
+#### Anwenden auf das gesamte Data Frame df_transaction_mod
+```{r}
+# Überprüfung auf mehrfache Transaktionen am gleichen Tag pro Account
+df_transaction_mod %>% 
   group_by(
     account_id,
     date
   ) %>% 
   count() %>% 
-  arrange(desc(n))
-```
-#### Überprüfen auf Rundungs- oder Rechenfehler
+  arrange(desc(n)) %>% 
+  head()
 
-Es wird eine zusätzliche Spalte erstellt mit dem Vergleich der beiden Inhalte von Balance_round und Balance after transaction
+```
+
 ```{r}
-rm(dfA, dfB, df_antijoin)
+# Erstellen der ersten Tabelle für den Vergleich
+transaction_first <- df_transaction_mod %>% 
+  mutate(balance_round = round(balance))
 
-df_transaction_mod <- df_transaction_mod %>% 
-  mutate(balance_equal = if_else(balance_round == balance_after_transaction, TRUE, FALSE)) %>% 
-  mutate(across(c("balance_equal"), as.factor))
-
-summary(df_transaction_mod$balance_equal)
-```
-Es sind keine Rundungs- oder Rechenfehler vorhanden.
-
-
-#### 3.c. Erstellen der Hilfstabellen
-
-Es werden zwei Hilfstabellen erstellt. Die erste Tabelle ist ein Data Frame mit allen Spalten des df_transaction_mod. Die zweite Tabelle wird mit der jeweiligen Account-id, dem Transaktionsdatum und dem ausgerechneten Kontostand vor der Transaktion erstellt.
-```{r}
-
-# end_of_day_first <- df_transaction_mod %>% 
-#   mutate(balance_per_month = round(balance)) %>% 
-#   mutate(across(c("account_id", "date", "balance"), as.character))
-# 
-# end_of_day_helper <- df_transaction_mod %>%
-#   mutate(balance_per_month = if_else(cashflow == "IN", round(balance - amount), round(balance + amount))) %>% 
-#   mutate(across(c("account_id", "date", "balance"), as.character))
-# 
-#   
-# head(end_of_day_first)
-# head(end_of_day_helper)
+# Erstellen der Vergleichstabelle
+transaction_helper <- df_transaction_mod %>% 
+  mutate(balance_round = round(balance_before_transaction)) %>% 
+  select(
+    account_id,
+    date,
+    balance_round
+  )
 
 ```
+
+
 #### 3.d. Funktion anti_join()
-Nun können die beiden Hilfstabellen verglichen werden. Der jeweilige Betrag im Data Frame end_of_day_first welcher nicht auch im end_of_day_helper vorkommt, ist der Monatsendstand.
+Nun können die beiden Tabellen verglichen werden. Der jeweilige Betrag im Data Frame transaction_first welcher nicht auch im transaction_helper vorkommt, ist der Tagesendstand.
 Dies wird mit der Funkton anti_join gebildet.
 ```{r}
-# balance_end_of_day <- end_of_day_first %>%
-#   anti_join(end_of_day_helper, by = c("account_id", "date", "balance"))
+transaction_result <- transaction_first %>%
+  anti_join(transaction_helper, by = c("account_id", "date", "balance_round"))
+
 ```
 
 
 ##### 3.e. Überprüfung
 Für die erste Kontrolle werden wiederum die Account_id und das Datum gruppiert und gezählt, wieviele Transaktionen pro Tag in der Tabelle enthalten sind.
 ```{r}
-# balance_end_of_day %>%
-#   group_by(
-#     account_id,
-#     date
-#     ) %>%
-#   count() %>%
-#   arrange(desc(n)) %>% 
-#   ungroup()
+transaction_result %>%
+  group_by(
+    account_id,
+    date
+    ) %>%
+  count() %>%
+  arrange(desc(n)) %>% 
+  ungroup()
+
 ```
-Es sind immer noch mehrere Transaktionen pro Tag vorhanden. Dies wird genauer untersucht.
-Dazu werden die Observationen in den verschiedenen Tabellen verglichen.
 
-#### Anreichern der fehlenden Daten in den Attributen "Date" und "Balance"
+Es sind immer noch mehrere Transaktionen pro Tag vorhanden. Es könnte sich hier um Fehlerhafte Daten der ursprungs Information handeln. Dies wird nun genauer untersucht.
 
-Nach den eben gewonnenen Erkenntnissen werden nun das Datum und der Kontostand an den fehlenden Tagen ergänzt.
+#### Untersuchen der Abweichung
+Dafür wird der Datensatz df_transaction_mod auf die account id 9814 und das Datum 1998-11-30 gefiltert.
+
 ```{r}
-# balance_end_of_day <- balance_end_of_day %>%
-#   group_by(account_id) %>%
-#   complete(date = seq.Date(min(date), max(date), by = "day")) 
-# # %>%
-# #   fill(balance)
+# Überprüfen der Daten im df_trans_mod
+df_transaction_mod %>% 
+  filter(
+    account_id == 9814,
+    date == "1998-11-30"
+  )
+
+```
+#### Überprüfen auf Rundungs- oder Rechenfehler
+![Vergleich der Saldi per Hand](../Ressources/account id 9814.png)
+```{r}
+#Überprüfen der Daten nach dem Vergleich
+transaction_result %>% 
+  filter(
+    account_id == 9814,
+    date == "1998-11-30"
+  )
+
+```
+Es bleiben wegen fehlerhaften Ursprungsdaten Transaktionen übrig. Aus früheren Analysen wissen wir, dass jeweils die Zahlung mit dem Eintrag "STATEMENT PAYMENT" in der Spalte "characterization" die letzte Zahlung ist (Kontogebühren). 
+
+Diese Erkenntnis wird nun eingesetzt. Als erstes werden die letzten Transaktionen gekennzeichnet.
+
+```{r}
+# Zählen, wieviele Transaktionen pro Tag vorhanden sind und filtern nach den Daten mit nur einer Transaktion
+transaction_count <- transaction_result %>% 
+  group_by(
+    account_id,
+    date
+  ) %>% 
+  count() %>% 
+  ungroup() %>% 
+  filter(n == 1)
+
+# Erstellen des Data Frame mit den letzten Transaktionen am Tag
+last_transaction <- transaction_result %>% 
+  semi_join(transaction_count, by = c("account_id", "date"))
+```
+
+
+
+```{r}
+# Filtern nach Daten mit mehr als einer Transaktion pro Tag.
+more_than_one_count <- transaction_result %>% 
+  group_by(
+    account_id,
+    date
+  ) %>% 
+  count() %>% 
+  ungroup() %>% 
+  filter(n > 1)
+
+# Erstellen des Datensatzes mit mehr als einer Transaktion, welche fehlerhafte Grunddaten haben
+more_than_one <- transaction_result %>% 
+  semi_join(more_than_one_count, by = c("account_id", "date"))
+
+# Filtern nach Zahlungen der Kontogebühren (dies sind die letzten Zahlungen am Tag)
+only_statement_payment <- more_than_one %>%
+  filter(characterization == "STATEMENT PAYMENT")
+
+```
+
+
+```{r}
+# Kontogebühren dem bestehenden Data Frame last_transaction anfügen
+
+last_transaction <- last_transaction %>% 
+  bind_rows(only_statement_payment)
+
+```
+
+Nun müssen noch die letzten Daten mit Mehrfachzahlungen untersucht werden.
+```{r}
+
+more_than_one_count_rest <- more_than_one_count %>% 
+  anti_join(only_statement_payment, by = c("account_id", "date"))
+
+more_than_one_rest <- more_than_one %>% 
+  semi_join(more_than_one_count_rest, by = c("account_id", "date"))
+
+# wie verhält es sich, wenn die Beträge gerundet werden?
+ceiling_balance <- more_than_one_rest %>% 
+  mutate(before_ceiling = ceiling(balance_before_transaction)) %>% 
+  mutate(after_ceiling = ceiling(balance))
+
+ceilingA <- ceiling_balance %>% 
+  mutate(balance_match = after_ceiling)
+
+ceilingB <- ceiling_balance %>% 
+  mutate(balance_match = before_ceiling)
+
+ceiling_result <- ceilingA %>% 
+  anti_join(ceilingB, by = c("account_id", "date", "balance_match"))
+
+ceiling_result_count <- ceiling_result %>% 
+  group_by(
+    account_id,
+    date
+  ) %>% 
+  count() %>% 
+  ungroup()
+  
+ceiling_one_count <- ceiling_result_count %>% 
+  filter(n == 1)
+
+ceiling_more_count <- ceiling_result_count %>% 
+  filter(n > 1)
+
+ceiling_one <- ceiling_result %>% 
+  semi_join(ceiling_one_count, by = c("account_id", "date"))
+
+# Observationen aus ceiling_one an last_transaction anfügen
+last_transaction <- last_transaction %>% 
+  bind_rows(ceiling_one)
+
+```
+
+```{r}
+ceiling_more <- ceiling_result %>% 
+  semi_join(ceiling_more_count, by = c("account_id", "date"))
+head(ceiling_more)
+
+```
+bei den letzten Zahlungen ist keine Reihenfolge mehr ersichtlich. Um dies zu klären werden alle Zahlungen zu den jeweiligen Konten und Tagen genommen und damit nochmals ein komplettes ceiling und anti_join() durchgeführt.
+```{r}
+
+
+ceiling_more <- df_transaction_mod %>% 
+  semi_join(ceiling_more_count, by = c("account_id", "date"))
+
+
+ceiling_more %>% 
+  group_by(
+    account_id,
+    date
+  )%>% 
+  count() %>% 
+  ungroup()
+
+```
+
+```{r}
+ceiling_more_A <- ceiling_more %>% 
+  mutate(ceil = ceiling(balance)) 
+
+ceiling_more_B <- ceiling_more %>% 
+  mutate(ceil = ceiling(balance_before_transaction))
+
+ceiling_last_result <- ceiling_more_A %>% 
+  anti_join(ceiling_more_B, by = c("account_id", "date", "ceil"))
+
+ceiling_last_result %>% 
+  group_by(
+    account_id,
+    date
+  )%>% 
+  count() %>% 
+  ungroup() %>% 
+  arrange(desc(n))
+
+```
+
+
+```{r}
+rm(ceiling_balance, ceiling_more, ceiling_more_A, ceiling_more_B, ceiling_more_count, ceiling_one, ceiling_one_count, ceiling_result, ceiling_result_count, ceilingA,ceilingB)
+```
+
+```{r}
+# Observationen aus ceiling_one an last_transaction anfügen
+last_transaction <- last_transaction %>% 
+  bind_rows(ceiling_last_result)
+
+last_transaction %>% 
+  group_by(
+    account_id,
+    date
+  )%>% 
+  count() %>% 
+  ungroup() %>% 
+  arrange(desc(n))
+
+```
+
+#### Überprüfung der Daten
+Das Datum wird nun überprüft, ob nichts verloren ging
+```{r}
+control <- df_transaction_mod %>% 
+  anti_join(last_transaction, by = c("account_id", "date"))
+
+control %>% 
+  arrange(account_id, date)
+
+```
+
+```{r}
+check_balance <- control %>% 
+  mutate(balance_A = ceiling(balance)) %>% 
+  mutate(balance_B = ceiling(balance_before_transaction)) %>% 
+  select(
+    account_id,
+    date,
+    balance_A,
+    balance_B
+  ) %>% 
+  arrange(account_id, date)
+
+head(check_balance)
+
+```
+
+```{r}
+rm(check_balance)
+
+controlA <- control %>% 
+  mutate(balance = ceiling(balance))
+
+controlB <- control %>% 
+  mutate(balance = ceiling(balance_before_transaction))
+
+control_result <- controlA %>% 
+  anti_join(controlB, by = c("account_id", "date", "balance"))
+
+control_result_count <- control_result %>% 
+  group_by(
+    account_id,
+    date
+  )%>% 
+  count() %>% 
+  ungroup() %>% 
+  arrange(desc(n))
+
+head(control_result_count)
+
+```
+
+##### Filtern und Anfügen der Zahlungen
+```{r}
+control_result_one_count <- control_result_count %>%
+  filter(n == 1)
 # 
-# balance_end_of_day %>% 
-#   filter(
-#       account_id == 1,
-#       date == "1995-08-31"
-#     )
-
-```
-
-#### Anfügen der Kontostände an das df_transaction_mod
-```{r}
-# balance_end_of_day_join <- balance_end_of_day %>% 
-#   select(
-#     trans_id,
-#     balance
-#   ) %>% 
-#   rename(balance_end_of_day = balance)
+control_result_one <- control_result %>%
+  semi_join(control_result_one_count, by = c("account_id", "date"))
 # 
-# df_transaction_mod <- left_join(df_transaction_mod, balance_end_of_day_join, by = "trans_id")
+# Observationen aus control_result_one an last_transaction anfügen
+last_transaction <- last_transaction %>%
+  bind_rows(control_result_one)
+
+last_transaction %>%
+  group_by(
+    account_id,
+    date
+  )%>%
+  count() %>%
+  ungroup() %>%
+  arrange(desc(n)) %>% 
+  head()
 
 ```
 
-#### Entfernen der nicht mehr benötigten Tabellen
 ```{r}
-# rm(balance_end_of_day, balance_end_of_day_join)
-```
-
-```{r}
-# df_transaction_mod %>% 
-#   filter(
-#     account_id == 1,
-#     date == "1996-05-13"
-  # )
-```
-#### NA's in balance_end_of_day
-
-Die NA's in balance_end_of_day sind überall dort entstanden, wo es mehrere Zahlungen am selben Tag gibt und die Zahlung nicht die letzte war. Dies kann nun komplettiert werden zusammen mit dem Ergänzen der Tage. Somit wird ein lückenloser Ablauf der Kontobewegungen erreicht.
-
-#### Anreichern der fehlenden Daten in den Attributen "Date" und "Balance"
-
-Nach den eben gewonnenen Erkenntnissen werden nun das Datum und der Kontostand an den fehlenden Tagen ergänzt.
-```{r}
-# df_transaction_mod_complete <- df_transaction_mod %>% 
-#   group_by(account_id) %>% 
-#   complete(date = seq.Date(min(date), max(date), by = "day")) %>% 
-#   fill(balance_end_of_day,
-#        year,
-#        month)
+control_result_more_count <- control_result_count %>%
+  filter(n > 1)
 # 
-# head(df_transaction_mod_complete)
-
-```
-```{r}
-# df_transaction_mod_complete %>% 
-#   filter(
-#     account_id == 1,
-#     date == "1996-05-13"
-#   )
-```
-Die Anreicherung der Daten nimmt jeweils den letzten Betrag und führt diesen weiter. Da die Reihenfolge aber so nicht mit den Transaktionen übereinstimmt, muss für das Anreichern jeweils das Datum und der Account gruppiert werden. 
-```{r}
-# df_transaction_mod_complete <- df_transaction_mod %>% 
-#   group_by(account_id) %>% 
-#   complete(date = seq.Date(min(date), max(date), by = "day")) %>% 
-#   ungroup() %>% 
-#   arrange(
-#     account_id,
-#     date
-#   )
+control_result_more <- control_result %>%
+  semi_join(control_result_more_count, by = c("account_id", "date"))
 # 
-# head(df_transaction_mod_complete)
-
-```
-
-```{r}
-# df_transaction_mod_complete <- df_transaction_mod_complete %>% 
-#   group_by(
-#     account_id,
-#     date
-#   ) %>% 
-#   fill(year,
-#        month,
-#        balance_end_of_day
-#        )
+control_result_last <- control_result_more %>%
+  filter(trans_id == 3670868)
 # 
-# head(df_transaction_mod_complete)
+# Observationen aus control_result_last an last_transaction anfügen
+last_transaction <- last_transaction %>%
+  bind_rows(control_result_last)
+
 ```
 
 ```{r}
-# df_transaction_mod_complete %>% 
-#   filter(
-#     account_id == 1,
-#     date == "1996-05-13"
-#   )
+rm(control, control_result, control_result_count, control_result_more, control_result_more_count, control_result_last, control_result_one, control_result_one_count, controlA, controlB)
+```
+
+```{r}
+rm(transaction_helper, transaction_result, transaction_first, transaction_count)
+```
+
+```{r}
+rm(more_than_one, more_than_one_count, more_than_one_count_rest, more_than_one_rest, only_statement_payment)
+```
+
+#### Tage mit mehr als einer Transaktion pro Tag: Überprüfung
+
+```{r}
+control <- df_transaction_mod %>% 
+  anti_join(last_transaction, by = c("account_id", "date")) %>% 
+  arrange(account_id, date)
+
+# head(control)
+control
+
+```
+
+```{r}
+controlA <- control 
+
+controlB <- control %>% 
+  mutate(balance = balance_before_transaction)
+
+control_result <- controlA %>% 
+  anti_join(controlB, by = c("account_id", "date", "balance"))
+
+control_result_count <- control_result %>% 
+  group_by(
+    account_id,
+    date
+  )%>% 
+  count() %>% 
+  ungroup() %>% 
+  arrange(desc(n))
+
+head(control_result_count)
+```
+
+
+```{r}
+control_result_one_count <- control_result_count %>%
+  filter(n == 1)
+# 
+control_result_one <- control_result %>%
+  semi_join(control_result_one_count, by = c("account_id", "date"))
+# 
+# Observationen aus control_result_one an last_transaction anfügen
+last_transaction <- last_transaction %>%
+  bind_rows(control_result_one)
+
+last_transaction %>%
+  group_by(
+    account_id,
+    date
+  )%>%
+  count() %>%
+  ungroup() %>%
+  arrange(desc(n)) %>% 
+  head()
+
+```
+
+```{r}
+control_result_more_count <- control_result_count %>%
+  filter(n > 1)
+# 
+control_result_more <- control_result %>%
+  semi_join(control_result_more_count, by = c("account_id", "date")) %>% 
+  arrange(account_id, date)
+```
+
+
+```{r}
+# Filtern nach Zahlungen der Kontogebühren (dies sind die letzten Zahlungen am Tag)
+only_statement_payment <- control_result_more %>%
+  filter(characterization == "STATEMENT PAYMENT")
+
+```
+
+
+```{r}
+# Kontogebühren dem bestehenden Data Frame last_transaction anfügen
+
+last_transaction <- last_transaction %>% 
+  bind_rows(only_statement_payment)
+```
+
+```{r}
+rm(control, control_result, control_result_count, control_result_more, control_result_more_count, control_result_one, control_result_one_count, controlA, controlB, only_statement_payment)
+```
+
+```{r}
+control <- df_transaction_mod %>% 
+  anti_join(last_transaction, by = c("account_id", "date")) %>% 
+  arrange(account_id, date)
+
+# head(control)
+control
+```
+
+#### outgoes und incomes summiert auf den Tag
+
+```{r}
+outgoes_incomes_sum <- control %>% 
+  select(
+    account_id,
+    date, 
+    cashflow,
+    amount
+  ) %>%
+  group_by(
+    account_id,
+    date,
+    cashflow
+  ) %>%
+  summarise(amount_sum = sum(amount)) %>% 
+  pivot_wider(names_from = cashflow, values_from = amount_sum) %>% 
+  na.replace(., 0) %>% 
+  rename(outgoes = OUT,
+         incomes = IN)
+  
+ head(outgoes_incomes_sum)
+ 
+ # rm(control)
+```
+
+Bei den meisten Transaktionen handelt es sich um Zahlungen in jeweils gleicher Höhe, sodass zu Beginn des Tages und am Ende des Tages wieder derselbe Kontostand wie am Vortag herrscht. Es gibt aber auch Tage, an denen IN und OUT nicht gleich hoch sind. Diese werden genauer untersucht.
+
+#### Unterschiedliches IN und OUt
+```{r}
+outgoes_incomes_not_equal <- outgoes_incomes_sum %>% 
+  filter(outgoes != incomes)
+ 
+head(outgoes_incomes_not_equal)
+
+# rm(outgoes_incomes_sum)
+```
+```{r}
+amount_not_equal <- df_transaction_mod %>%
+  semi_join(outgoes_incomes_not_equal, by = c("account_id", "date")) %>% 
+  arrange(account_id, date)
+
+head(amount_not_equal)
+
+```
+die letzten Zahlungen können von Hand gefiltert werden und dann dem gesamten DF angefügt werden.
+ev. kommt mir noch eine bessere Idee
+
+
+```{r}
+amount_not_equal
+```
+DF in Excel rausschreiben lassen und dort die trans_id rauslesen
+
+```{r}
+write.csv(amount_not_equal, file = "foo.csv")
+foo <- read.csv("foo2.csv")
+```
+
+
+```{r}
+transid <- df_transaction_mod %>% 
+  semi_join(foo, by = "trans_id")
+
+transid
+
+```
+
+```{r}
+last_transaction %>% 
+  group_by(account_id, date) %>% 
+  count() %>% 
+  arrange(desc(n))
+```
+
+```{r}
+last_transaction <- last_transaction %>% 
+  mutate(balance_end_day = balance) %>% 
+  select(
+    trans_id,
+    balance_end_day
+  )
+
+last_transaction_all <- df_transaction_mod %>% 
+  left_join(last_transaction, by = "trans_id") %>% 
+  select(
+    trans_id,
+    balance_end_day
+  ) 
+
+summary(last_transaction_all)
+
+```
+Die NA's in balance_end_day entstanden bei den Transaktionen, welche an Tagen mit Mehrfachzahlungen vor der letzten Zahlung getätigt wurden oder an Tagen, bei denen der Kontostand am Vortag gleich hoch (outgoes und Kredit gleich hoch). 
+
+Für die Tage mit gleich hohem outgoes und Kredit wird eine entsprechende Spalte hinzugefügt. Dies aber erst, wenn die Kontoendstände dem gesamten df_transaction_mod angefügt wurde. 
+
+#### Anfügen der Tagessaldi an das bestehende df_transaction_mod
+
+```{r}
+# unnötige Spalen entfernen und neue Informationen anfügen 
+df_transaction_mod <- df_transaction_mod %>% 
+  select(balance:account_nr) %>% 
+  select(-c(balance_before_transaction)) %>% 
+  left_join(last_transaction_all, by = "trans_id") %>% 
+  arrange(account_id, date) %>% 
+  relocate(starts_with("balance"), .after = date)
+  
+```
+
+#### Entfernen nicht mehr benötigter Data Frames aus dem Global Environment
+```{r}
+rm(amount_not_equal, ceiling_last_result, control, outgoes_incomes_not_equal, outgoes_incomes_sum, foo, last_transaction, last_transaction_all, transid)
+```
+
+#### Neue Spalten: outgoes und incomes pro Tag
+Die vorangegangenen Analysen haben gezeigt, dass es Tage gibt, an denen outgoes und incomes gleich hoch sind. Um die Umsätze eines Kontos zu sehen werden nun zwei zusätzliche Spalten erstellt mit der outgoes- und incomes-summe des jeweiligen Tages. Dieses Ergebnis wird dann auch wieder dem df_transaction_mod angefügt.
+```{r}
+
+outgoes_incomes_sum <- df_transaction_mod %>% 
+  select(
+    account_id,
+    date, 
+    cashflow,
+    amount
+  ) %>%
+  group_by(
+    account_id,
+    date,
+    cashflow
+  ) %>%
+  summarise(amount_sum = sum(amount)) %>% 
+  pivot_wider(names_from = cashflow, values_from = amount_sum) %>% 
+  na.replace(., 0) %>% 
+  rename(outgoes = OUT,
+         incomes = IN)
+  
+ head(outgoes_incomes_sum)
+
+```
+
+#### Zusätzliche Spalte für gleich hohe outgoes und Kredit Beträge
+
+Um die gleich hohen Beträge in outgoes und Kredit am selben Tag für das gleiche Konto schnell zu finden, wird eine zusätzliche Spalte erstellt.
+```{r}
+outgoes_incomes_sum  <- outgoes_incomes_sum %>% 
+  mutate(outgoes_incomes_equal = ifelse(outgoes == incomes, TRUE, FALSE))
+
+head(outgoes_incomes_sum)
+```
+Überprüfen, wieviele Tage gleich hohe outgoes und Kredit haben.
+```{r}
+outgoes_incomes_sum %>% 
+  filter(outgoes_incomes_equal == TRUE) %>% 
+  head()
+
+```
+
+Dies stimmt mit den vorangegangenen Analysen überein.
+Nun werden die neuen Informationen an das gesamte Data Frame Transaction angefügt.
+```{r}
+df_transaction_mod <- df_transaction_mod %>% 
+  left_join(outgoes_incomes_sum, by = c("account_id", "date")) %>% 
+  arrange(account_id, date)
+
+df_transaction_mod %>% 
+  filter(outgoes_incomes_equal == TRUE) %>% 
+  head()
+
+head(df_transaction_mod)
+
+```
+Bei den beiden Transaktionen 2344 und 151858 darf kein Betrag in der Spalte balance_end_day enthalten sein, da ja die Balance gleich hoch wie am Vortag ist. Deshalb werden diese beiden Beträge aus der Spalte gelöscht und mit NA ersetzt.
+
+```{r}
+df_transaction_mod <- df_transaction_mod %>% 
+  mutate(balance_end_day = ifelse(trans_id == 2344, NA, balance_end_day)) %>% 
+  mutate(balance_end_day = ifelse(trans_id == 151858, NA, balance_end_day))
+
+df_transaction_mod %>% 
+  filter(outgoes_incomes_equal == TRUE) %>% 
+  head()
+
+rm(outgoes_incomes_sum)
+
+```
+
+
+
+```{r}
+save(df_transaction_mod, file = "df_transaction_mod.RData")
+```
+
+Damit nicht immer alles neu geladen werden muss...
+```{r}
+load("df_transaction_mod.RData")
+```
+
+#### Datumlücken beheben
+Da nach wie vor nur das Datum mit einer Transaktion im df_transaction_mod vorhanden ist und somit der Zeitverlauf lückenhaft, wird nun das Datum ergänzt. So wird jeder Tag ersichtlich sein, auch wenn keine Transaktion stattgefunden hat. Die Account ID und der Kontostand pro Tag werden auch ergänzt.
+```{r}
+# load("df_transaction_mod.RData")
+date_complete <- df_transaction_mod %>%
+  arrange(
+    account_id,
+    date, 
+    balance_end_day
+  ) %>% 
+  group_by(account_id) %>% 
+  mutate(first_transaction = min(date)) %>%
+  mutate(last_transaction = max(date)) %>%
+  # complete(date = seq.Date(min(date), as.Date("1998/12/31"), by = "day")) %>%
+  complete(date = seq.Date(as.Date("1993/01/01"), as.Date("1998/12/31"), by = "day")) %>%
+  fill(balance_end_day, first_transaction, last_transaction) %>% 
+  ungroup()
+
+# date_complete$balance <- na.replace(date_complete$balance, 0)
+date_complete[, c("balance", "balance_end_day", "outgoes", "incomes", "amount")] <- na.replace(date_complete[, c("balance", "balance_end_day", "outgoes", "incomes", "amount")], 0)
+
+firstlasttrans <- date_complete %>% 
+  select(
+    account_id,
+    first_transaction,
+    last_transaction
+  ) %>% 
+  drop_na() %>% 
+  group_by(account_id) %>% 
+  slice_head(n = 1) %>% 
+  mutate(duration = (last_transaction - first_transaction)) %>% 
+  arrange(duration)
+
+date_complete <- date_complete %>% 
+  select(-c(first_transaction, last_transaction)) %>% 
+  left_join(firstlasttrans, by = "account_id")
+
+rm(firstlasttrans)
+
+```
+
+
+```{r}
+
+df_transaction_complete <- date_complete
+
+head(date_complete)
+
+rm(df_transaction_mod)
+
+```
+
+Die NA's in den restlichen Spalten entstehen, da an diesen Tagen keine Transaktionen stattgefunden haben. Dies wird so belassen und wenn nötig zu einem späteren Zeitpunkt angepasst.
+
+#### Kontrolle am Account Nr. 18
+
+```{r}
+df_transaction_complete %>%
+  filter(account_id == 18,
+         year(date) == 1993) %>%
+  arrange(date) %>% 
+  group_by(month(date)) %>% 
+  slice_tail(n = 1) %>% 
+  ungroup() %>% 
+  head()
+
+save(df_transaction_complete, file = "df_transaction_complete.RData")
+
+```
+
+
+```{r}
+df_transaction_complete %>% 
+  filter(account_id == 18) %>%
+  arrange(date) %>% 
+  select(
+    account_id, 
+    date, 
+    trans_id,
+    balance,
+    balance_end_day
+  ) %>% 
+  drop_na() %>% 
+  head()
+
+
+```
+
+
+#### Balance per month
+
+Neues Data Frame erstellen mit den monatlichen Kontoständen
+```{r}
+balance_per_month <- df_transaction_complete %>%
+  group_by(
+    account_id,
+    year(date),
+    month(date)
+  ) %>%
+  slice_tail(n = 1) %>%
+  ungroup() %>% 
+  arrange(date)
+
+balance_per_month <- balance_per_month %>% 
+  select(
+    account_id,
+    date,
+    balance_end_day
+  ) %>%
+  pivot_wider(names_from = date, values_from = balance_end_day) %>% 
+  arrange(account_id)
+
+
+balance_per_month %>% 
+  filter(
+    account_id == 18
+  )
+
+save(balance_per_month, file = "balance_per_month.RData")
+
+```
+
+#### Anfügen der monatliche Kontostände an das df_mod
+
+Ergänzen der Kolonnen im balance_per_month mit dem Präfix balance_ für die spätere Übersicht im konsolidierten Datensatz.
+Anschliessend wird die monatlichen Kontostände dem df_mod mit left_join hinzugefügt.
+
+```{r}
+# Kolonnen werden mit dem Präfix ergänzt
+if (!grepl("balance_", names(balance_per_month)[2])) {
+names(balance_per_month) <- paste0("balance_", names(balance_per_month))
+}
+df_mod <- df_mod %>% 
+  left_join(balance_per_month, by = c("account_id" = "balance_account_id"))
+
+```
+
+#### Monatliche outgoes und incomes
+
+für die spätere Berechnung der Umsätze und Bilanzen werden die outgoes und incomes monatlich zusammengefasst.
+
+```{r}
+
+date_complete <- date_complete %>% 
+  mutate(quarter = quarter(date, type = "year.quarter")) %>% 
+  mutate(semester = semester(date, with_year = TRUE)) %>% 
+  mutate(year = year(date)) %>% 
+  mutate(month = month(date))
+  
+outgoes_incomes_quarterly <- date_complete %>% 
+  select(
+    account_id,
+    quarter, 
+    cashflow,
+    amount
+  ) %>%
+  group_by(
+    account_id,
+    quarter,
+    cashflow
+  ) %>%
+  summarise(amount_sum = sum(amount)) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = cashflow, values_from = amount_sum) %>% 
+  rename(incomes_quarterly = IN,
+         outgoes_quarterly = OUT) %>%
+  na_replace(., 0) %>% 
+  select(
+    account_id,
+    quarter,
+    incomes_quarterly,
+    outgoes_quarterly
+  ) %>% 
+  arrange(quarter) %>% 
+  pivot_wider(names_from = "quarter", values_from = c("incomes_quarterly", "outgoes_quarterly")) %>% 
+  arrange(account_id)
+
+  
+ head(outgoes_incomes_quarterly)
+ save(outgoes_incomes_quarterly, file = "outgoes_incomes_quarterly.RData")
+
+```
+
+
+
+```{r}
+df_mod <- df_mod %>% 
+  left_join(outgoes_incomes_quarterly, by = "account_id")
+```
+
+#### Jährliche Einkünfte und Ausgaben
+
+```{r}
+outgoes_incomes_yearly <- date_complete %>% 
+  select(
+    account_id,
+    year, 
+    cashflow,
+    amount
+  ) %>%
+  group_by(
+    account_id,
+    year,
+    cashflow
+  ) %>%
+  summarise(amount_sum = sum(amount)) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = cashflow, values_from = amount_sum) %>% 
+  rename(incomes_yearly = IN,
+         outgoes_yearly = OUT) %>%
+  na_replace(., 0) %>% 
+  select(
+    account_id,
+    year,
+    incomes_yearly,
+    outgoes_yearly
+  ) %>% 
+  arrange(year) %>% 
+  pivot_wider(names_from = "year", values_from = c("incomes_yearly", "outgoes_yearly")) %>% 
+  arrange(account_id)
+
+  
+ head(outgoes_incomes_yearly)
+ save(outgoes_incomes_yearly, file = "outgoes_incomes_yearly.RData")
+ save(date_complete, file = "date_complete.RData")
+```
+
+
+```{r}
+df_mod <- df_mod %>% 
+  left_join(outgoes_incomes_yearly, by = "account_id")
+
+save(balance_per_month, file = "balance_per_month.RData")
+rm(outgoes_incomes_quarterly, outgoes_incomes_yearly, balance_per_month)
+
+```
+
+
+neues DF mit den ein und ausgängen pro Monat (Umsatz)
+ev. zusätzliche Spalte mit Info ob der Account im Minus ist oder nicht
+
+Accountgruppen erstellen, wie lange der Account aktiv war (z.B. halbes Jahr, Jahr, etc.)
 
 ### **D. Erstellen des konsolidierten Data Frames**
-
-```
 
 Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
  
 ```{r}
-# df_cons <- df_mod
-# 
-# save(balance_per_month, file = "balance_per_month")
-```
+df_cons <- df_mod
 
+```
 
 Übersicht über die Struktur des konsolidierten Datensatzes.
 
 ```{r}
-# glimpse(df_cons)
+glimpse(df_cons)
 ```
 
 ## 1. Datengrundlage
@@ -2230,391 +2827,257 @@ könnten, wären:
 
 #### i. In welchem Monat oder Tag wird am meisten Geld abgehoben? (LBZ)
 
-Levels vom Attribut trans_operation ausgeben:
-
 ```{r}
-# levels(df_cons$trans_operation)
-```
+owner_district <- df_mod %>% 
+  select(
+    account_id,
+    owner_district_id,
+    account_district_id, 
+    owner_district_name,
+    owner_district_region,
+    account_district_name, 
+    account_district_region
+  )
 
-Es gibt zwei verschiedene Arten von Geldabbuchungen. Erstere ist die
-Geldabbuchung beziehungsweise Überweisung und die zweite die Abbuchung
-mittels Kreditkarte. Diese beiden Arten werden getrennt analysiert.
-
-```{r}
-
-# levels(df_cons$trans_characterization)
-```
-
-```{r}
-# levels(df_cons$trans_operation)
-```
-
-```{r}
-# n_card <- df_cons %>% 
-#   filter(
-#     trans_cashflow == "OUT",
-#     trans_operation == "CREDIT CARD WITHDRAWAL"
-#   ) %>% 
-#   nrow()
-# 
-# paste("Es wurden", n_card, "Kreditkatenbezüge getätigt.", sep = " ")
-# 
-# # rm(n_card, card_withdrawal)
+trans_correlation <- date_complete %>% 
+  left_join(owner_district, by = "account_id")
 
 ```
 
-Der höchste Betrag, welcher mit der Kreditkarte bezogen wurde:
-
+Überprüfen der Levels in der Spalte operation
 ```{r}
-# df_cons %>% 
-#   filter(
-#     trans_cashflow == "OUT",
-#     trans_operation == "CASH WIDTHDRAWAL"
-#   ) %>% 
-#   select(
-#     trans_amount,
-#     trans_date,
-#     account_id
-#   ) %>% 
-#   top_n(1, trans_amount)
+levels(trans_correlation$operation)
+
 ```
+Folgende Levels sind vorhanden:
+"CASH CREDIT" -> Bargeldeinzahlung
+"CASH WIDTHDRAWAL" -> Bargeldbezug
+"COLLECTION OTHER BANK" -> Abbuchung einer Fremdbank
+"CREDIT CARD WITHDRAWAL" -> Kreditkartenbezug
+"REMITTANCE OTHER BANK" -> Überweisung an/von einer Fremdbank
 
-Für die weiteren Analysen wird eine zusätzliche Spalte für die Quartale
-eines Jahres benötigt. Dazu wird das Jahr in vier Quartale unterteilt.
-
+Uns interessieren die Bargeld- und die Kreditkartenbezüge.
 ```{r}
-# summary(df_cons$trans_month)
-```
+cashwidthdrawals <- trans_correlation %>% 
+  filter(operation == "CASH WIDTHDRAWAL") %>% 
+  select(
+    account_id,
+    date,
+    amount,
+    characterization,
+    balance_end_day,
+  )
 
-```{r}
-# df_cons <- df_cons %>% 
-#   mutate(
-#     trans_quarter_year = case_when(
-#       (month(trans_date) <= 3) ~ "1. QUARTER",
-#       (month(trans_date) >= 4 & month(trans_date) <= 6) ~ "2. QUARTER",
-#       (month(trans_date) >= 7 & month(trans_date) <= 9) ~ "3. QUARTER",
-#       (month(trans_date) > 9) ~ "4. QUARTER"
-#     ),
-#     across(
-#       where(is.character), 
-#       as.factor
-#        )
-#   ) %>% 
-#   relocate(trans_quarter_year, .after = trans_date)
-# 
-# summary(df_cons$trans_quarter_year)
-```
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     # trans_cashflow == "OUT",
-#     trans_operation == "CREDIT CARD WITHDRAWAL"
-#     # year(trans_date) == 1995,
-#     # trans_quarter_year == "1. QUARTER"
-#     ) %>% 
-#   ggplot(aes(
-#     x = account_id,
-#     y = trans_amount
-#   )
-#   # , fill = district_name
-#   ) +
-#   geom_jitter(
-#     alpha = 1,
-#     width = 30,
-#     shape = 3,
-#     color = "white"
-#   ) +
-#   labs(
-#     title = "Credit Card Withdrawal", 
-#     subtitle = "Withdrawals in 1995, 1st Quarter",
-#     x = "Account ID",
-#     y = "Amount [CZK]"
-#   ) +
-#   theme_dark()
-```
-
-Die meisten Kreditkartenbezüge sind unter 4000 CZK. Die
-Kreditkartenbezüge über 4000 CZK werden in den nächsten Analysen genauer
-untersucht.
-
-Welche Accounts weisen die höchsten Bezüge an welchen Daten auf?
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     trans_operation == "CREDIT CARD WITHDRAWAL"
-#   ) %>% 
-#   select(
-#     trans_amount,
-#     trans_date, 
-#     account_id
-#   ) %>% 
-#   arrange(
-#     desc(trans_amount)
-#   ) %>% 
-#   top_n(1, trans_amount)
-```
-
-7 mal wurde in den Jahren '97 und '98 von versichiedenen Konten 8000
-bezogen. Auffallend ist, dass der Account mit der Nummer 3654 drei mal
-erscheint. Es stellt sich die Frage, ob am selben Datum mehrmals mit der
-Kreditkarte vom selben Konto Geld abgehoben wurde. Dies soll nun
-überprüft werden.
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     trans_operation == "CREDIT CARD WITHDRAWAL"
-#   ) %>% 
-#   group_by(
-#     trans_date,
-#     account_id
-#   ) %>% 
-#   count() %>% 
-#   arrange(desc(n))
-```
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     trans_date == "1998-01-25",
-#     account_id == 96
-#   )
-```
-
-Es fällt auf, dass bei einigen Kreditkartenbezügen ein
-order_payment_type angegeben ist. Zudem wurden die Bezüge dem
-Account-Owner und dem User zugeordnet. Da bei den zugrunde liegenden
-Daten nur das Transaktionsdatum ohne die Transaktionszeit vorliegt,
-können wir nicht abschliessend beurteilen, ob es sich hier um doppelte
-Erfassung oder tatsächlich getätigte Bezüge handelt. Wir gehen davon
-aus, dass es sich um Doppelerfassungen handelt. Um dies zu verifizieren
-muss geschaut werden, ob der User mehr Bezüge aufweist als der Owner.
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     trans_cashflow == "OUT"
-#   ) %>% 
-#   ggplot(aes(
-#     x = trans_amount
-#     , fill = disp_type
-#   )) +
-#   geom_histogram(
-#     position = "dodge"
-#     # , bins = 100
-#   ) +
-#   labs(
-#     title = "Cash outgoes", 
-#     subtitle = "Comparison between Account Owner and User",
-#     x = "Amount [CZK]",
-#     y = "Number of Transactions",
-#     fill = "Disposition type"
-#   ) + 
-#   scale_y_log10() +
-#   theme_light() 
-```
-
-Diese Analyse bestätigt die Vermutung, dass es sich bei den Werten um
-Doppelerfassungen handelt. Deshalb werden die User für die nächsten
-Analysen ausgeschlossen.
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     trans_operation == "CREDIT CARD WITHDRAWAL",
-#     disp_type == "OWNER",
-#     # !is.na(card_type),
-#     order_payment_type == "UNKNOWN"
-#   ) %>% 
-#   group_by(
-#     trans_date,
-#     card_id
-#   ) %>% 
-#   # summarise(amount_max = max(trans_amount)) %>% 
-#   # arrange(desc(amount_max))
-#   summarise(amount_avg = mean(trans_amount)) %>% 
-#   arrange(desc(amount_avg)) %>% 
-#   head()
-```
-
-Kreditkartenbezüge über 4000 CZK.
-
-```{r}
-# df_cons %>% 
-#   filter(
-#     trans_operation == "CREDIT CARD WITHDRAWAL",
-#     disp_type == "OWNER",
-#     trans_amount > 4000
-#   ) %>% 
-#   ggplot(
-#     aes(
-#       x = trans_date,
-#       y = trans_amount,
-#       color = order_payment_type,
-#       fill = order_payment_type
-#     )
-#   ) + 
-#   geom_point(
-#     show.legend = FALSE
-#   ) +
-#   facet_wrap(vars(order_payment_type)) +
-#              # scales = "free_x") +
-#   theme_light() +
-#   theme(
-#     axis.text.x = element_text(angle = 90, vjust = 0.5),
-#     axis.line = element_line(color = "white")
-#   ) +
-#   labs(
-#     title = "Credit Card withdrawals",
-#     subtitle = "all over 4'000 CZK",
-#     x = "Transaction Date",
-#     y = "Amount [CZK]"
-#   )
-             
-```
-
-Vermutlich können viele Kreditkartenbezüge über 4000 CZK nicht am
-Automaten getätigt, sondern müssen am Schalter unter Angabe für den
-Verwendungszweck abgehoben werden.
-
-Hypothese: Um die Feiertage (Weihnachten und Ostern) wird mehr Geld mit
-der Kreditkarte bezogen. Dazu werden nur die Bezüge "UNKONWN" und "NA"
-aus order_payment_type angeschaut.
-
-```{r}
-# #Korrelation Kreditkartenbezüge Unknown oder NA und Monate
-# 
-# df_cons %>% 
-#   filter(
-#     order_payment_type == "UNKONWN" 
-#     | is.na(order_payment_type),
-#    trans_operation == "CREDIT CARD WITHDRAWAL",
-#    disp_type == "OWNER"
-#   ) %>% 
-#   group_by(
-#     year = year(trans_date),
-#     month = month(trans_date),
-#     account_id
-#   ) %>% 
-#   summarise(amount_avg = round(mean(trans_amount))) %>% 
-#   arrange(desc(amount_avg))
+set.seed(26345)
+slice_sample(cashwidthdrawals, n = 5)
 
 ```
 
-```{r}
-# #nach unikaten Transaction ID filtern
-# df_cons %>% 
-#   # distinct(trans_id) %>% 
-#   filter(
-#     order_payment_type == "UNKONWN" 
-#     | is.na(order_payment_type),
-#    trans_operation == "CREDIT CARD WITHDRAWAL",
-#    # disp_type == "OWNER"
-#    # trans_id == unique(trans_id)
-#   ) %>% 
-#   group_by(
-#     year = year(trans_date),
-#     month = month(trans_date),
-#     account_id
-#   ) %>% 
-#   mutate(amount_avg = round(mean(trans_amount))) %>%
-#   ggplot(aes(
-#     x = month,
-#     y = amount_avg,
-#     # fill = trans_date
-#     )) +
-#   geom_point() +
-#   # geom_boxplot() +
-#   facet_wrap(vars(year))
+Die Beträge mit "STATEMENT PAYMENT" aus der Spalte "characterization" sind Gebühren und werden aus der Analyse ausgeschlossen.
 
+```{r}
+cashwidthdrawals <- cashwidthdrawals %>% 
+  filter(characterization != "STATEMENT PAYMENT")
+  
+
+set.seed(26345)
+slice_sample(cashwidthdrawals, n = 5)
 
 ```
 
-### Cluster Kreditkartenbezüge
+Ebenso verhält es sich bei "SANCTION INTEREST". Auch diese Beobachtungen werden ausgeschlossen.
+```{r}
+cashwidthdrawals <- cashwidthdrawals %>% 
+  filter(characterization != "SANCTION INTEREST")
+
+set.seed(26345)
+slice_sample(cashwidthdrawals, n = 5)
+
+```
+Überblick über die Bargeldbezüge "CASH WIDTHDRAWAL"
+```{r}
+summary(cashwidthdrawals)
+
+```
+Die Bargeldbezüge mit der Bezeichnung "CASH WIDTHDRAWAL" haben alle eine zugewiesene Verwendung. Entweder für das Wohnen (Household) oder die Versicherung (Insurrance Payment). Es handelt sich hierbei um 2834 Transaktionen. Dies ist auf den gesamten Datensatz gesehen sehr wenig. Trotzdem werden diese Zahlungen genauer untersucht.
 
 ```{r}
-# #Clustering mit Jahresumsatz, user und owner, Art der Verbuchung (wofür wurde das Geld gebraucht), District.
-# #Korrelation zwischen Kreditkartenbezügen über 4000 und den Geldeingängen
-# 
-# dist_credit_card <- df_cons %>% 
-#   select(
-#     trans_id,
-#     trans_amount,
-#     trans_date, 
-#     trans_operation,
-#     trans_cashflow
-#   ) %>% 
-#   drop_na() %>%
-#   distinct() %>%
-#   mutate_if(is.numeric, .funs = funs(scale)) %>%
-#   head() %>%
-#   dist()
-# 
-# glimpse(dist_credit_card)
-#   
-# hc_credit_card <- hclust(dist_credit_card, method = "complete")
-# 
-# dend_credit_card <- as.dendrogram(hc_credit_card) 
-# 
-# 
-# plot(dend_credit_card)
+ggplot(cashwidthdrawals, aes(x = date, y = amount, color = characterization)) +
+  geom_point(position = "jitter")
+
+```
+Die Beträge für Versicherungszwecke sind alle auf einem sehr tiefen Niveau.
+Die höheren Beträge (ab 10'000 CZK) werden nun genauer untersucht.
+
+#### Bargeldbezüge über 10'000 CZK
+```{r}
+cashwidthdrawals_10 <- cashwidthdrawals %>% 
+  filter(amount >= 10000) %>% 
+  left_join(owner_district, by = "account_id") %>% 
+  mutate(Region = as.factor(owner_district_region))
+
+
+ggplot(cashwidthdrawals_10, aes(x = amount, fill = Region)) +
+  geom_histogram(position = "dodge")
+
+```
+Die Aufteilung in District ist zu detailliert um einen Zusammenhang zwischen den hohen Beträgen und den Standorten der Kunden zu erkennen. Deshalb wird nun mit den Regionen verglichen.
+
+
+```{r}
+cashwidthdrawals_10 %>% 
+  mutate(Region = as.factor(owner_district_region)) %>% 
+  ggplot(., aes(x = amount, fill = Region)) +
+    geom_histogram()
+
+cashwidthdrawals_10 %>% 
+  mutate(Region = owner_district_region) %>% 
+  ggplot(., aes(Region, fill = Region)) +
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+Die hohen Bezüge sind über das ganze Land verteilt. Die Region Moravia weist am häufigsten, Nord und Zentral Böhmen am wenigsten hohe Bargeldbezüge aus.
+
+#### Kreditkartenbezüge
+
+```{r}
+cardwidthdrawals <- trans_correlation %>% 
+  filter(operation == "CREDIT CARD WITHDRAWAL") %>% 
+  select(
+    account_id,
+    date,
+    amount,
+    characterization,
+    balance_end_day,
+  ) 
+
+summary(cardwidthdrawals)
+
+```
+Die Kreditkartenbezüge weisen keinen Verwendungszweck aus. Der durchschnittliche Betrag liegt bei 2200 CZK, der höchste bei 8000 CZK. Der Höchste Betrag ist vermutlich im Zusammenhang mit der Kreditkartenlimite. In unseren Daten sind gesamthaft 8036 Kreditkartenbezüge verzeichnet. Auch hier werden wiederum die höheren Bezüge ab einem Betrag von 4'000 CZK genauer untersucht.
+
+```{r}
+cardwidthdrawals <- cardwidthdrawals %>% 
+  left_join(owner_district, by = "account_id") %>% 
+  mutate(Region = as.factor(owner_district_region))
 ```
 
+
 ```{r}
-# set.seed(42)
-# 
-# df_cons %>% 
-#   select(
-#     trans_id,
-#     trans_amount,
-#     trans_date, 
-#     trans_operation,
-#     trans_cashflow
-#   ) %>% 
-#   drop_na() %>%
-#   distinct(trans_id) %>%
-#   scale -> credit_card_cluster
-# 
-# 
-# 
-# kmeans_credit_card_2 <- kmeans(credit_card_cluster, centers = 2, nstart = 10)
-# kmeans_credit_card_3 <- kmeans(credit_card_cluster, centers = 3, nstart = 10)
-# kmeans_credit_card_4 <- kmeans(credit_card_cluster, centers = 4, nstart = 10)
-# kmeans_credit_card_5 <- kmeans(credit_card_cluster, centers = 5, nstart = 10)
-# kmeans_credit_card_6 <- kmeans(credit_card_cluster, centers = 6, nstart = 10)  
-# 
-# 
-# streuung_innerhalb <- c(kmeans_credit_card_2$tot.withinss,
-# kmeans_credit_card_3$tot.withinss,
-# kmeans_credit_card_4$tot.withinss,
-# kmeans_credit_card_5$tot.withinss,
-# kmeans_credit_card_6$tot.withinss)
-# 
-# streuung_df <- data_frame(
-# streuung_innerhalb,
-# anzahl_cluster = 2:6
-# )
-# 
-# ggplot(streuung_df) +
-# aes(x = anzahl_cluster,
-# y = streuung_innerhalb) +
-# geom_col() +
-# geom_line()
+cardwidthrawals_4 <- cardwidthdrawals %>% 
+  filter(amount > 4000) 
+
+cardwidthrawals_4 %>% 
+  ggplot(., aes(x = amount, fill = Region)) +
+    geom_histogram(binwidth = 75)
+
+cardwidthrawals_4 %>% 
+  mutate(Region = owner_district_region) %>% 
+  ggplot(., aes(Region, fill = Region)) +
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
 ```
-
-#### ii. Zu welchem Zeitpunkt wird am meisten Geld überwiesen? (LBZ)
+Hier fällt wiederum die Region Moravia mit den meisten Kreditkartenbezügen auf.
 
 ```{r}
-
+# rm(cardwidthdrawals, cardwidthrawals_4, cashwidthdrawals, cashwidthdrawals_10, date_complete, trans_correlation, transactions)
 ```
 
 #### iii. Welche Datenattribute beschreiben den Kundenstamm und wie können Kundengruppen definiert werden? (LBZ)
 
 ```{r}
+# Anzahl Monate
+incomes_n <- df_transaction_complete %>% 
+  group_by(
+    account_id,
+    year(date),
+    month(date)
+    ) %>% 
+  summarise(sum = sum(incomes)) %>% 
+  filter(sum > 0) %>% 
+  count()
 
+# Einkommen pro Jahr und aufgerechnet auf den Monat
+incomes_per_year <- df_transaction_complete %>%
+  group_by(
+    account_id,
+    year(date)
+  ) %>%
+  summarise(income_sum = sum(incomes)) %>% 
+  filter(income_sum > 0) %>% 
+  left_join(incomes_n, by = c("account_id", "year(date)")) %>% 
+  mutate(salary_per_month = round((income_sum / n), digits = 0)) %>% 
+  mutate(salary_per_year = round((income_sum / n * 12), digits = 0)) %>% 
+  select(-c(income_sum, n))
+  
+# Anzahl Monate
+outgoes_n <- df_transaction_complete %>% 
+  group_by(
+    account_id,
+    year(date),
+    month(date)
+    ) %>% 
+  summarise(sum = sum(outgoes)) %>% 
+  filter(sum > 0) %>% 
+  count()
+
+# Geldabfluss pro Jahr und aufgerechnet pro Monat
+outgoes_per_year <- df_transaction_complete %>%
+  group_by(
+    account_id,
+    year(date)
+  ) %>%
+  summarise(outgoes_sum = sum(outgoes)) %>% 
+  filter(outgoes_sum > 0) %>% 
+  left_join(outgoes_n, by = c("account_id", "year(date)")) %>% 
+  mutate(outgoes_per_month = round((outgoes_sum / n), digits = 0)) %>% 
+  mutate(outgoes_per_year = round((outgoes_sum / n * 12), digits = 0)) %>% 
+  select(-c(outgoes_sum, n))
+
+# Einkommen und Geldabflüsse mit Vermögensentwicklung
+in_out <- incomes_per_year %>% 
+  left_join(outgoes_per_year, by = c("account_id", "year(date)")) %>% 
+  na.replace(., 0) %>% 
+  mutate(diff = round((salary_per_year - outgoes_per_year), digits = 0))
+
+
+# Vermögensentwicklung über die gesamte Zeit
+assets_development <- in_out %>% 
+  group_by(account_id) %>% 
+  summarise(assets_development_sum = round(sum(diff), digits = 0)) 
+
+# Anfügen der Vermögensentwicklung an das konsolidierte Data Frame
+df_cons <-  df_cons %>% 
+  left_join(assets_development, by = "account_id")
+
+# Anzahl Jahre
+n <- in_out %>% 
+  group_by(account_id) %>% 
+  count()
+
+# Jahreseinkommen im Durchschnitt
+salary_avg <- in_out %>% 
+  group_by(account_id) %>% 
+  summarise(salary_sum = sum(salary_per_year)) %>% 
+  left_join(n, by = "account_id") %>% 
+  mutate(salary_avg = round((salary_sum / n), digits = 0)) %>% 
+  select(account_id, salary_avg)
+
+# Anfügen des Jahreseinkommens an das konsolidierte Data Frame
+df_cons <- df_cons %>% 
+  left_join(salary_avg, by = "account_id")
+
+head(assets_development)
+head(salary_avg)
+head(in_out)
+rm(n, outgoes_per_year, incomes_per_year, outgoes_n, incomes_n)
+
+  
 ```
+
+
 
 #### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus? (Christian)
 
