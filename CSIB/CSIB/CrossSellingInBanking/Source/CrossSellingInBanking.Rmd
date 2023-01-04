@@ -2857,10 +2857,10 @@ könnten, wären:
 
 ### a. Für die einzelne Datenattribute:
 
-#### i. In welchem Monat oder Tag wird am meisten Geld abgehoben? (LBZ)
+#### i. In welchem Monat oder Tag wird am meisten Geld abgehoben?
 (LB)
 ```{r}
-owner_district <- df_mod %>% 
+owner_district <- df_cons %>% 
   select(
     account_id,
     owner_district_id,
@@ -2874,6 +2874,9 @@ owner_district <- df_mod %>%
 trans_correlation <- date_complete %>% 
   left_join(owner_district, by = "account_id")
 
+head(owner_district, 3)
+head(trans_correlation, 3)
+
 ```
 
 Überprüfen der Levels in der Spalte "operation"
@@ -2881,6 +2884,8 @@ trans_correlation <- date_complete %>%
 levels(trans_correlation$operation)
 
 ```
+##### Varialbelbeschreibung (Levels)
+(LB)
 Folgende Levels sind vorhanden:
 "CASH CREDIT" -> Bargeldeinzahlung
 "CASH WIDTHDRAWAL" -> Bargeldbezug
@@ -2888,7 +2893,7 @@ Folgende Levels sind vorhanden:
 "CREDIT CARD WITHDRAWAL" -> Kreditkartenbezug
 "REMITTANCE OTHER BANK" -> Überweisung an/von einer Fremdbank
 
-Uns interessieren die Bargeld- und die Kreditkartenbezüge.
+Uns interessieren die Bargeld- und die Kreditkartenbezüge. Also alle "CASH WIDTHDRAWAL".
 ```{r}
 cashwidthdrawals <- trans_correlation %>% 
   filter(operation == "CASH WIDTHDRAWAL") %>% 
@@ -2988,12 +2993,21 @@ cardwidthdrawals <- trans_correlation %>%
 summary(cardwidthdrawals)
 
 ```
+##### Top 3 der höchsten Kreditkartenbezüge
+```{r}
+cardwidthdrawals %>% 
+  top_n(3, amount)
+
+```
+
+
 Die Kreditkartenbezüge weisen keinen Verwendungszweck aus. Der durchschnittliche Betrag liegt bei 2200 CZK, der höchste bei 8000 CZK. Der Höchste Betrag ist vermutlich im Zusammenhang mit der Kreditkartenlimite. In unseren Daten sind gesamthaft 8036 Kreditkartenbezüge verzeichnet. Auch hier werden wiederum die höheren Bezüge ab einem Betrag von 4'000 CZK genauer untersucht.
 
 ```{r}
 cardwidthdrawals <- cardwidthdrawals %>% 
   left_join(owner_district, by = "account_id") %>% 
   mutate(Region = as.factor(owner_district_region))
+
 ```
 
 
@@ -3016,6 +3030,7 @@ Hier fällt wiederum die Region Moravia mit den meisten Kreditkartenbezügen auf
 
 ```{r}
 rm(cardwidthdrawals, cardwidthrawals_4, cashwidthdrawals, cashwidthdrawals_10, date_complete, trans_correlation, owner_district)
+
 ```
 
 #### iii. Welche Datenattribute beschreiben den Kundenstamm und wie können Kundengruppen definiert werden? 
@@ -3102,7 +3117,7 @@ Anfügen der Summen an das konsolidierte Data Frame
 # Anfügen der Vermögensentwicklung an das konsolidierte Data Frame
 df_cons <-  df_cons %>% 
   left_join(in_out_total, by = "account_id")
-rm(in_out_total)
+
 
 ```
 #### iii. Salärentwicklung und -verteilung
@@ -3256,8 +3271,8 @@ rm(incomes_per_year_avg, incomes_under_320K)
 ##### Salärgruppen
 (LB)
 Folgende Gruppen können nun in einer neuen Spalte "salary_groups" erstellt werden:
-- lower_income für ein Jahreseinkommen bis 65K
-- lower_middle_income für ein Jahreseinkommen von 65K bis 110K
+- lower_income für ein Jahreseinkommen bis 60K
+- lower_middle_income für ein Jahreseinkommen von 60K bis 110K
 - middle_income für ein Jahreseinkommen von 110K bis 145K
 - upper_middle_income für ein Jahreseinkommen von 145K bis 220K
 - upper_income für ein Jahreseinkommen von 220K bis 320K
@@ -3273,6 +3288,8 @@ in_out_total <- in_out_total %>%
     incomes_per_year_avg >= 220000 & incomes_per_year_avg < 320000 ~ "upper_income",
     incomes_per_year_avg >= 320000 ~ "high_income"
   )) 
+
+head(in_out_total, 3)
   
 ```
 #### iv. Vermögensentwicklung und -Verteilung
@@ -3304,6 +3321,7 @@ df_cons <- df_cons %>%
 summary(df_cons$assets_dev_per_year_avg)
 rm(assets_dev_avg)
 
+
 ```
 Die jährliche Vermögensentwicklung bewegt sich zwischen -235716 und 716328. 
 
@@ -3331,6 +3349,7 @@ Die meisten Accounts weisen im Jahresdurchschnitt eine positive Vermögensentwic
 (LB)
 Es wird eine zusätzliche Spalte erstellt für die Information, ob das Konto eine positive oder eine negative Entwicklung über die Laufzeit erfährt.
 ```{r}
+
 df_cons <- df_cons %>% 
   mutate(assets_dev_groups = case_when(
     assets_dev < 0 ~ "negative", 
@@ -3351,6 +3370,7 @@ in_out_yearly <- in_out_yearly %>%
 
 head(df_cons[, c("assets_dev", "assets_dev_groups")])
 rm(df)
+rm(in_out_total)
 
 ```
 #### Vermögensentwicklung über die Jahre
@@ -3569,6 +3589,10 @@ Es sind 8 Accounts mit geringen Ausgaben. Bei den Einnahmen handelt es sich um Z
 ```{r}
 summary(less_out)
 rm(less_in_out, less_out)
+rm(in_out_yearly_avg)
+save(in_out_monthly, file = "in_out_monthly.RData")
+save(in_out_yearly, file = "in_out_yearly.RData")
+rm(in_out_monthly, in_out_yearly)
 
 ```
 Bei den Ausgaben (27 Transaktionen über die 8 Konten verteilt) gibt es keinen Verwendungszweck.
@@ -3579,8 +3603,74 @@ Da es sich bei diesen Konten nicht um sehr grosse Beträge handelt, werden diese
 ```{r}
 accounts_high_incomes <- df_cons %>% 
   filter(salary_groups == "high_income")
-stop()
+
+top3_high_incomes <- accounts_high_incomes %>% 
+  select(-c(
+    # contains("user"),
+    starts_with("order"),
+    starts_with("loan"),
+    starts_with("balance"),
+    contains("quarterly"), 
+    contains("yearly"), 
+    starts_with("IN_"), 
+    starts_with("OUT_")
+  )) %>% 
+  top_n(3, assets_dev)
+
+top3_high_incomes %>% 
+  select(
+    account_district_name,
+    account_district_region,
+    owner_dateofbirth,
+    owner_sex,
+    owner_age_at_account_opening,
+    user_dateofbirth,
+    user_sex,
+    user_age_at_account_opening,
+    incomes_total,
+    assets_dev,
+    salary_groups,
+    assets_dev_groups
+  )
+
 ```
+Die Top 3 Accounts werden von Personen betrieben, welche alle in der Region Moravia gemeldet sind. Es ist wieder dieselbe Region, die als vermögend heraussticht wie wir bei den Kreditkartenbezügen bereits gesehen haben.
+
+##### Das Gebiet Moravia (Mähren)
+(LB)
+In der Region Moravia sind einige wichtige Wirtschaftszentren angesiedelt. Auch die Landwirtschaft spielt eine wichtige Rolle vor allem der Weinbau. Über 90% der Weinberge befinden sich im Gebiet Mähren. Das Gebiet verfügt weiter über reichlich Braunkohle und Erdöl.
+Auch die Automobil- und die tschechische Feuerwaffenindustrie haben ihre Produktionsstätten in dieser Region. Das Gebiet um Zlín ist für Flugzeughersteller bekannt. Mehrere Firmen haben dort ihren Sitz.
+
+##### Jung, dynamisch und gut betucht
+(LB)
+Bei unseren Top 3 Verdienern handelt es sich um junge bis sehr junge Personen. Es könnt sein, dass sie aus wohlhabenden Familien stammen und daher bereits ein hohes Startkapital mitbringen.
+Die Mitbenutzer der Konten sind ebenfalls sehr jung und jeweils vom gegenteiligen Geschlecht was auf eine Partnerschaft hindeutet.
+
+Die Bank könnte Kunden mit einem ähnlichen Profil folgenden Angebote machen:
+- Reise/Ferienpaket, wahlweise Wellness, Aktivurlaub, Städtereise, Kombination wenn gewünscht begleitet mit VIP-Paket (Gadgets der Bank mit edlem Design)
+- geführte Shoppingtour
+- Sponsoring/Unterstützung bei Selbstständigkeit oder bei Veranstaltungen organisiert durch die Kundschaft
+- Beratung und Gutscheine für Ersteinrichtung der Wohnung/Haus
+- individuelle Versicherungsberatung
+- Treuhänderische Tätigkeiten
+
+##### Altesverteilung der Kontoinhaber aufgeteilt auf den Einkommensklassen
+(LB)
+```{r}
+df_cons %>% 
+  group_by(
+    salary_groups
+  ) %>% 
+  summarise(owner_age_median = median(owner_age_at_account_opening)) %>% 
+  arrange(owner_age_median)
+
+```
+Bei den hohen Einkommen ist der Altersdurchschnitt am tiefsten. Dies widerspricht der allgemeinen Annahme, dass eine Person mit zunehmenden Alter auch mehr Einkommen hat.
+
+
+#### Cluster
+
+
 nächste Schritte:
 
 Boxplot mit der Salärentwicklung über 320K
@@ -3591,7 +3681,7 @@ welche Konten haben loans?
 welche Konten haben perm orders?
 gibt es Zusammenhänge zwischen Loans/permorders und der höhe der Einkommen? oder der Vermögensentwicklung?
 
-Kundengruppen nach Einkommenshöhe 
+ 
 Angebot der Bank für die Kundschaft 
 Was kann die Bank tun um der Kundschaft zu helfen, das Geld im Griff zu haben?
 
@@ -3662,7 +3752,7 @@ Was kann die Bank tun um der Kundschaft zu helfen, das Geld im Griff zu haben?
 (AS)
 ```{r}
 
-df_credit_card_by_type <- df_mod %>%
+df_credit_card_by_type <- df_cons %>%
   filter(!is.na(card_id)) %>%
   select(card_type, owner_sex) %>%
   group_by(card_type, owner_sex) %>%
