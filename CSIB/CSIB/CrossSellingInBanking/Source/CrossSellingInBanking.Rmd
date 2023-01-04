@@ -4385,8 +4385,8 @@ Kundschaft zu helfen, das Geld im Griff zu haben?
 Gesamtübersicht über die letzten Jahre
 
 ```{r}
-ggplot(data = df_cons, aes(x = account_opening_date, fill = "#CD950C")) +
-    geom_histogram(binwidth = 20, stat = "bin") +
+ggplot(data = df_cons, aes(x = account_opening_date)) +
+    geom_histogram(binwidth = 20, stat = "bin", fill = "#CD950C") +
     labs(title = "Opening of new bank Accounts", 
            subtitle = "From the Year 1993 to 1997 ", 
            caption = "Source: PKDD’99 Discovery Challenge",
@@ -4422,33 +4422,45 @@ df_cons %>%
 [^117]: Erstellt von Christian Heeb
 
 ```{r}
-# #Change dateofbirth of clients with lubridate and calculate age
-# df_cons$current_age <- as.numeric(difftime(Sys.Date(), df_cons$dateofbirth, units = "weeks")) / 52.25
-# #Schaltjahr berücksichtigen und Alter nicht über 100
-# 
-# #Round Age to the next full Number
-# df_cons$current_age <- floor(df_cons$current_age)
-# 
-# #Relocate rows so new column "current_age" is next to dateofbirth
-# df_cons <- df_cons %>%
-#   relocate(current_age, .after = dateofbirth)
-# 
-# 
-# #Create Barplot with distrbution of age 
-# df_cons_temp <- df_cons %>%
-#   group_by(account_id) %>%
-#   filter(row_number() == 1)
-# 
-#   ggplot(data = df_cons_temp, aes(current_age)) +
-#   geom_bar(fill = "#88B8AC") +
-#   labs(title = "Distribution of Customer Age", subtitle = "Male and Female combined") +
-#   xlab("Age in Years") +
-#   ylab("Count") +
-#   theme_light()
-# 
-# # rm(df_cons_temp)
+# Calculate age of Customers with Lubridate
+# to keep a reasonable age of the cusomers, we calculated their age as of the following date: 31.12.1999
+df_cons$age_dec1999 <- trunc((df_cons$owner_dateofbirth %--% "1999-12-31") / years(1))
 
+#Relocate rows so new column "current_age" is next to dateofbirth
+df_cons <- df_cons %>%
+   relocate(age_dec1999, .after = owner_dateofbirth)
+ 
+ 
+#Create Barplot with distrbution of age 
+df_cons %>%
+   group_by(account_id) %>%
+   filter(row_number() == 1)
+
+   ggplot(data = df_cons, aes(age_dec1999)) +
+   geom_bar(fill = "#88B8AC") +
+   labs(title = "Distribution of Customer Age as of 31. Dec 1999", 
+        subtitle = "Male and Female combined",
+        caption = "Source: PKDD’99 Discovery Challenge",
+        x ="Age in Years",
+        y = "Number of Customers") +
+   scale_x_continuous(breaks = scales::breaks_pretty(10))
+ 
 ```
+
+Altersverteilung beim eröffnen des Kontos
+
+```{r}
+   ggplot(data = df_cons, aes(owner_age_at_account_opening)) +
+   geom_bar(fill = "#88B8AC") +
+   labs(title = "Age of Customer at opening of Account ", 
+        subtitle = "Male and Female combined",
+        caption = "Source: PKDD’99 Discovery Challenge",
+        x ="Age in Years",
+        y = "Number of Customers") +
+   scale_x_continuous(breaks = scales::breaks_pretty(10))
+```
+
+
 
 #### v. Neue Fragestellung
 
@@ -4679,7 +4691,20 @@ rm(df_district_mod_names)
 
 #### i. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt werden und bei bereits laufenden Krediten können Massnahmen getroffen werden.
 
+[^127]
+
+[^127]: Erstellt von Christian Heeb
+
 ```{r}
+# Create plots of different loan status
+
+boxplot(df_cons$loan_total_amount)
+
+barplot(df_cons$loan_status)
+
+
+
+
 
 ```
 
@@ -4707,7 +4732,14 @@ rm(df_district_mod_names)
 
 #### iii. Wie viele der Kunden verwenden eine Kreditkarte von den Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können Angebote für spezifische Kundengruppen erstellt werden?
 
+[^129]
+
+[^129]: Erstellt von Christian Heeb
+
 ```{r}
+# Summarize all Cusotmers with Gold Card. 
+
+
 
 ```
 
