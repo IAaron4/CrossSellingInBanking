@@ -4696,13 +4696,26 @@ rm(df_district_mod_names)
 [^127]: Erstellt von Christian Heeb
 
 ```{r}
-# Create plots of different loan status
-
-boxplot(df_cons$loan_total_amount)
-
-barplot(df_cons$loan_status)
+# create Scatterplot of all Contract types with duaration and Amount of loan
 
 
+
+summary(df_cons$loan_status)
+
+df_cons %>%
+  filter(loan_status == "CONTRACT FINISHED UNPAID") %>%
+  ggplot(df_cons, mapping = aes(x = loan_total_amount, y = 0)) +
+  geom_boxplot(widht = 0.5) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank() 
+        ) +
+  scale_x_continuous(breaks = scales::breaks_pretty(10)) +
+  labs(title = "Amount of unpaid loans", 
+           subtitle = "Contract finished unpaid", 
+           caption = "Source: PKDD’99 Discovery Challenge",
+           y = "", x = "Value [CZK] ") +
+  ylim(-0.7,0.7) +
+  coord_flip()
 
 
 
