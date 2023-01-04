@@ -94,6 +94,7 @@ library(DT)
 library(patchwork)
 library(ggpubr)
 library(ggplot2)
+library(plotly)
 library(rpart.plot)
 library(tidymodels)
 library(lubridate)
@@ -2860,7 +2861,7 @@ könnten, wären:
 #### i. In welchem Monat oder Tag wird am meisten Geld abgehoben? (LBZ)
 (LB)
 ```{r}
-owner_district <- df_mod %>% 
+owner_district <- df_cons %>% 
   select(
     account_id,
     owner_district_id,
@@ -3601,24 +3602,39 @@ Was kann die Bank tun um der Kundschaft zu helfen, das Geld im Griff zu haben?
 #### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus? 
 (CH)
 
+Gesamtübersicht über die letzten Jahre
 ```{r}
-# #Muss noch angepasst werden. Inputdaten fehlerhaft. 
-# 
-# #Filter that every Account only occurs once
-# df_cons_temp <- df_cons %>%
-#   group_by(account_date ) %>%
-#   filter(row_number() == 1)
-# 
-# ggplot(data = df_cons_temp, aes(x = account_date)) +
-#   geom_histogram(binwidth = 15, fill = "#88B8AC") +
-#   labs(title = "Opening of Account", subtitle = "subtitle") +
-#   xlab("Year") +
-#   ylab("Count") +
-#   theme_light()
-# 
-# 
-# # rm(df_cons_temp)
+ggplot(data = df_cons, aes(x = account_opening_date, fill = "#CD950C")) +
+    geom_histogram(binwidth = 20, stat = "bin") +
+    labs(title = "Opening of new bank Accounts", 
+           subtitle = "From the Year 1993 to 1997 ", 
+           caption = "Source: PKDD’99 Discovery Challenge",
+           x = "Year", y = "Number of openings") +
+    theme(legend.position = "none", axis.text.x = element_text(size = 6, angle = 60, vjust = 0.5)) +
+    scale_x_date(breaks = scales::breaks_pretty(10))
+
 ```
+
+Jährliche Übersicht
+```{r}
+# account_opening_date nach Jahr sortieren
+df_cons %>%
+      ggplot(df_cons, mapping = aes(as.Date(account_opening_date), fill = as.factor(account_opening_year))) +
+      geom_histogram() +
+      facet_wrap(~ account_opening_year, ncol = 3, scales = "free_x") +
+      coord_cartesian(ylim = c(0, 80)) +
+      theme(legend.position = "none") +
+      labs(title = "Opening of new bank Accounts", 
+           subtitle = "Subdivided by Year", 
+           caption = "Source: PKDD’99 Discovery Challenge",
+           x = "", y = "Number of openings") +
+      theme(axis.text.x = element_text(size = 6, angle = 60, vjust = 0.5)) +
+      scale_x_date(breaks = scales::breaks_pretty(10))
+
+```
+
+
+
 
 #### iv. Wie sieht die Altersverteilung dieser Kunden aus und was kann daraus hergeleitet werden? 
 (CH)
@@ -3843,6 +3859,7 @@ ggplot(data = df_average_salary_per_district_including_geo_data) +
 #### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
 (AS)
 ```{r, warning = FALSE}
+
 # #Make plot with count of different Payment methods ("trans_operation") over time
 # df_cons %>%
 #   ggplot(mapping = aes(x = trans_date, fill = trans_operation)) +
@@ -3892,6 +3909,8 @@ ggplot(data = df_average_salary_per_district_including_geo_data) +
 #### vi. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer aus? Kann aus der Grafik ein Trend ausgelesen werden?
 
 ```{r}
+
+
 
 ```
 
