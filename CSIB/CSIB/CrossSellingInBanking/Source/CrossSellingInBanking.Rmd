@@ -4706,8 +4706,7 @@ Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive deren Statu
 
 
 ```{r message=FALSE}
-install.packages("patchwork")
-library(patchwork)
+# Preparation of Plots
 
 # Calculate customer age at getting loan
 df_cons$age_at_loan <- trunc((df_cons$owner_dateofbirth %--% df_cons$loan_start_date) / years(1))
@@ -4716,6 +4715,23 @@ df_cons$age_at_loan <- trunc((df_cons$owner_dateofbirth %--% df_cons$loan_start_
 df_cons <- df_cons %>%
    relocate(age_at_loan, .after = card_issued)
 
+# Divide yearly income column with yearly loan column
+df_cons$loan_per_year <- df_cons$loan_total_amount / df_cons$loan_duration_in_years
+df_cons <- df_cons %>%
+   relocate(loan_per_year, .after = loan_redemption_amount)
+
+df_cons$ratio_loan_to_sallary <-df_cons$incomes_per_year_avg / df_cons$loan_per_year  
+df_cons <- df_cons %>%
+   relocate(ratio_loan_to_sallary, .after = incomes_per_year_avg)
+
+
+
+
+
+
+
+
+# Create Plots
 
 loanplot1 <- df_cons %>%
   drop_na(loan_status) %>%
@@ -4730,6 +4746,7 @@ loanplot1 <- df_cons %>%
            caption = "",
            y = "", x = "Months") +
   coord_flip()
+
 
 loanplot2 <- df_cons %>%
   drop_na(loan_status) %>%
@@ -4747,6 +4764,7 @@ loanplot2 <- df_cons %>%
            y = "", x = "Loan in CZK") +
   coord_flip()
 
+
 loanplot3 <- df_cons %>%
   drop_na(loan_status) %>%
   ggplot(df_cons, mapping = aes(x = age_at_loan, y = loan_status, fill = loan_status)) +
@@ -4756,13 +4774,29 @@ loanplot3 <- df_cons %>%
         axis.ticks.x=element_blank(),
         legend.position = "none",
         plot.background = element_rect(colour = "black", fill=NA, size=0.5)) +
-  labs(title = "Age at the beginning of Loan", 
+  labs(title = "Customer Age at beginning of Loan", 
            subtitle = "", 
            caption = "",
            y = "", x = "Years") +
   coord_flip()
 
+
 loanplot4 <- df_cons %>%
+  drop_na(loan_status) %>%
+  ggplot(df_cons, mapping = aes(x = ratio_loan_to_sallary, y = loan_status, fill = loan_status)) +
+  geom_boxplot() +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position = "none",
+        plot.background = element_rect(colour = "black", fill=NA, size=0.5)) +
+  labs(title = "Ratio Salary to Loan", 
+           subtitle = "Average annual salary divided by annual loan charge", 
+           caption = "",
+           y = "", x = "Ratio") +
+  coord_flip()
+
+
+loanplot5 <- df_cons %>%
   drop_na(loan_status) %>%
   ggplot(df_cons, mapping = aes(x = loan_start_date, y = loan_total_amount, color = loan_status)) +
   geom_point(size = 0.7) +
@@ -4777,12 +4811,12 @@ loanplot4 <- df_cons %>%
   theme(plot.background = element_rect(colour = "black", fill=NA, size=0.5)) 
 
 
-
-nested_loan_plot <- (loanplot4/(loanplot1|loanplot2|loanplot3)) 
+# Create multi-panel Plot with patchwork
+nested_loan_plot <- (loanplot5/(loanplot1|loanplot2|loanplot3|loanplot4)) 
 nested_loan_plot
 
-# Irgendwas mit Attribut sallary_group erstellen
 
+# Irgendwas mit Attribut sallary_group und incomes_per_year_avg erstellen
 
 ```
 
