@@ -4698,27 +4698,39 @@ rm(df_district_mod_names)
 ```{r}
 # create Scatterplot of all Contract types with duaration and Amount of loan
 
-
-
+# create mean values of all customer arttribues of customers who did not pay laon
+# Show how long they have been customers bevore the got the loan
 summary(df_cons$loan_status)
 
 df_cons %>%
+  group_by(loan_status) %>%
+  ggplot(aes(x = loan_status)) +
+  geom_bar()
+
+
+
+
+
+
+```
+
+
+```{r}
+df_cons %>%
   filter(loan_status == "CONTRACT FINISHED UNPAID") %>%
-  ggplot(df_cons, mapping = aes(x = loan_total_amount, y = 0)) +
-  geom_boxplot(widht = 0.5) +
+  ggplot(df_cons, mapping = aes(x = loan_total_amount, y = 0, fill = "#CD3700")) +
+  geom_boxplot() +
   theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank() 
-        ) +
+        axis.ticks.x=element_blank(),
+        legend.position = "none") +
   scale_x_continuous(breaks = scales::breaks_pretty(10)) +
   labs(title = "Amount of unpaid loans", 
            subtitle = "Contract finished unpaid", 
            caption = "Source: PKDD’99 Discovery Challenge",
            y = "", x = "Value [CZK] ") +
   ylim(-0.7,0.7) +
-  coord_flip()
-
-
-
+  coord_flip() 
+  
 ```
 
 #### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
