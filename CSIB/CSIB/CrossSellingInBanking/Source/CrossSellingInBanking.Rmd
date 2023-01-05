@@ -4685,10 +4685,7 @@ rm(df_district_mod_names)
 #### i. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt werden und bei bereits laufenden Krediten können Massnahmen getroffen werden.
 
 
-
 ```{r}
-summary(df_cons$loan_status)
-
 df_cons %>%
   drop_na(loan_status) %>%
   group_by(loan_status) %>%
@@ -4708,35 +4705,16 @@ df_cons %>%
 Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive deren Status. 
 
 
-```{r}
-# create Scatterplot of all Contract types with duaration and Amount of loan
-
-# create group for every loan type
-loan_fin_notpayed <- df_cons %>%
-    filter(loan_status == "CONTRACT FINISHED UNPAID") 
-
-loan_fin_payed <- df_cons %>%
-    filter(loan_status == "CONTRACT FINISHED PAYED")
-
-loan_opn_ok <- df_cons %>%
-    filter(loan_status == "CONTRACT OPEN OK")
-
-loan_opn_indept <- df_cons %>%
-    filter(loan_status == "CONTRACT OPEN INDEBT")
-```
-
-
 ```{r message=FALSE}
 install.packages("patchwork")
 library(patchwork)
 
-# Customer age at getting loan
+# Calculate customer age at getting loan
 df_cons$age_at_loan <- trunc((df_cons$owner_dateofbirth %--% df_cons$loan_start_date) / years(1))
 
-#Relocate rows so new column "current_age" is next to dateofbirth
+#Relocate rows so new column "age_at_loan" is next to owner_dateofbirth
 df_cons <- df_cons %>%
    relocate(age_at_loan, .after = card_issued)
- 
 
 
 loanplot1 <- df_cons %>%
@@ -4745,7 +4723,8 @@ loanplot1 <- df_cons %>%
   geom_boxplot() +
   theme(axis.text.x=element_blank(),
         axis.ticks.x=element_blank(),
-        legend.position = "none") +
+        legend.position = "none",
+        plot.background = element_rect(colour = "black", fill=NA, size=0.5)) +
   labs(title = "Loan Duration in Months", 
            subtitle = "", 
            caption = "",
@@ -4759,7 +4738,8 @@ loanplot2 <- df_cons %>%
   coord_flip() +
   theme(axis.text.x=element_blank(),
         axis.ticks.x=element_blank(),
-        legend.position = "none") +
+        legend.position = "none",
+        plot.background = element_rect(colour = "black", fill=NA, size=0.5)) +
   scale_x_continuous(breaks = scales::breaks_pretty(10)) +
   labs(title = "Loan total amount", 
            subtitle = "", 
@@ -4773,57 +4753,38 @@ loanplot3 <- df_cons %>%
   geom_boxplot() +
   coord_flip() +
   theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
+        axis.ticks.x=element_blank(),
+        legend.position = "none",
+        plot.background = element_rect(colour = "black", fill=NA, size=0.5)) +
   labs(title = "Age at the beginning of Loan", 
            subtitle = "", 
            caption = "",
            y = "", x = "Years") +
   coord_flip()
 
-
-nested_loan_plot <- ((loanplot1|loanplot2)|loanplot3) 
-nested_loan_plot
-
-df_cons %>%
+loanplot4 <- df_cons %>%
   drop_na(loan_status) %>%
   ggplot(df_cons, mapping = aes(x = loan_start_date, y = loan_total_amount, color = loan_status)) +
-  geom_point()
+  geom_point(size = 0.7) +
+  geom_smooth(method="lm", se = FALSE, size = 0.6) +
+  scale_y_continuous(breaks = scales::breaks_pretty(10)) +
+  scale_x_date(breaks = scales::breaks_pretty(6)) +
+  labs(title = "Loans granted throughout the Years", 
+           subtitle = "", 
+           caption = "",
+           y = "Amount of Loan", x = "Years",
+           color = "Status of loan") +
+  theme(plot.background = element_rect(colour = "black", fill=NA, size=0.5)) 
+
+
+
+nested_loan_plot <- (loanplot4/(loanplot1|loanplot2|loanplot3)) 
+nested_loan_plot
+
+# Irgendwas mit Attribut sallary_group erstellen
 
 
 ```
-
-
-Höhe der unbezahlten Kredite
-```{r}
-df_cons %>%
-  filter(loan_status == "CONTRACT FINISHED UNPAID") %>%
-  ggplot(df_cons, mapping = aes(x = loan_total_amount, y = 0, fill = "#CD3700")) +
-  geom_boxplot() +
-  theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        legend.position = "none") +
-  scale_x_continuous(breaks = scales::breaks_pretty(10)) +
-  labs(title = "Amount of unpaid loans", 
-           subtitle = "Contract finished unpaid", 
-           caption = "Source: PKDD’99 Discovery Challenge",
-           y = "", x = "Value [CZK] ") +
-  ylim(-0.7,0.7) +
-  coord_flip()
-
-
-
-```
-
-Die Abbildung oben zeigt, wie hoch die Kredite waren welche durch die Kunden nicht zurückbezahlt werden konnten. Dabei handelt es sich um insgesamt um 31 Kredite zwischen 30'000 und 464'000 Tschechischen Kronen. Wobei in der Abbildung ersichtlich ist, dass es sich bei dem Kredit über 464'000 Tschechischen Kronen um einen Ausreisser handelt. Dies wird auch durch den median welecher bei 96'000 Tschechischen Kronen liegt, ersichtlich.
-
-
-
-
-
-
-
-
-
 
 
 #### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
