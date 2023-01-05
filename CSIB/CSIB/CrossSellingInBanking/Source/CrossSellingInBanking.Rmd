@@ -106,7 +106,7 @@ library(DT)
 library(patchwork)
 library(ggpubr)
 library(ggplot2)
-library(plotly)
+library(patchwork)
 library(rpart.plot)
 library(tidymodels)
 library(lubridate)
@@ -4378,10 +4378,6 @@ Kundschaft zu helfen, das Geld im Griff zu haben?
 
 #### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus?
 
-[^116]
-
-[^116]: Erstellt von Christian Heeb
-
 Gesamtübersicht über die letzten Jahre
 
 ```{r}
@@ -4417,9 +4413,6 @@ df_cons %>%
 
 #### iv. Wie sieht die Altersverteilung dieser Kunden aus und was kann daraus hergeleitet werden?
 
-[^117]
-
-[^117]: Erstellt von Christian Heeb
 
 ```{r}
 # Calculate age of Customers with Lubridate
@@ -4691,30 +4684,116 @@ rm(df_district_mod_names)
 
 #### i. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt werden und bei bereits laufenden Krediten können Massnahmen getroffen werden.
 
-[^127]
 
-[^127]: Erstellt von Christian Heeb
+
+```{r}
+summary(df_cons$loan_status)
+
+df_cons %>%
+  drop_na(loan_status) %>%
+  group_by(loan_status) %>%
+  ggplot(aes(x = reorder(loan_status, loan_status,
+                         function(x)-length(x)),
+                         fill = loan_status)) +
+  geom_bar() +
+  theme(legend.position = "none") +
+  labs(title = "Number and Status of Loans", 
+        subtitle = "", 
+        caption = "Source: PKDD’99 Discovery Challenge",
+        x = "", y = "Number of loans",
+        fill = paste("Loan status")) +
+  coord_flip()
+```
+
+Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive deren Status. 
+
 
 ```{r}
 # create Scatterplot of all Contract types with duaration and Amount of loan
 
-# create mean values of all customer arttribues of customers who did not pay laon
-# Show how long they have been customers bevore the got the loan
-summary(df_cons$loan_status)
+# create group for every loan type
+loan_fin_notpayed <- df_cons %>%
+    filter(loan_status == "CONTRACT FINISHED UNPAID") 
+
+loan_fin_payed <- df_cons %>%
+    filter(loan_status == "CONTRACT FINISHED PAYED")
+
+loan_opn_ok <- df_cons %>%
+    filter(loan_status == "CONTRACT OPEN OK")
+
+loan_opn_indept <- df_cons %>%
+    filter(loan_status == "CONTRACT OPEN INDEBT")
+```
+
+
+```{r message=FALSE}
+install.packages("patchwork")
+library(patchwork)
+
+# Customer age at getting loan
+df_cons$age_at_loan <- trunc((df_cons$owner_dateofbirth %--% df_cons$loan_start_date) / years(1))
+
+#Relocate rows so new column "current_age" is next to dateofbirth
+df_cons <- df_cons %>%
+   relocate(age_at_loan, .after = card_issued)
+ 
+
+
+loanplot1 <- df_cons %>%
+  drop_na(loan_status) %>%
+  ggplot(df_cons, mapping = aes(x = loan_duration_in_month, y = loan_status, fill = loan_status)) +
+  geom_boxplot() +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position = "none") +
+  labs(title = "Loan Duration in Months", 
+           subtitle = "", 
+           caption = "",
+           y = "", x = "Months") +
+  coord_flip()
+
+loanplot2 <- df_cons %>%
+  drop_na(loan_status) %>%
+  ggplot(df_cons, mapping = aes(x = loan_total_amount, y = loan_status, fill = loan_status)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position = "none") +
+  scale_x_continuous(breaks = scales::breaks_pretty(10)) +
+  labs(title = "Loan total amount", 
+           subtitle = "", 
+           caption = "",
+           y = "", x = "Loan in CZK") +
+  coord_flip()
+
+loanplot3 <- df_cons %>%
+  drop_na(loan_status) %>%
+  ggplot(df_cons, mapping = aes(x = age_at_loan, y = loan_status, fill = loan_status)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  labs(title = "Age at the beginning of Loan", 
+           subtitle = "", 
+           caption = "",
+           y = "", x = "Years") +
+  coord_flip()
+
+
+nested_loan_plot <- ((loanplot1|loanplot2)|loanplot3) 
+nested_loan_plot
 
 df_cons %>%
-  group_by(loan_status) %>%
-  ggplot(aes(x = loan_status)) +
-  geom_bar()
-
-
-
-
+  drop_na(loan_status) %>%
+  ggplot(df_cons, mapping = aes(x = loan_start_date, y = loan_total_amount, color = loan_status)) +
+  geom_point()
 
 
 ```
 
 
+Höhe der unbezahlten Kredite
 ```{r}
 df_cons %>%
   filter(loan_status == "CONTRACT FINISHED UNPAID") %>%
@@ -4729,9 +4808,23 @@ df_cons %>%
            caption = "Source: PKDD’99 Discovery Challenge",
            y = "", x = "Value [CZK] ") +
   ylim(-0.7,0.7) +
-  coord_flip() 
-  
+  coord_flip()
+
+
+
 ```
+
+Die Abbildung oben zeigt, wie hoch die Kredite waren welche durch die Kunden nicht zurückbezahlt werden konnten. Dabei handelt es sich um insgesamt um 31 Kredite zwischen 30'000 und 464'000 Tschechischen Kronen. Wobei in der Abbildung ersichtlich ist, dass es sich bei dem Kredit über 464'000 Tschechischen Kronen um einen Ausreisser handelt. Dies wird auch durch den median welecher bei 96'000 Tschechischen Kronen liegt, ersichtlich.
+
+
+
+
+
+
+
+
+
+
 
 #### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
 
@@ -4757,9 +4850,7 @@ df_cons %>%
 
 #### iii. Wie viele der Kunden verwenden eine Kreditkarte von den Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können Angebote für spezifische Kundengruppen erstellt werden?
 
-[^129]
 
-[^129]: Erstellt von Christian Heeb
 
 ```{r}
 # Summarize all Cusotmers with Gold Card. 
