@@ -3386,7 +3386,7 @@ Vorbereiten des Datensatzes.
 
 ```{r}
 # load("df_cons.RData")
-load("date_complete.RData")
+# load("date_complete.RData")
 # load("df_transaction_mod.RData")
 
 owner_district <- df_cons %>% 
@@ -4894,7 +4894,7 @@ geographical_data <- RCzechia::okresy("low")
 
 str(geographical_data)
 
-load("df_district_mod.RData")
+# load("df_district_mod.RData")
 
 str(df_district_mod)
 
