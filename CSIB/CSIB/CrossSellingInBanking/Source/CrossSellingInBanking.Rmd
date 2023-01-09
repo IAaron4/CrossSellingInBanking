@@ -42,15 +42,15 @@ h1, h2, h3 {
 ```
 ## Aufgabenstellung
 
-### Allgemein
+### Allgemein[^1]
 
-[^1]Eine tschechische Bank möchte ihre Dienstleistungen für Privatkunden
+[^1]: Erstellt von Aaron Studer
+
+Eine tschechische Bank möchte ihre Dienstleistungen für Privatkunden
 verbessern und "interessante Kundengruppen" identifizieren. Die
 Geschäftsleitung hat keine präzise Vorstellung, möchte aber zusätzliches
 Business generieren ohne unnötige Risiken einzugehen und Verluste
 einzufahren.
-
-[^1]: Erstellt von Aaron Studer
 
 Der analytische Auftrag umfasst die folgenden Aufgaben:
 
@@ -63,20 +63,16 @@ Der analytische Auftrag umfasst die folgenden Aufgaben:
 
 ### Datengrundlage
 
-[^2]Wir erhalten die Daten von einer Tschechischen Bank. Die
-Datengrundlage ist auf [dieser
+Wir erhalten die Daten von einer Tschechischen Bank. Die Datengrundlage
+ist auf [dieser
 Webseite](https://sorry.vse.cz/~berka/challenge/PAST/index.html)
 beschrieben.
 
-[^2]: Erstellt von Aaron Studer
+### Datenbeschreibung
 
-## Datenbeschreibung
-
-[^3] Die Datengrundlage enthält 8 verschiedene Tabellen (Data Frames) im
-.csv Format mit Total 47 Attributen. Diese Tabellen mit den jeweiligen
+Die Datengrundlage enthält 8 verschiedene Tabellen (Data Frames) im .csv
+Format mit Total 47 Attributen. Diese Tabellen mit den jeweiligen
 Attributen werden hier genauer beschrieben.
-
-[^3]: Erstellt von Aaron Studer
 
 Relation disposition (df_raw_disposition): disp_id: record identifier\
 client_id: identification of a client\
@@ -86,15 +82,11 @@ orders and ask for a loan
 
 #### ERD Daten IST-Zustand
 
-[^4]![ERD Daten IST-Zustand](../Ressources/IST-Zustand.png)
+![ERD Daten IST-Zustand](../Ressources/IST-Zustand.png)
 
-[^4]: Erstellt von Aaron Studer
+## Setup[^2]
 
-## Setup
-
-[^5]
-
-[^5]: Erstellt von Aaron Studer
+[^2]: Erstellt von Aaron Studer
 
 ```{r}
 library(tidyverse)
@@ -118,6 +110,7 @@ library(readxl)
 library(httr)
 library(tidyquant)
 library(xts)
+library(ggridges)
 
 
 tidymodels_prefer()
@@ -125,10 +118,8 @@ tidymodels_prefer()
 
 ### Setup Account Data Frame
 
-[^6]In diesem Schritt wird das Data Frame Account vorbereitet und der
+In diesem Schritt wird das Data Frame Account vorbereitet und der
 'Transform'-Schritt wird durchgeführt.
-
-[^6]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -159,10 +150,8 @@ rm(df_raw_account)
 
 ### Setup Client Data Frame
 
-[^7]In diesem Schritt wird das Data Frame Account vorbereitet und der
+In diesem Schritt wird das Data Frame Account vorbereitet und der
 'Transform'-Schritt wird durchgeführt.
-
-[^7]: Erstellt von Aaron Studer
 
 ```{r}
 df_raw_client <- read.csv("../xselling_banking_data/client.csv", header = TRUE, sep = ";")
@@ -203,10 +192,8 @@ rm(df_raw_client)
 
 ### Setup Disposition Data Frame
 
-[^8]In diesem Schritt wird das Data Frame Disposition vorbereitet und
-der 'Transform'-Schritt wird durchgeführt.
-
-[^8]: Erstellt von Aaron Studer
+In diesem Schritt wird das Data Frame Disposition vorbereitet und der
+'Transform'-Schritt wird durchgeführt.
 
 ```{r}
 df_raw_disposition <- read.csv("../xselling_banking_data/disp.csv", header = TRUE, sep = ";")
@@ -229,10 +216,8 @@ rm(df_raw_disposition)
 
 ### Setup Order Data Frame
 
-[^9]In diesem Schritt wird das Data Frame Order vorbereitet und der
+In diesem Schritt wird das Data Frame Order vorbereitet und der
 'Transform'-Schritt wird durchgeführt.
-
-[^9]: Erstellt von Aaron Studer
 
 ```{r}
 df_raw_perm_order <- read.csv("../xselling_banking_data/order.csv", header = TRUE, sep = ";")
@@ -262,10 +247,8 @@ rm(df_raw_perm_order)
 
 ### Setup Transaction Data Frame
 
-[^10]In diesem Schritt wird das Data Frame Transaction vorbereitet und
-der 'Transform'-Schritt wird durchgeführt.
-
-[^10]: Erstellt von Aaron Studer
+In diesem Schritt wird das Data Frame Transaction vorbereitet und der
+'Transform'-Schritt wird durchgeführt.
 
 ```{r}
 df_raw_transaction <- read.csv("../xselling_banking_data/trans.csv", header = TRUE, sep = ";")
@@ -310,10 +293,8 @@ rm(df_raw_transaction)
 
 ### Setup Loan Data Frame
 
-[^11]In diesem Schritt wird das Data Frame Loan vorbereitet und der
+In diesem Schritt wird das Data Frame Loan vorbereitet und der
 'Transform'-Schritt wird durchgeführt.
-
-[^11]: Erstellt von Aaron Studer
 
 ```{r}
 df_raw_loan <- read.csv("../xselling_banking_data/loan.csv", header = TRUE, sep = ";")
@@ -346,10 +327,8 @@ rm(df_raw_loan)
 
 ### Setup Credit Card Data Frame
 
-[^12]In diesem Schritt wird das Data Frame Credit Card vorbereitet und
-der 'Transform'-Schritt wird durchgeführt.
-
-[^12]: Erstellt von Aaron Studer
+In diesem Schritt wird das Data Frame Credit Card vorbereitet und der
+'Transform'-Schritt wird durchgeführt.
 
 ```{r}
 df_raw_credit_card <- read.csv("../xselling_banking_data/card.csv", header = TRUE, sep = ";")
@@ -381,10 +360,8 @@ rm(df_raw_credit_card)
 
 ### Setup District Data Frame
 
-[^13]In diesem Schritt wird das Data Frame District vorbereitet und der
+In diesem Schritt wird das Data Frame District vorbereitet und der
 'Transform'-Schritt wird durchgeführt.
-
-[^13]: Erstellt von Aaron Studer
 
 ```{r}
 df_raw_district <- read.csv("../xselling_banking_data/district.csv", header = TRUE, sep = ";")
@@ -424,27 +401,21 @@ rm(df_raw_district)
 
 ### ERD Ist-Zustand
 
-[^14]In dem nachfolgend Enitity Relation Diagramm sieht man die Elemente
-der transformierten Daten.
-
-[^14]: Erstellt von Aaron Studer
+In dem nachfolgend Enitity Relation Diagramm sieht man die Elemente der
+transformierten Daten.
 
 ![ERD Daten IST-Zustand](../Ressources/SOLL-Zustand.png)
 
-# A. Tabellen zusammenführen und erste Analysen
+## Tabellen zusammenführen[^3]
 
-### a. Tabellen vorbereiten
+[^3]: Erstellt von Léonie Bécheiraz
 
-[^15]Die einzelnen Tabellen werden vor dem Zusammenführen so
-vorbereitet, dass pro Account nur eine Zeile vorhanden ist.
+### Tabellen vorbereiten
 
-[^15]: Erstellt von Léonie Bécheiraz
+Die einzelnen Tabellen werden vor dem Zusammenführen so vorbereitet,
+dass pro Account nur eine Zeile vorhanden ist.
 
-#### i. Data Frame "Permanent Order"
-
-[^16]
-
-[^16]: Erstellt von Léonie Bécheiraz
+### Data Frame "Permanent Order"
 
 ```{r}
 
@@ -520,13 +491,11 @@ ist dieser Umstand nicht relevant. Deshalb werden diese Informationen
 vorerst weggelassen. Falls nötig, können sie zu einem späteren Zeitpunkt
 immer noch dazu genommen werden.
 
-#### ii. Data Frame "Account"
+### Data Frame "Account"
 
-[^17]Das Data Frame Account steht im Zentrum und beinhaltet die
+Das Data Frame Account steht im Zentrum und beinhaltet die
 Schlüsselfelder zu fast allen weiteren Tabellen. Deshalb beginnen wir
 mit dem Account.
-
-[^17]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 summary(df_account)
@@ -554,12 +523,10 @@ names(df_account_mod) <- paste0("account_", names(df_account_mod))
 
 ```
 
-### b. Erstes Zusammenführen
+#### Erstes Zusammenführen
 
-[^18]Erstes zusammenfügen der modifizierten Data Frames "df_account_mod"
-und "df_perm_order_mod" zum neuen Data Frame "df_mod".
-
-[^18]: Erstellt von Léonie Bécheiraz
+Erstes zusammenfügen der modifizierten Data Frames "df_account_mod" und
+"df_perm_order_mod" zum neuen Data Frame "df_mod".
 
 ```{r}
 
@@ -581,12 +548,10 @@ rm(df_account, df_account_mod, df_perm_order, df_perm_order_mod)
 
 ```
 
-#### i. Data Frame "Loan"
+### Data Frame "Loan"
 
-[^19]Im weiteren Schritt wird das Data Frame "Loan" vorbereitet.
-Übersicht über das Data Frame
-
-[^19]: Erstellt von Léonie Bécheiraz
+Im weiteren Schritt wird das Data Frame "Loan" vorbereitet. Übersicht
+über das Data Frame
 
 ```{r}
 glimpse(df_loan)
@@ -603,11 +568,25 @@ umgewandelt.
     -   "payments" zu "redemption_amount"
 -   Zusätzliche Spalte:
     -   "duration_in_years" generiert aus "duration_in_month" mit den
-        Ganzzahlen für 12 = 1, 24 = 2, 36 = 3, 48 = 4, 60 = 5
+        Ganzzahlen für
+
+        -   12 = 1,
+
+        -   24 = 2,
+
+        -   36 = 3,
+
+        -   48 = 4,
+
+        -   60 = 5
+
     -   "end_date" gerechnet aus "start_date" plus "duration_in_years"
-    -   "in_dept" generiert aus der Spalte "status" für "CONTRACT
-        FINISHED PAYED" und "CONTRACT OPEN OK" = "NO" "CONTRACT FINISHED
-        UNPAID" und "CONTRACT OPEN INDEBT" = "YES"
+
+    -   "in_dept" generiert aus der Spalte "status" für
+
+        "CONTRACT FINISHED PAYED" und "CONTRACT OPEN OK" = "NO"
+
+        "CONTRACT FINISHED UNPAID" und "CONTRACT OPEN INDEBT" = "YES"
 
 ```{r}
 df_loan_mod <- df_loan %>%
@@ -643,7 +622,7 @@ df_loan_mod %>%
   count() %>%
   arrange(desc(n)) %>%
   ungroup() %>% 
-  head()
+  head(3)
 
 ```
 
@@ -660,9 +639,7 @@ names(df_loan_mod) <- paste0("loan_", names(df_loan_mod))
 
 #### Zweites Zusammenführen
 
-[^20]Loan wird zum Data Frame "df_mod" hinzugefügt.
-
-[^20]: Erstellt von Léonie Bécheiraz
+Loan wird zum Data Frame "df_mod" hinzugefügt.
 
 ```{r}
 df_mod <- left_join(df_mod, df_loan_mod, by = c("account_account_id" = "loan_account_id"))
@@ -673,11 +650,9 @@ summary(df_mod)
 
 #### Bedeutung der NA's
 
-[^21]Die NA's in den Spalten von "loan\_" bedeuten, dass bei diesen
-Konten keine Darlehen hinderlegt sind, analog den Informationen aus den
-Spalten "order\_"
-
-[^21]: Erstellt von Léonie Bécheiraz
+Die NA's in den Spalten von "loan\_" bedeuten, dass bei diesen Konten
+keine Darlehen hinderlegt sind, analog den Informationen aus den Spalten
+"order\_"
 
 Entfernen der nicht mehr benötigten Tabellen aus dem Global Environment.
 
@@ -686,11 +661,9 @@ rm(df_loan, df_loan_mod)
 
 ```
 
-#### ii. Data Frame "disposition"
+### Data Frame "disposition"
 
-[^22]Übersicht über das Data Frame
-
-[^22]: Erstellt von Léonie Bécheiraz
+Übersicht über das Data Frame
 
 ```{r}
 glimpse(df_disposition)
@@ -699,12 +672,12 @@ glimpse(df_disposition)
 
 #### Anpassungen
 
-[^23]- Werte in der Spalte type umbenennen (Disponent zu User) - neue
-Spalte mit Anzahl Benutzer pro Konto (account_user_num) - Werte der
-Spalte type in neue Spalten aufteilen mit Bezeichnung und Werten aus
-client_id und disp_id
+-   Werte in der Spalte type umbenennen (Disponent zu User)
 
-[^23]: Erstellt von Léonie Bécheiraz
+-   neue Spalte mit Anzahl Benutzer pro Konto (account_user_num)
+
+-   Werte der Spalte type in neue Spalten aufteilen mit Bezeichnung und
+    Werten aus client_id und disp_id
 
 ```{r}
 df_disposition_mod <- df_disposition %>% 
@@ -729,10 +702,8 @@ summary(df_disposition_mod)
 
 #### Bedeutung der NA's
 
-[^24]Die NA's in den Spalten mit den User-Daten kommen daher, dass bei
-diesen Accounts nur 1 Benutzer (Owner) eingetragen ist.
-
-[^24]: Erstellt von Léonie Bécheiraz
+Die NA's in den Spalten mit den User-Daten kommen daher, dass bei diesen
+Accounts nur 1 Benutzer (Owner) eingetragen ist.
 
 Wiederum wird den Spalten ein Präfix hinzugefügt (disp.)
 
@@ -743,11 +714,7 @@ names(df_disposition_mod) <- paste0("disp_", names(df_disposition_mod))
 
 ```
 
-### c. Drittes Zusammenführen
-
-[^25]
-
-[^25]: Erstellt von Léonie Bécheiraz
+Drittes Zusammenführen
 
 ```{r}
 df_mod <- left_join(df_mod, df_disposition_mod, by = c("account_account_id" = "disp_account_id"))
@@ -763,11 +730,7 @@ rm(df_disposition, df_disposition_mod, df_disposition_num_user)
 
 ```
 
-#### i. Data Frame "credit card"
-
-[^26]
-
-[^26]: Erstellt von Léonie Bécheiraz
+### Data Frame "credit card"
 
 ```{r}
 glimpse(df_credit_card)
@@ -789,11 +752,7 @@ glimpse(df_credit_card_mod)
 
 ```
 
-### d. Viertes Zusammenführen
-
-[^27]
-
-[^27]: Erstellt von Léonie Bécheiraz
+Viertes Zusammenführen
 
 ```{r}
 df_mod <- left_join(df_mod, df_credit_card_mod, by = c("disp_disp_id_OWNER" = "card_disp_id"))
@@ -818,11 +777,7 @@ rm(df_credit_card, df_credit_card_mod)
 
 ```
 
-#### i. Data Frame "client"
-
-[^28]
-
-[^28]: Erstellt von Léonie Bécheiraz
+### Data Frame "client"
 
 ```{r}
 glimpse(df_client)
@@ -853,11 +808,7 @@ names(df_client_owner) <- paste0("owner_", names(df_client_owner))
  
 ```
 
-### e. Fünftes Zusammenführen
-
-[^29]
-
-[^29]: Erstellt von Léonie Bécheiraz
+Fünftes Zusammenführen
 
 ```{r}
 df_mod <- left_join(df_mod, df_client_owner, by = c("disp_client_id_OWNER" = "owner_client_id"))
@@ -874,21 +825,41 @@ rm(df_client, df_client_mod, df_client_owner, df_client_user)
 
 Spalten werden neu angeordnet und wo sinnvoll, umbenannt:
 
-Umbenennen: - disp_client_id_OWNER wird zu owner_client_id, -
-disp_client_id_USER wird zu user_client_id, - disp_disp_id_OWNER wird zu
-owner_disp_id, - disp_disp_id_USER wird zu user_disp_id, - card_card_id
-wird zu card_id, - loan_loan_id wird zu loan_id, - account_account_id
-wird zu account_id, - order_amount_sum_HOUSEHOLD wird zu
-owner_client_id, - order_amount_sum_INSURRANCE wird zu
-order_amount_insurrance, - order_amount_sum_LOAN wird zu
-order_amount_loan, - order_amount_sum_UNKNOWN wird zu
-order_amount_unknown, - order_amount_sum_LEASING wird zu
-order_amount_leasing, - order_payment_type_num_HOUSEHOLD wird zu
-order_num_household, - order_payment_type_num_INSURRANCE wird zu
-order_num_insurrance, - order_payment_type_num_LOAN wird zu
-order_num_loan, - order_payment_type_num_UNKNOWN wird zu
-order_num_unknown, - order_payment_type_num_LEASING wird zu
-order_num_leasing
+Umbenennen:
+
+-   disp_client_id_OWNER wird zu owner_client_id
+
+-   disp_client_id_USER wird zu user_client_id
+
+-   disp_disp_id_OWNER wird zu owner_disp_id
+
+-   disp_disp_id_USER wird zu user_disp_id
+
+-   card_card_id wird zu card_id
+
+-   loan_loan_id wird zu loan_id
+
+-   account_account_id wird zu account_id
+
+-   order_amount_sum_HOUSEHOLD wird zu owner_client_id
+
+-   order_amount_sum_INSURRANCE wird zu order_amount_insurrance
+
+-   order_amount_sum_LOAN wird zu order_amount_loan
+
+-   order_amount_sum_UNKNOWN wird zu order_amount_unknown
+
+-   order_amount_sum_LEASING wird zu order_amount_leasing
+
+-   order_payment_type_num_HOUSEHOLD wird zu order_num_household
+
+-   order_payment_type_num_INSURRANCE wird zu order_num_insurrance
+
+-   order_payment_type_num_LOAN wird zu order_num_loan
+
+-   order_payment_type_num_UNKNOWN wird zu order_num_unknown
+
+-   order_payment_type_num_LEASING wird zu order_num_leasing
 
 ```{r}
 # Spalten umbenennen und neu anordnen
@@ -916,16 +887,14 @@ df_mod  <- df_mod %>%
 
 #zusätzliche Spalte erstellen für das Alter der Owner bei der Kontoeröffnung.
 df_mod <- df_mod %>% 
-  mutate(owner_age_at_account_opening = round(as.numeric(account_opening_date - owner_dateofbirth)/365)) %>% 
-  mutate(user_age_at_account_opening = round(as.numeric(account_opening_date - user_dateofbirth)/365))
+  mutate(owner_age_at_account_opening = trunc((owner_dateofbirth %--% account_opening_date) / years(1))) %>% 
+  mutate(user_age_at_account_opening = trunc((user_dateofbirth %--% account_opening_date) / years(1)))
 
 ```
 
-#### i. Data Frame "District"
+### Data Frame "District"
 
-[^30]Übersicht über das Data Frame.
-
-[^30]: Erstellt von Léonie Bécheiraz
+Übersicht über das Data Frame.
 
 ```{r}
 glimpse(df_district)
@@ -1014,28 +983,20 @@ glimpse(df_mod)
 
 ```
 
-# B. Erste Analysen
+#### Erste Analysen[^4]
 
-[^31]
+[^4]: Erstellt von Léonie Bécheiraz
 
-[^31]: Erstellt von Léonie Bécheiraz
+Sonderstellung: Bedeutung des Account Owner
 
-\#### a. Sonderstellung: Bedeutung des Account Owner
-
-[^32]Wie wir bei der Datenbeschreibung bereits gelesen haben, enthält
+Wie wir bei der Datenbeschreibung bereits gelesen haben, enthält
 disposition_type die Information über die Rechte der Konten. Deshalb
 wurde der Eintrag beim Aufbereiten des df_disposition von "disponent" in
 "user" geändert. Denn nur der "owner" hat die nötigen Berechtigungen, um
 Daueraufträge zu erteilen und Darlehen zu beantragen. So wird die
 Auswertung übersichtlicher.
 
-[^32]: Erstellt von Léonie Bécheiraz
-
-#### b. Auf Duplikate überprüfen
-
-[^33]
-
-[^33]: Erstellt von Léonie Bécheiraz
+Auf Duplikate überprüfen
 
 ```{r}
 n_distinct(df_mod)
@@ -1044,17 +1005,17 @@ n_distinct(df_mod)
 
 Es sind keine Duplikate vorhanden.
 
-# C. Data Frame "transaction"
+### Data Frame "transaction"[^5]
 
-[^34]Das Data Frame Transaction wird vorerst separat aufbereitet und
-ersten Analysen unterzogen. Aus den folgenden Analysen werden neue
-Spalten generiert, welche dann in einem weiteren Schritt in den
-konsolidierten Datensatz df_cons übernommen werden können. Auch wird
-während den Analysen entschieden, ob zusätzlich zum konsolidierten
-Datensatz noch ein Datensatz mit Transaktionsdaten bestehen bleibt, oder
-ob alles in df_cons zusammengeführt wird.
+[^5]: Erstellt von Léonie Bécheiraz
 
-[^34]: Erstellt von Léonie Bécheiraz
+Das Data Frame Transaction wird vorerst separat aufbereitet und ersten
+Analysen unterzogen. Aus den folgenden Analysen werden neue Spalten
+generiert, welche dann in einem weiteren Schritt in den konsolidierten
+Datensatz df_cons übernommen werden können. Auch wird während den
+Analysen entschieden, ob zusätzlich zum konsolidierten Datensatz noch
+ein Datensatz mit Transaktionsdaten bestehen bleibt, oder ob alles in
+df_cons zusammengeführt wird.
 
 Übersicht über die Tabelle df_transaction.
 
@@ -1066,9 +1027,7 @@ glimpse(df_transaction)
 
 #### Dateitypen anpassen
 
-[^35] Characters in Faktoren ändern.
-
-[^35]: Erstellt von Léonie Bécheiraz
+Characters in Faktoren ändern.
 
 ```{r}
 
@@ -1083,10 +1042,11 @@ rm(df_transaction)
 
 #### Spalten umbenennen
 
-[^36] - bank wird zu bank_name - account wird zu account_nr - type wird
-zu cashflow
+-   bank wird zu bank_name
 
-[^36]: Erstellt von Léonie Bécheiraz
+-   account wird zu account_nr
+
+-   type wird zu cashflow
 
 ```{r}
 
@@ -1099,11 +1059,9 @@ df_transaction_mod <- df_transaction_mod %>%
 
 ```
 
-#### a. Untersuchen der NA's
+#### Untersuchen der NA's
 
-[^37] Als erstes beginnen wir mit der neu benannten Spalte cashflow
-
-[^37]: Erstellt von Léonie Bécheiraz
+Als erstes beginnen wir mit der neu benannten Spalte cashflow
 
 ```{r}
 
@@ -1122,11 +1080,7 @@ diese Informationen mit den Beobachtungen aus der Tabelle mit den
 Kreditkarten-Informationen abgeglichen werden kann. Diese Analyse kann
 zu einem späteren Zeitpunkt vorgenommen werden.
 
-#### b. Imputieren
-
-[^38]
-
-[^38]: Erstellt von Léonie Bécheiraz
+#### Imputieren
 
 ```{r}
 #Liste für die gezielte Imputation in "characterization" mit "CASH WIDTHDRAWAL"
@@ -1145,10 +1099,8 @@ rm(cashwidthrawals)
 
 #### Cashflow mit "IN" und "OUT" mutieren
 
-[^39] Nebst dem Mutieren werden die NA's mit "OUT" imputiert. Dies geht
-aus der vorgängigen Analyse hervor.
-
-[^39]: Erstellt von Léonie Bécheiraz
+Nebst dem Mutieren werden die NA's mit "OUT" imputiert. Dies geht aus
+der vorgängigen Analyse hervor.
 
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
@@ -1163,10 +1115,6 @@ head(df_transaction_mod)
 
 #### Entfernen der nicht mehr benötigten data frames.
 
-[^40]
-
-[^40]: Erstellt von Léonie Bécheiraz
-
 ```{r}
 
 rm(list_na_characterization_for_cashwidthrawal, list_transid_for_imputation)
@@ -1175,10 +1123,6 @@ rm(list_na_characterization_for_cashwidthrawal, list_transid_for_imputation)
 
 #### Vobereitung des Datum-Attributes {Year}\_Q{Quarter} per transaction
 
-[^41]
-
-[^41]: Erstellt von Léonie Bécheiraz
-
 ```{r}
 
 df_transaction_mod <- df_transaction_mod %>% 
@@ -1186,14 +1130,12 @@ df_transaction_mod <- df_transaction_mod %>%
 
 ```
 
-### c. Bilanz Ende Jahr
+#### Bilanz Ende Jahr
 
 #### Erstellen zusätzlicher Spalten "year" und "month"
 
-[^42] Im Data Frame "df_transaction_mod" werden zwei zusätzliche Spalten
-für das Jahr der Transaktion sowie für den Monat erstellt.
-
-[^42]: Erstellt von Léonie Bécheiraz
+Im Data Frame "df_transaction_mod" werden zwei zusätzliche Spalten für
+das Jahr der Transaktion sowie für den Monat erstellt.
 
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
@@ -1207,10 +1149,6 @@ head(df_transaction_mod)
 ```
 
 #### durchschnittliche Bilanz
-
-[^43]
-
-[^43]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 years_avg <- df_transaction_mod %>% 
@@ -1275,37 +1213,27 @@ head(balance_per_month_mean)
 
 ```
 
-#### *wichtige Erkenntnis*
+#### wichtige Erkenntnis
 
-[^44] Eine Überprüfung der Werte hat ergeben, dass dies so nicht
-gerechnet werden Kann. Es entstehen dabei Rechnungsfehler, da zum
-Beispiel bei einem Eingang mit meheren Werten der Durchschnitt berechnet
-wird und wenn dann ein Ausgang mit nur einem Wert vorhanden ist, dieser
-abgezogen wird, stimmt das Verhältnis der Beträge nicht mehr. Daher wird
-nur die Berechnung mit den totalen verwendet und damit weiter
-gearbeitet!
+Eine Überprüfung der Werte hat ergeben, dass dies so nicht gerechnet
+werden Kann. Es entstehen dabei Rechnungsfehler, da zum Beispiel bei
+einem Eingang mit meheren Werten der Durchschnitt berechnet wird und
+wenn dann ein Ausgang mit nur einem Wert vorhanden ist, dieser abgezogen
+wird, stimmt das Verhältnis der Beträge nicht mehr. Daher wird nur die
+Berechnung mit den totalen verwendet und damit weiter gearbeitet!
 
-[^44]: Erstellt von Léonie Bécheiraz
-
-#### Balance Data Frames entfernen
-
-[^45]
-
-[^45]: Erstellt von Léonie Bécheiraz
+Balance Data Frames entfernen
 
 ```{r}
 rm(balance_per_month_mean, balance_per_month_total_lag, balance_sheet_per_years_total, transaction_cashflow_per_month_and_year_mean, transaction_cashflow_per_month_and_year_total)
 
 ```
 
-#### C.1. Kontostand Ende Monat
+#### Kontostand Ende Monat
 
-[^46] Als erstes werden die Kontostände per Ende jeden Monats berechnet.
-Dazu müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da
-ja bei diesen Kontoständen sowie Geldein-/ausgängen 0 CZK vorhanden
-sind.
-
-[^46]: Erstellt von Léonie Bécheiraz
+Als erstes werden die Kontostände per Ende jeden Monats berechnet. Dazu
+müssen die entstehenden NA's mit der Zahl Null ersetzt werden, da ja bei
+diesen Kontoständen sowie Geldein-/ausgängen 0 CZK vorhanden sind.
 
 ```{r}
 transaction_cashflow_per_month_and_year_total <- df_transaction_mod %>%
@@ -1329,12 +1257,10 @@ head(transaction_cashflow_per_month_and_year_total)
 
 Leider ist kein Erfolg zu verzeichnen.
 
-##### lead und lag
+#### lead und lag
 
-[^47] Weiterer Versuch mit lead() und lag() den Kontostand Ende Monat
+Weiterer Versuch mit lead() und lag() den Kontostand Ende Monat
 auszurechnen:
-
-[^47]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 balance_per_month_total_lead <- transaction_cashflow_per_month_and_year_total %>% 
@@ -1363,16 +1289,14 @@ head(balance_per_month_total_lag)
 
 Auch dies führt nicht zum gewünschten Ergebnis.
 
-#### C.2. Suche nach einer anderen Möglichkeit für die monatlichen Kontoauszügen
+#### Suche nach einer anderen Möglichkeit für die monatlichen Kontoauszügen
 
-[^48] Im ursprünglichen Datensatz "df_transaction_mod" sind die
-Kontostände nach jeder Transaktion vorhanden. Es sollte möglich sein,
-anhand des letzten Datums herauszufinden, welches die letzte Transaktion
-war und somit welches der Kontostand Ende Monat ist. Dazu wird ein
+Im ursprünglichen Datensatz "df_transaction_mod" sind die Kontostände
+nach jeder Transaktion vorhanden. Es sollte möglich sein, anhand des
+letzten Datums herauszufinden, welches die letzte Transaktion war und
+somit welches der Kontostand Ende Monat ist. Dazu wird ein
 Zufallsgenerator erstellt, um verschiedene Konten genauer zu
 untersuchen.
-
-[^48]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 #Zufallsnummer
@@ -1401,13 +1325,11 @@ df_transaction_mod %>%
   
 ```
 
-##### Kontogebühren
+#### Kontogebühren
 
-[^49] Es handelt sich hier vermutlich um Kontogebühren, welche als
-letzte Transaktion getätigt werden. Nun wird noch nach dem Wert
-"STATEMENT PAYMENT" gefiltert.
-
-[^49]: Erstellt von Léonie Bécheiraz
+Es handelt sich hier vermutlich um Kontogebühren, welche als letzte
+Transaktion getätigt werden. Nun wird noch nach dem Wert "STATEMENT
+PAYMENT" gefiltert.
 
 ```{r, results='hide'}
 df_transaction_mod %>%
@@ -1448,20 +1370,23 @@ rm(df_statement_payment_levels)
 ```
 
 Bei einer späteren Analyse kann versucht werden, die Gebührenhöhe zu
-erklären. Dabei können folgende Fragen beantwortet werden: - Handelt es
-sich bei den Konten mit der Gebühr 100 um Geschäftskonten? - Sind diese
-Konten in einer bestimmten Filiale oder einem bestimmten District? -
-Wurden die Kontogebühren über die Jahre erhöht?
+erklären. Dabei können folgende Fragen beantwortet werden:
+
+-   Handelt es sich bei den Konten mit der Gebühr 100 um
+    Geschäftskonten?
+
+-   Sind diese Konten in einer bestimmten Filiale oder einem bestimmten
+    District?
+
+-   Wurden die Kontogebühren über die Jahre erhöht?
 
 Es wird nun aber weiter am Datensatz für die monatlichen Gebühren
 gearbeitet. Dafür muss überprüft werden, ob immer Ende Monat eine
 Kontogebühr abgebucht wurde.
 
-#### 2.a. Erstellen des Datensatzes für die monatlichen Kontostände
+#### Erstellen des Datensatzes für die monatlichen Kontostände
 
-[^50] statement_payment
-
-[^50]: Erstellt von Léonie Bécheiraz
+statement_payment
 
 ```{r}
 statement_payment <- df_transaction_mod %>%
@@ -1517,11 +1442,9 @@ Es gibt Monate, in denen keine Kontogebühren verrechnet wurden. Die
 Hypothese dazu ist, dass ein Neukunde die ersten drei Monate keine
 Gebühren zahlt. Dies soll überprüft werden.
 
-##### letzter Tag im Monat
+#### letzter Tag im Monat
 
-[^51] last_day_in_month
-
-[^51]: Erstellt von Léonie Bécheiraz
+last_day_in_month
 
 ```{r}
 last_day_in_month <- df_transaction_mod %>% 
@@ -1553,11 +1476,9 @@ last_day_in_month
 Bei der Kontoeröffnung ist der Amount gleich hoch wie die Balance. Diese
 Information kann in "characterization" imputiert werden.
 
-##### Kontoeröffnung
+#### Kontoeröffnung
 
-[^52] account_opening
-
-[^52]: Erstellt von Léonie Bécheiraz
+account_opening
 
 ```{r}
 
@@ -1610,11 +1531,7 @@ head(balance_per_month)
 
 ```
 
-##### auf Duplikate überprüfen
-
-[^53]
-
-[^53]: Erstellt von Léonie Bécheiraz
+auf Duplikate überprüfen
 
 ```{r}
 num <- balance_per_month %>%
@@ -1641,12 +1558,10 @@ n_distinct
 Es gibt einige Daten, an denen mehrere Zahlungen am selben Tag
 erfolgten.
 
-#### 2.b. Einzelzahlungen am letzten Tag des Monats
+#### Einzelzahlungen am letzten Tag des Monats
 
-[^54] Alle Kontostände pro Monatsende mit nur einer Transaktion können
+Alle Kontostände pro Monatsende mit nur einer Transaktion können
 entsprechend ergänzt werden.
-
-[^54]: Erstellt von Léonie Bécheiraz
 
 balance_per_month
 
@@ -1677,13 +1592,10 @@ head(balance_per_month)
 
 ```
 
-##### mehrere Transaktionen am selben Tag
+#### mehrere Transaktionen am selben Tag
 
-[^55] Nun werden alle Zeilen gekennzeichnet, welche mehrere
-Transaktionen am Ende des Monats haben und noch nicht zugeordnet werden
-konnten.
-
-[^55]: Erstellt von Léonie Bécheiraz
+Nun werden alle Zeilen gekennzeichnet, welche mehrere Transaktionen am
+Ende des Monats haben und noch nicht zugeordnet werden konnten.
 
 ```{r}
 foo <- balance_per_month %>%
@@ -1730,11 +1642,7 @@ balance_per_month %>%
 
 Alle diese Versuche führen nicht zum Ziel.
 
-#### Entfernen der nicht mehr benötigten Tabellen
-
-[^56]
-
-[^56]: Erstellt von Léonie Bécheiraz
+Entfernen der nicht mehr benötigten Tabelle
 
 ```{r}
 rm(account_opening, balance_per_month, balance_per_month_total_lag, balance_per_month_total_lead, balance_sheet, last_day_in_month, num, years_avg, n_distinct, n_row_na, transaction_cashflow_per_month_and_year_total)
@@ -1743,14 +1651,14 @@ rm(account_opening, balance_per_month, balance_per_month_total_lag, balance_per_
 
 #### Weiterer Versuch, den Kontoendstand pro Monat zu eruieren.
 
-[^57] Dazu wird der jeweilige Kontoendstand des Vormonats genommen und
+[^6] Dazu wird der jeweilige Kontoendstand des Vormonats genommen und
 von diesem alle Geldein- sowie Ausgänge dazu gerechnet beziehungsweise
 abgezogen. Wir erstellen ein Hilf-Data-Frame für die Geldein- und
 Ausgänge, in diesem Date Frame werden nach der zuweisung der Werte
 jeglich NA's zu einem numeric values 0 umformatiert. Nachfolgend wir
 eine Balance für jeden Monat erstellt.
 
-[^57]: Erstellt von Aaron Studer
+[^6]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -1848,21 +1756,21 @@ transaction_mod_balance_per_month <- transaction_cashflow_per_month_and_year_mod
   mutate(balance_1998_12 = balance_1998_11 + (IN_1998_12 - OUT_1998_12)) %>%
   select(account_id, balance_1993_1, balance_1993_2,balance_1993_3, balance_1993_4, balance_1993_5, balance_1993_6, balance_1993_7, balance_1993_8, balance_1993_9, balance_1993_10, balance_1993_11, balance_1993_12, balance_1994_1, balance_1994_2, balance_1994_3, balance_1994_4, balance_1994_5, balance_1994_6, balance_1994_7, balance_1994_8, balance_1994_9, balance_1994_10, balance_1994_11, balance_1994_12, balance_1995_1, balance_1995_2, balance_1995_3, balance_1995_4, balance_1995_5, balance_1995_6, balance_1995_7, balance_1995_8, balance_1995_9, balance_1995_10,balance_1995_11,balance_1995_12, balance_1996_1, balance_1996_2, balance_1996_3, balance_1996_4, balance_1996_5, balance_1996_6, balance_1996_7, balance_1996_8, balance_1996_9, balance_1996_10, balance_1996_11, balance_1996_12, balance_1997_1, balance_1997_2, balance_1997_3, balance_1997_4, balance_1997_5, balance_1997_6, balance_1997_7, balance_1997_8, balance_1997_9, balance_1997_10, balance_1997_11, balance_1997_12,balance_1998_1, balance_1998_2, balance_1998_3, balance_1998_4, balance_1998_5, balance_1998_6, balance_1998_7, balance_1998_8, balance_1998_9, balance_1998_10, balance_1998_11, balance_1998_12)
 
-str(transaction_cashflow_per_month_and_year)
-
-
-df_mod <- left_join(df_mod, transaction_mod_balance_per_month, by = c("account_id" = "account_id"))
+# str(transaction_cashflow_per_month_and_year)
+# 
+# 
+# df_mod <- left_join(df_mod, transaction_mod_balance_per_month, by = c("account_id" = "account_id"))
 
 ```
 
 #### Überprüfen, ob die Überlegung so stimmt
 
-[^58] Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe
+[^7] Für den jeweiligen Kontostand Ende Monat wird eine Datumsangabe
 ohne Lücken benötigt. Somit kann jederzeit auch den Kontostand am Ende
 jeden Tages ausgeben werden. Überprüfen, ob die Datumsangaben lückenlos
 sind.
 
-[^58]: Erstellt von Léonie Bécheiraz
+[^7]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 df_transaction_mod %>% 
@@ -1908,11 +1816,7 @@ Das Resultat des Codes sieht korrekt aus. Es wird versucht, den Code
 selber umzuschreiben um dies später im Rahmen von grossen Daten anwenden
 zu können.
 
-#### Entfernen der nicht mehr benötigten Tabellen
-
-[^59]
-
-[^59]: Erstellt von Léonie Bécheiraz
+Entfernen der nicht mehr benötigten Tabellen
 
 ```{r}
 
@@ -1920,11 +1824,9 @@ rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month, t
 
 ```
 
-### Vierteljähriges Einkommen und Ausgaben per Jahr
+#### [^8]Vierteljähriges Einkommen und Ausgaben per Jahr
 
-[^60]
-
-[^60]: Erstellt von Aaron Studer
+[^8]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -1995,17 +1897,15 @@ transaction_cashflow_per_quarter_and_year_modified %>%
   mutate('1998_Q4_Income' = 'IN_1998 Q4') %>%
   select(account_id, '1993_Q1_Expenses', '1993_Q2_Expenses', '1993_Q3_Expenses', '1993_Q4_Expenses', '1994_Q1_Expenses', '1994_Q2_Expenses', '1994_Q3_Expenses', '1994_Q4_Expenses', '1995_Q1_Expenses', '1995_Q2_Expenses', '1995_Q3_Expenses', '1995_Q4_Expenses', '1996_Q1_Expenses', '1996_Q2_Expenses', '1996_Q3_Expenses', '1996_Q4_Expenses', '1997_Q1_Expenses', '1997_Q2_Expenses', '1997_Q3_Expenses', '1997_Q4_Expenses', '1998_Q1_Expenses', '1998_Q2_Expenses', '1998_Q3_Expenses', '1998_Q4_Expenses', '1993_Q1_Income', '1993_Q2_Income', '1993_Q3_Income', '1993_Q4_Income', '1994_Q1_Income', '1994_Q2_Income', '1994_Q3_Income', '1994_Q4_Income', '1995_Q1_Income', '1995_Q2_Income', '1995_Q3_Income', '1995_Q4_Income', '1996_Q1_Income', '1996_Q2_Income', '1996_Q3_Income', '1996_Q4_Income', '1997_Q1_Income', '1997_Q2_Income', '1997_Q3_Income', '1997_Q4_Income', '1998_Q1_Income', '1998_Q2_Income', '1998_Q3_Income', '1998_Q4_Income')
 
-head(transaction_cashflow_per_quarter_and_year_modified)
-
-df_mod <- left_join(df_mod, transaction_cashflow_per_quarter_and_year_modified, by = c("account_id" = "account_id"))
+# head(transaction_cashflow_per_quarter_and_year_modified)
+# 
+# df_mod <- left_join(df_mod, transaction_cashflow_per_quarter_and_year_modified, by = c("account_id" = "account_id"))
 
 ```
 
-#### Entfernen der nicht mehr benötigten Tabellen
+[^9]Entfernen der nicht mehr benötigten Tabellen
 
-[^61]
-
-[^61]: Erstellt von Léonie Bécheiraz
+[^9]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 
@@ -2013,16 +1913,15 @@ rm(transaction_cashflow_per_quarter_and_year, transaction_cashflow_per_quarter_a
 
 ```
 
-## C.3. Kontostand am Ende des Tages
+#### [^10]Kontostand am Ende des Tages
 
-### 3.a. Überblick über die Anzahl Transaktionen am selben Tag über alle Observationen
+[^10]: Erstellt von Léonie Bécheiraz
 
-[^62] Es werden nur die ersten 6 Zeilen mit den häufigsten Transaktionen
-am selben Tag ausgedruckt.
-
-[^62]: Erstellt von Léonie Bécheiraz
+Überblick über die Anzahl Transaktionen am selben Tag über alle
+Observationen
 
 ```{r}
+
 df_transaction_mod %>%
   group_by(
     account_id,
@@ -2063,13 +1962,11 @@ df_transaction_mod <- df_transaction_mod %>%
 
 ```
 
-##### 3.a. Test am Account 1274
+#### Test am Account 1274
 
-[^63] Der Account 1274 weist am 1998-11-30 sieben Zahlungen auf. Nun
-soll mittels Code die letzte Zahlung eruiert werden und somit auch der
+Der Account 1274 weist am 1998-11-30 sieben Zahlungen auf. Nun soll
+mittels Code die letzte Zahlung eruiert werden und somit auch der
 Kontostand am Ende des Tages.
-
-[^63]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 account1274 <- df_transaction_mod %>% 
@@ -2131,6 +2028,7 @@ account1274_first %>%
 Die Balance wird nun gerundet um Nachkommastellen zu eliminieren.
 
 ```{r}
+
 account1274_round <- account1274 %>% 
   mutate(balance = round(balance)) %>% 
   mutate(balance_before_transaction_round = round(balance_before_transaction)) %>% 
@@ -2146,19 +2044,15 @@ account1274_round <- account1274 %>%
 
 #### Erkenntnis zur Rundung von amount und balance
 
-[^64] Wenn die Rundung der beiden Spalten schon vor dem Rechnen
-ausgeführt wird, werden falsche Endbeträge ausgegeben. Das Runden darf
-erst am Schluss geschehen. Beim Runden vor dem Ausrechnen der Saldi
-weisen die ausgerechneten Saldi Rundungsfehler auf.
-
-[^64]: Erstellt von Léonie Bécheiraz
+Wenn die Rundung der beiden Spalten schon vor dem Rechnen ausgeführt
+wird, werden falsche Endbeträge ausgegeben. Das Runden darf erst am
+Schluss geschehen. Beim Runden vor dem Ausrechnen der Saldi weisen die
+ausgerechneten Saldi Rundungsfehler auf.
 
 #### Erstellen zusätzlicher Spalten für die Saldo-Berechnung
 
-[^65] Um diesen Rundungsfehler zu umgehen, werden zwei zusätzliche
-Spalten erstellt mit den berechneten Saldi vor und nach der Transaktion.
-
-[^65]: Erstellt von Léonie Bécheiraz
+Um diesen Rundungsfehler zu umgehen, werden zwei zusätzliche Spalten
+erstellt mit den berechneten Saldi vor und nach der Transaktion.
 
 ```{r}
 df_transaction_mod <- df_transaction_mod %>% 
@@ -2200,21 +2094,13 @@ account1274_first
 account1274_helper
 ```
 
-##### Entfernen der nicht mehr benötigeten Tabellen
-
-[^66]
-
-[^66]: Erstellt von Léonie Bécheiraz
+Entfernen der nicht mehr benötigeten Tabellen
 
 ```{r}
 rm(account1274, account1274_first, account1274_helper)
 ```
 
-#### zweite Überprüfung mit dem Konto 1274 ohne Datumseinschränkung
-
-[^67]
-
-[^67]: Erstellt von Léonie Bécheiraz
+zweite Überprüfung mit dem Konto 1274 ohne Datumseinschränkung
 
 ```{r}
 # Ergänzen des bestehenden Datensatzes mit der zusätzlichen Spalte balance_end_day (Saldo nach Transaktion) und Filtern des Accounts auf die Nr. 1274
@@ -2253,22 +2139,14 @@ account1274_result_round %>%
 
 Dies scheint gut funktioniert zu haben.
 
-#### Entfernen der nicht mehr benötigten Tabellen aus dem Global Environment
-
-[^68]
-
-[^68]: Erstellt von Léonie Bécheiraz
+Entfernen der nicht mehr benötigten Tabellen aus dem Global Environment
 
 ```{r}
 # Entfernen der vorher generierten Datensätzen
 rm(account1247_round, account1274_helper_round, account1274_result, account1274_result_round, account1274_round)
 ```
 
-#### Anwenden auf das gesamte Data Frame df_transaction_mod
-
-[^69]
-
-[^69]: Erstellt von Léonie Bécheiraz
+Anwenden auf das gesamte Data Frame df_transaction_mod
 
 ```{r}
 # Überprüfung auf mehrfache Transaktionen am gleichen Tag pro Account
@@ -2299,14 +2177,12 @@ transaction_helper <- df_transaction_mod %>%
 
 ```
 
-#### 3.d. Funktion anti_join()
+#### Funktion anti_join()
 
-[^70] Nun können die beiden Tabellen verglichen werden. Der jeweilige
-Betrag im Data Frame transaction_first welcher nicht auch im
-transaction_helper vorkommt, ist der Tagesendstand. Dies wird mit der
-Funkton anti_join gebildet.
-
-[^70]: Erstellt von Léonie Bécheiraz
+Nun können die beiden Tabellen verglichen werden. Der jeweilige Betrag
+im Data Frame transaction_first welcher nicht auch im transaction_helper
+vorkommt, ist der Tagesendstand. Dies wird mit der Funkton anti_join
+gebildet.
 
 ```{r}
 transaction_result <- transaction_first %>%
@@ -2314,13 +2190,11 @@ transaction_result <- transaction_first %>%
 
 ```
 
-##### 3.e. Überprüfung
+#### Überprüfung
 
-[^71] Für die erste Kontrolle werden wiederum die Account_id und das
-Datum gruppiert und gezählt, wieviele Transaktionen pro Tag in der
-Tabelle enthalten sind.
-
-[^71]: Erstellt von Léonie Bécheiraz
+Für die erste Kontrolle werden wiederum die Account_id und das Datum
+gruppiert und gezählt, wieviele Transaktionen pro Tag in der Tabelle
+enthalten sind.
 
 ```{r}
 transaction_result %>%
@@ -2340,10 +2214,8 @@ wird nun genauer untersucht.
 
 #### Untersuchen der Abweichung
 
-[^72] Dafür wird der Datensatz df_transaction_mod auf die account id
-9814 und das Datum 1998-11-30 gefiltert.
-
-[^72]: Erstellt von Léonie Bécheiraz
+Dafür wird der Datensatz df_transaction_mod auf die account id 9814 und
+das Datum 1998-11-30 gefiltert.
 
 ```{r}
 # Überprüfen der Daten im df_trans_mod
@@ -2357,10 +2229,7 @@ df_transaction_mod %>%
 
 #### Überprüfen auf Rundungs- oder Rechenfehler
 
-[^73] ![Vergleich der Saldi per
-Hand](../Ressources/account%20id%209814.png)
-
-[^73]: Erstellt von Léonie Bécheiraz
+![Vergleich der Saldi per Hand](../Ressources/account%20id%209814.png)
 
 ```{r}
 #Überprüfen der Daten nach dem Vergleich
@@ -2480,7 +2349,7 @@ head(ceiling_more)
 
 ```
 
-bei den letzten Zahlungen ist keine Reihenfolge mehr ersichtlich. Um
+Bei den letzten Zahlungen ist keine Reihenfolge mehr ersichtlich. Um
 dies zu klären werden alle Zahlungen zu den jeweiligen Konten und Tagen
 genommen und damit nochmals ein komplettes ceiling und anti_join()
 durchgeführt.
@@ -2546,9 +2415,7 @@ last_transaction %>%
 
 #### Überprüfung der Daten
 
-[^74] Das Datum wird nun überprüft, ob nichts verloren ging
-
-[^74]: Erstellt von Léonie Bécheiraz
+Das Datum wird nun überprüft, ob nichts verloren ging
 
 ```{r}
 control <- df_transaction_mod %>% 
@@ -2600,11 +2467,7 @@ head(control_result_count)
 
 ```
 
-##### Filtern und Anfügen der Zahlungen
-
-[^75]
-
-[^75]: Erstellt von Léonie Bécheiraz
+Filtern und Anfügen der Zahlungen
 
 ```{r}
 control_result_one_count <- control_result_count %>%
@@ -2660,11 +2523,7 @@ rm(more_than_one, more_than_one_count, more_than_one_count_rest, more_than_one_r
 
 ```
 
-#### Tage mit mehr als einer Transaktion pro Tag: Überprüfung
-
-[^76]
-
-[^76]: Erstellt von Léonie Bécheiraz
+Tage mit mehr als einer Transaktion pro Tag: Überprüfung
 
 ```{r}
 control <- df_transaction_mod %>% 
@@ -2759,11 +2618,7 @@ control
 
 ```
 
-#### outgoes und incomes summiert auf den Tag
-
-[^77]
-
-[^77]: Erstellt von Léonie Bécheiraz
+outgoes und incomes summiert auf den Tag
 
 ```{r}
 outgoes_incomes_sum <- control %>% 
@@ -2795,11 +2650,7 @@ derselbe Kontostand wie am Vortag herrscht. Es gibt aber auch Tage, an
 denen IN und OUT nicht gleich hoch sind. Diese werden genauer
 untersucht.
 
-#### Unterschiedliches IN und OUT
-
-[^78]
-
-[^78]: Erstellt von Léonie Bécheiraz
+Unterschiedliches IN und OUT
 
 ```{r}
 outgoes_incomes_not_equal <- outgoes_incomes_sum %>% 
@@ -2819,14 +2670,16 @@ head(amount_not_equal)
 
 ```
 
-die letzten Zahlungen können von Hand gefiltert werden und dann dem
+Die letzten Zahlungen können von Hand gefiltert werden und dann dem
 gesamten DF angefügt werden. ev. kommt mir noch eine bessere Idee
 
 ```{r}
 amount_not_equal
 
 ```
-## Excel
+
+#### Hilfe in Excel
+
 DF in Excel rausschreiben lassen und dort die trans_id rauslesen
 
 ```{r}
@@ -2879,11 +2732,7 @@ Für die Tage mit gleich hohem outgoes und Kredit wird eine entsprechende
 Spalte hinzugefügt. Dies aber erst, wenn die Kontoendstände dem gesamten
 df_transaction_mod angefügt wurde.
 
-#### Anfügen der Tagessaldi an das bestehende df_transaction_mod
-
-[^79]
-
-[^79]: Erstellt von Léonie Bécheiraz
+Anfügen der Tagessaldi an das bestehende df_transaction_mod
 
 ```{r}
 # unnötige Spalen entfernen und neue Informationen anfügen 
@@ -2896,26 +2745,22 @@ df_transaction_mod <- df_transaction_mod %>%
   
 ```
 
-#### Entfernen nicht mehr benötigter Data Frames aus dem Global Environment
-
-[^80]
-
-[^80]: Erstellt von Léonie Bécheiraz
+Entfernen nicht mehr benötigter Data Frames aus dem Global Environment
 
 ```{r}
 rm(amount_not_equal, ceiling_last_result, control, outgoes_incomes_not_equal, outgoes_incomes_sum, foo, last_transaction, last_transaction_all, transid)
 
 ```
 
-#### Neue Spalten: outgoes und incomes pro Tag
+#### Neue Spalten:
 
-[^81] Die vorangegangenen Analysen haben gezeigt, dass es Tage gibt, an
-denen outgoes und incomes gleich hoch sind. Um die Umsätze eines Kontos
-zu sehen werden nun zwei zusätzliche Spalten erstellt mit der outgoes-
-und incomes-summe des jeweiligen Tages. Dieses Ergebnis wird dann auch
+outgoes und incomes pro Tag
+
+Die vorangegangenen Analysen haben gezeigt, dass es Tage gibt, an denen
+outgoes und incomes gleich hoch sind. Um die Umsätze eines Kontos zu
+sehen werden nun zwei zusätzliche Spalten erstellt mit der outgoes- und
+incomes-summe des jeweiligen Tages. Dieses Ergebnis wird dann auch
 wieder dem df_transaction_mod angefügt.
-
-[^81]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 
@@ -2941,13 +2786,10 @@ outgoes_incomes_sum <- df_transaction_mod %>%
 
 ```
 
-#### Zusätzliche Spalte für gleich hohe outgoes und Kredit Beträge
+Gleich hohe incomes und outgoes:
 
-[^82] Um die gleich hohen Beträge in outgoes und Kredit am selben Tag
-für das gleiche Konto schnell zu finden, wird eine zusätzliche Spalte
-erstellt.
-
-[^82]: Erstellt von Léonie Bécheiraz
+Um die gleich hohen Beträge in outgoes und Kredit am selben Tag für das
+gleiche Konto schnell zu finden, wird eine zusätzliche Spalte erstellt.
 
 ```{r}
 outgoes_incomes_sum  <- outgoes_incomes_sum %>% 
@@ -3014,13 +2856,11 @@ Damit nicht immer alles neu geladen werden muss...
 
 #### Datumslücken beheben
 
-[^83] Da nach wie vor nur das Datum mit einer Transaktion im
+Da nach wie vor nur das Datum mit einer Transaktion im
 df_transaction_mod vorhanden ist und somit der Zeitverlauf lückenhaft,
 wird nun das Datum ergänzt. So wird jeder Tag ersichtlich sein, auch
 wenn keine Transaktion stattgefunden hat. Die Account ID und der
 Kontostand pro Tag werden auch ergänzt.
-
-[^83]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 # load("df_transaction_mod.RData")
@@ -3077,10 +2917,6 @@ zu einem späteren Zeitpunkt angepasst.
 
 #### Kontrolle am Account Nr. 18
 
-[^84]
-
-[^84]: Erstellt von Léonie Bécheiraz
-
 ```{r}
 df_transaction_complete %>%
   filter(account_id == 18,
@@ -3114,9 +2950,7 @@ df_transaction_complete %>%
 
 #### Balance per month
 
-[^85] Neues Data Frame erstellen mit den monatlichen Kontoständen
-
-[^85]: Erstellt von Léonie Bécheiraz
+Neues Data Frame erstellen mit den monatlichen Kontoständen
 
 ```{r}
 balance_per_month <- df_transaction_complete %>%
@@ -3157,12 +2991,9 @@ df_mod <- df_mod %>%
 
 #### Anfügen der monatliche Kontostände an das df_mod
 
-[^86] Ergänzen der Kolonnen im balance_per_month mit dem Präfix
-balance\_ für die spätere Übersicht im konsolidierten Datensatz.
-Anschliessend wird die monatlichen Kontostände dem df_mod mit left_join
-hinzugefügt.
-
-[^86]: Erstellt von Léonie Bécheiraz
+Ergänzen der Kolonnen im balance_per_month mit dem Präfix balance\_ für
+die spätere Übersicht im konsolidierten Datensatz. Anschliessend wird
+die monatlichen Kontostände dem df_mod mit left_join hinzugefügt.
 
 ```{r}
 # Kolonnen werden mit dem Präfix ergänzt
@@ -3174,12 +3005,10 @@ df_mod <- df_mod %>%
 
 ```
 
-#### Monatliche outgoes und incomes
+#### Quartalsweise outgoes und incomes
 
-[^87] für die spätere Berechnung der Umsätze und Bilanzen werden die
-outgoes und incomes monatlich zusammengefasst.
-
-[^87]: Erstellt von Léonie Bécheiraz
+Für die spätere Berechnung der Umsätze und Bilanzen werden die outgoes
+und incomes monatlich zusammengefasst.
 
 ```{r}
 
@@ -3230,10 +3059,6 @@ df_mod <- df_mod %>%
 ```
 
 #### Jährliche Einkünfte und Ausgaben
-
-[^88]
-
-[^88]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 outgoes_incomes_yearly <- date_complete %>% 
@@ -3288,15 +3113,13 @@ Spalte mit Info ob der Account im Minus ist oder nicht
 Accountgruppen erstellen, wie lange der Account aktiv war (z.B. halbes
 Jahr, Jahr, etc.)
 
-### **D. Erstellen des konsolidierten Data Frames**
+## [^11]Erstellen des konsolidierten Data Frames
 
-[^89] Das konsolidierte Data Frame wird und dem Namen **df_cons**
-gespeichert.
+[^11]: Erstellt von Léonie Bécheiraz
 
-[^89]: Erstellt von Léonie Bécheiraz
+Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
 
 ```{r}
-
 df_cons <- df_mod
 # save(df_cons, file = "df_cons.RData")
 # save(df_mod, file = "df_mod.RData")
@@ -3311,62 +3134,49 @@ glimpse(df_cons)
 
 ```
 
-## 1. Datengrundlage
+## Datengrundlage[^12]
+
+[^12]: Erstellt von Luca Gisler
 
 Die uns zu Grunde liegenden Daten lassen sich als von der Bank sowie als
 exogen erhoben unterscheiden.
 
-### a. Wie können die Daten noch weiter gruppiert und angeordnet werden, um eine optimale Grundlage für die Analyse zu bilden?
-
-[^90]
-
-[^90]: Erstellt von Luca Gisler
+a\. Wie können die Daten noch weiter gruppiert und angeordnet werden, um
+eine optimale Grundlage für die Analyse zu bilden?
 
 ```{r}
 
 ```
 
-### b. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft dies für alle einzelnen Datensätze zu?
-
-[^91]
-
-[^91]: Erstellt von Luca Gisler
+b\. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft
+dies für alle einzelnen Datensätze zu?
 
 ```{r}
 
 ```
 
-### Zudem wird die Distribution der Datensätze und deren Qualität überprüft.
-
-[^92]
-
-[^92]: Erstellt von Luca Gisler
+Zudem wird die Distribution der Datensätze und deren Qualität überprüft.
 
 ```{r}
 
 ```
 
-### c. Die Datenattribute werden alle auf ihre Verteilung sowie ihre Veränderung über die Zeit analysiert. Dabei werden technische Mittel der explorativen Datenanalyse angewendet.
-
-[^93]
-
-[^93]: Erstellt von Luca Gisler
+c\. Die Datenattribute werden alle auf ihre Verteilung sowie ihre
+Veränderung über die Zeit analysiert. Dabei werden technische Mittel der
+explorativen Datenanalyse angewendet.
 
 ```{r}
 
 ```
 
-#### i. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens analysiert.
-
-[^94]
-
-[^94]: Erstellt von Luca Gisler
+i\. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens
+analysiert.
 
 ```{r}
 
 ```
 
-## 2. Korrelationsanalysen
+## Ausführliche Analysen
 
 Nachdem die Datenattribute einzeln analysiert und geprüft wurden, sollen
 sie miteinander mittels Korrelationsanalysen betrachtet werden. Dabei
@@ -3374,13 +3184,9 @@ sollten anfällige Zusammenhänge entdeckt werden.\
 Beispiele für Hypothesen, welche in der Analyse überprüft werden
 könnten, wären:
 
-### a. Für die einzelne Datenattribute:
+### Bargeldbezüge ohne Angabe des Verwendungszwecks[^13]
 
-### 2.1. Bargeldbezüge ohne Angabe des Verwendungszwecks
-
-[^95]
-
-[^95]: Erstellt von Léonie Bécheiraz
+[^13]: Erstellt von Léonie Bécheiraz
 
 Vorbereiten des Datensatzes.
 
@@ -3400,7 +3206,10 @@ owner_district <- df_cons %>%
     account_district_region
   )
 
-trans_correlation <- date_complete %>% 
+# trans_correlation <- date_complete %>% 
+#   left_join(owner_district, by = "account_id")
+
+trans_correlation <- df_transaction_complete %>% 
   left_join(owner_district, by = "account_id")
 
 head(owner_district, 3)
@@ -3409,11 +3218,9 @@ rm(owner_district)
 
 ```
 
-#### 2.1.a. Varialbelbeschreibung (Levels)
+#### Varialbelbeschreibung (Levels)
 
-[^96] Folgende Levels sind vorhanden:
-
-[^96]: Erstellt von Léonie Bécheiraz 
+Folgende Levels sind vorhanden:
 
 -   "CASH CREDIT" -\> Bargeldeinzahlung
 -   "CASH WIDTHDRAWAL" -\> Bargeldbezug
@@ -3422,12 +3229,14 @@ rm(owner_district)
 -   "REMITTANCE OTHER BANK" -\> Überweisung an/von einer Fremdbank
 
 Abfrage der Levels in der Spalte "operation"
-    ```{r}
-    levels(trans_correlation$operation)
 
-    ```
+```{r}
+levels(trans_correlation$operation)
+
+```
 
 Datensatz filtern nach Bargeldbezügen.
+
 ```{r}
 cashwidthdrawals <- trans_correlation %>% 
   filter(operation == "CASH WIDTHDRAWAL")
@@ -3439,6 +3248,7 @@ slice_sample(cashwidthdrawals, n = 5)
 
 Die Beträge mit "STATEMENT PAYMENT" aus der Spalte "characterization"
 sind Gebühren und werden aus der Analyse ausgeschlossen.
+
 ```{r}
 cashwidthdrawals <- cashwidthdrawals %>% 
   filter(characterization != "STATEMENT PAYMENT")
@@ -3451,6 +3261,7 @@ slice_sample(cashwidthdrawals, n = 5)
 
 Ebenso verhält es sich bei "SANCTION INTEREST". Auch diese Beobachtungen
 werden ausgeschlossen.
+
 ```{r}
 cashwidthdrawals <- cashwidthdrawals %>% 
   filter(characterization != "SANCTION INTEREST")
@@ -3461,6 +3272,7 @@ slice_sample(cashwidthdrawals, n = 5)
 ```
 
 Überblick über die Bargeldbezüge "CASH WIDTHDRAWAL"
+
 ```{r}
 summary(cashwidthdrawals)
 
@@ -3471,6 +3283,7 @@ zugewiesene Verwendung. Entweder für das Wohnen (Household) oder die
 Versicherung (Insurrance Payment). Es handelt sich hierbei um 2834
 Transaktionen. Dies ist auf den gesamten Datensatz gesehen sehr wenig.
 Trotzdem werden diese Zahlungen genauer untersucht.
+
 ```{r}
 ggplot(cashwidthdrawals, aes(x = date, y = amount, color = characterization)) +
   geom_point(position = "jitter") +
@@ -3493,13 +3306,10 @@ Die Beträge für Versicherungszwecke sind alle auf einem sehr tiefen
 Niveau. Die höheren Beträge (ab 10'000 CZK) werden nun genauer
 untersucht.
 
-#### 2.1.b. Bargeldbezüge über 10'000 CZK
-
-[^97]
-
-[^97]: Erstellt von Léonie Bécheiraz
+#### Bargeldbezüge über 10'000 CZK
 
 Anzahl Bezüge mit anteilmässiger Verteilung auf die Regionen.
+
 ```{r}
 # Filtern auf Beträge über 10k
 cashwidthdrawals_10 <- cashwidthdrawals %>% 
@@ -3522,7 +3332,9 @@ cashwidthdrawals_10 %>%
     )
 
 ```
-Häufigste Bargeldbezüge sind in der Höhe 
+
+Häufigste Bargeldbezüge sind in der Höhe
+
 ```{r}
 # Visualisierung
 cashwidthdrawals_10 %>% 
@@ -3545,29 +3357,34 @@ cashwidthdrawals_10 %>%
 rm(cashwidthdrawals, cashwidthdrawals_10)
 
 ```
+
 Die hohen Bezüge sind über das ganze Land verteilt. Die Region Moravia
 weist am häufigsten, Nord und Zentral Böhmen am wenigsten hohe
 Bargeldbezüge aus.
 
-### 2.1.c. Kreditkarten
-
-[^98]
-
-[^98]: Erstellt von Léonie Bécheiraz
+### Kreditkarten
 
 #### Ziel
-Wenn ein Kunde bereits ein Girokonto hat aber noch nicht mit einer Kreditkarte verbunden ist,  ein Angebot für die Kreditkarte unterbreiten. Bei Neueröffnung eines Girokontos die Kreditkarte gleich mitanbieten.
+
+Wenn ein Kunde bereits ein Girokonto hat aber noch nicht mit einer
+Kreditkarte verbunden ist, ein Angebot für die Kreditkarte unterbreiten.
+Bei Neueröffnung eines Girokontos die Kreditkarte gleich mitanbieten.
 
 Wieviele Accounts haben eine Kreditkarte?
+
 ```{r}
 df_cons %>% 
   filter(!is.na(card_id)) %>% 
   count()
 
 ```
-Nur 892 Accounts von gesamthaft 4500 sind mit einer Kreditkarte verbunden.
 
-Erstellen einer neuen Spalte "has_creditcard" mit dem logischen Wert TRUE wenn ein Konto mit einer Kreditkarte verbunden ist.
+Nur 892 Accounts von gesamthaft 4500 sind mit einer Kreditkarte
+verbunden.
+
+Erstellen einer neuen Spalte "has_creditcard" mit dem logischen Wert
+TRUE wenn ein Konto mit einer Kreditkarte verbunden ist.
+
 ```{r}
 df_cons <- df_cons %>% 
   mutate(has_creditcard = ifelse(is.na(card_id), FALSE, TRUE))
@@ -3579,6 +3396,7 @@ df_cons %>%
 ```
 
 Wieviele Kreditkarten werden benutzt?
+
 ```{r}
 # Accounts mit Kreditkarten
 cc <- df_cons %>% 
@@ -3596,9 +3414,12 @@ cc_trans %>%
   nrow()
 
 ```
+
 807 Accounts von 892 benutzen ihre Kreditkarte.
 
-Konten mit Kreditkarte, welche aber die Kreditkarte noch nicht eingesetzt haben.
+Konten mit Kreditkarte, welche aber die Kreditkarte noch nicht
+eingesetzt haben.
+
 ```{r}
 cc_without_trans <- cc %>% 
   anti_join(cc_trans, by = "account_id")
@@ -3606,7 +3427,9 @@ cc_without_trans <- cc %>%
 dim(cc_without_trans)
 
 ```
+
 Erster Einsatz der Kreditkarten.
+
 ```{r}
 foo <- df_cons %>% 
   select(account_id, account_opening_year)
@@ -3635,9 +3458,15 @@ cc_first %>%
   arrange(desc(n))
   
 ```
-An der Verteilung auf die Jahre ist sehr gut zu erkennen, dass die Kreditkarte immer mehr an Beliebtheit gewonnen hat. Nun ist der richtige Zeitpunkt gekommen, um die Kreditkarte bei der breiten Masse der Kundschaft beliebt zu machen.
 
-Wieviele Jahre sind verstrichen nach Kontoeröffnung bis zum ersten Einsatz der Kreditkarte?
+An der Verteilung auf die Jahre ist sehr gut zu erkennen, dass die
+Kreditkarte immer mehr an Beliebtheit gewonnen hat. Nun ist der richtige
+Zeitpunkt gekommen, um die Kreditkarte bei der breiten Masse der
+Kundschaft beliebt zu machen.
+
+Wieviele Jahre sind verstrichen nach Kontoeröffnung bis zum ersten
+Einsatz der Kreditkarte?
+
 ```{r}
 cc_first %>% 
   group_by(diff_year) %>% 
@@ -3648,9 +3477,13 @@ cc_first %>%
 rm(cc, cc_first, cc_trans, cc_without_trans)
 
 ```
+
 Es sind nicht nur Neukunden, welche eine Kreditkarte besitzen.
 
-Bei Kreditkartenbezügen sollte kein Verwendungszweck vermerkt sein. Zudem verschaffen wir uns einen Überblick über die Höhe der jeweiligen Bezüge.
+Bei Kreditkartenbezügen sollte kein Verwendungszweck vermerkt sein.
+Zudem verschaffen wir uns einen Überblick über die Höhe der jeweiligen
+Bezüge.
+
 ```{r}
 cardwidthdrawals <- trans_correlation %>% 
   filter(operation == "CREDIT CARD WITHDRAWAL")
@@ -3660,12 +3493,14 @@ cardwidthdrawals %>%
   summary()
 
 ```
+
 Die Kreditkartenbezüge weisen keinen Verwendungszweck aus. Der
 durchschnittliche Betrag liegt bei 2200 CZK, der höchste bei 8000 CZK.
 Der Höchste Betrag ist vermutlich im Zusammenhang mit der
 Kreditkartenlimite. In unseren Daten sind gesamthaft 8036
 Kreditkartenbezüge verzeichnet. Auch hier werden wiederum die höheren
 Bezüge ab einem Betrag von 4'000 CZK genauer untersucht.
+
 ```{r}
 cardwidthdrawals %>% 
   # mutate(Region = as.factor(owner_district_region)) %>% 
@@ -3684,7 +3519,9 @@ cardwidthdrawals %>%
     )
 
 ```
+
 Verteilung aller Bezüge auf die Regionen.
+
 ```{r}
 # Region in Faktor mutieren
 cardwidthdrawals <- cardwidthdrawals %>% 
@@ -3708,10 +3545,13 @@ cardwidthdrawals %>%
     )
   
 ```
-Die Accounts mit Kreditkartenbezügen sind über das ganze Land verteilt. Die Region nord Moravia fällt durch die häufigsten  und south Bohemia durch die wenigsten Bezüge auf.
 
+Die Accounts mit Kreditkartenbezügen sind über das ganze Land verteilt.
+Die Region nord Moravia fällt durch die häufigsten und south Bohemia
+durch die wenigsten Bezüge auf.
 
 Erstellen der Daten über 4k CZK.
+
 ```{r}
 # Betrag filtern
 cardwidthdrawals_4 <- cardwidthdrawals %>% 
@@ -3732,7 +3572,9 @@ cardwidthdrawals_4 %>%
     )
 
 ```
+
 Verteilung auf die Region für Bezüge über 4k CZK.
+
 ```{r}
 cardwidthdrawals_4 %>% 
   ggplot(., aes(Region, fill = Region)) +
@@ -3751,10 +3593,12 @@ cardwidthdrawals_4 %>%
     )
   
 ```
+
 Hier fällt wiederum die Region Moravia mit den meisten
 Kreditkartenbezügen auf.
 
-#### 2.1.d. Top 3 der höchsten Kreditkartenbezüge
+#### Top 3 der höchsten Kreditkartenbezüge
+
 ```{r}
 cardwidthdrawals %>% 
   top_n(3, amount)
@@ -3762,27 +3606,36 @@ cardwidthdrawals %>%
 ```
 
 Entfernen der nicht mehr benötigten Data Frames.
+
 ```{r}
 rm(cardwidthdrawals, cardwidthdrawals_4, cashwidthdrawals, cashwidthdrawals_10, date_complete, trans_correlation, owner_district)
 
 ```
-#### 2.1.e. Kriterien an den Kunden für das Angebot einer Kreditkarte
 
-Das Angebot einer Kreditkarte sollte für den Kunden sowie für die Bank einen Mehrwert bedeuten. Darum ist es sehr wichtig, die Kriterien, welche einen "guten" Kreditkartenkunde ausmacht, festzulegen. Die bestehende Kundschaft wird dann auf diese Kriterien hin geprüft und im Anschluss können gezielt Angebote an die Kundschaft getragen werden. Für Neukunden werden diese Beurteilungskriterien soweit als möglich angewendet.
+#### Kriterien an den Kunden für das Angebot einer Kreditkarte
+
+Das Angebot einer Kreditkarte sollte für den Kunden sowie für die Bank
+einen Mehrwert bedeuten. Darum ist es sehr wichtig, die Kriterien,
+welche einen "guten" Kreditkartenkunde ausmacht, festzulegen. Die
+bestehende Kundschaft wird dann auf diese Kriterien hin geprüft und im
+Anschluss können gezielt Angebote an die Kundschaft getragen werden. Für
+Neukunden werden diese Beurteilungskriterien soweit als möglich
+angewendet.
 
 #### Voraussetzung für die Kundengruppe Kreditkartenangebote
-Folgende Punkte müssen erfüllt sein:
-- Kontoart: Girokonto
-- regelmässiges "normales" Einkommen
-- Vermögensentwicklung nicht im Minus
 
+Folgende Punkte müssen erfüllt sein: - Kontoart: Girokonto -
+regelmässiges "normales" Einkommen - Vermögensentwicklung nicht im Minus
 
-#### 2.1.f. Kontoart
+#### Kontoart
 
-Die uns zugrunde liegenden Daten sagen leider nichts über die Kontoart aus. Deshalb muss dies mittels Analyse bestimmt werden.
-Folgende Gedanken dazu: ein Girokonto hat regelmässige Transaktionen. Es gibt im Durchschnitt mindestens je eine Transaktion (in und out) pro Monat.
+Die uns zugrunde liegenden Daten sagen leider nichts über die Kontoart
+aus. Deshalb muss dies mittels Analyse bestimmt werden. Folgende
+Gedanken dazu: ein Girokonto hat regelmässige Transaktionen. Es gibt im
+Durchschnitt mindestens je eine Transaktion (in und out) pro Monat.
 
-Erstellen einer neuen Spalte "is_checking_account" mit dem logischen Wert TRUE wenn es sich beim Konto um ein Girokonto handelt.
+Erstellen einer neuen Spalte "is_checking_account" mit dem logischen
+Wert TRUE wenn es sich beim Konto um ein Girokonto handelt.
 
 ```{r}
 # Spalte für die Information, ob es Girokonto (is_checking_account) ist oder nicht
@@ -3824,67 +3677,118 @@ df_cons %>%
   
 ```
 
-#### 2.1.g. regelmässiges Einkommen
+#### regelmässiges Einkommen
 
-Um die Kreditkartenausgaben decken zu können braucht der Kunde ein regelmässiges Einkommen, welches über dem Existenzminimum liegt. Wir gehen davon aus, dass Mitte der 90er Jahre das Existenzminimum bei 750 CZK pro Monat lag. 
+Um die Kreditkartenausgaben decken zu können braucht der Kunde ein
+regelmässiges Einkommen, welches über dem Existenzminimum liegt. Wir
+gehen davon aus, dass in den 90er Jahren das durchschnittliche Einkommen
+zwischen 675 CZK und 1045 czk pro Monat lag.
 
-Erstellen einer neuen Spalte "regular_income" mit dem logischen Wert TRUE wenn auf dem Konto regelmässig Beträge über dem Existenzminimum vorhanden sind.
+Erstellen einer neuen Spalte "regular_income" mit dem logischen Wert
+TRUE wenn auf dem Konto regelmässig Beträge über dem Existenzminimum
+vorhanden sind. Für diese Information werden alle Konten mit
+regelmässigem Einkommen und einem Betrag von 10% unter dem ortsüblichen
+Einkommensdurchschnitt ermittelt.
+
+#### Datenbeschrieb
+
+-   is_regular_income_80 für durchschnittliche Einkommen mind. 80% vom
+    ortüblichen Durchschnitt
+-   is_regular_income_90 für durchschnittliche Einkommen mind. 90% vom
+    ortüblichen Durchschnitt
+
 ```{r}
-# Filtern nach Accounts ohne regelmässige monatliche Einkommen
-no_reg_income <- df_transaction_complete %>% 
+# Spalten selektieren
+df <- df_cons %>% 
+  select(
+    account_id,
+    owner_district_average_salary,
+    )
+
+# monatlicher Durchschnittslohn des Account owners
+salary_month <- df_transaction_complete %>% 
   filter(date >= first_transaction,
          date <= last_transaction) %>% 
   group_by(
     account_id,
-    year(date), 
+    year = year(date), 
     month(date)
   ) %>% 
-  summarise(incomes_monthly = sum(incomes)) %>% 
-  mutate(regular_income = ifelse(incomes_monthly > 750, TRUE, FALSE)) %>% 
-  group_by(account_id) %>% 
-  count(regular_income) %>% 
-  filter(regular_income == FALSE,
-         n > 1)
+  summarise(incomes_monthly = mean(incomes)) %>% 
+  ungroup() 
 
-# Erstellen der neuen Spalte "regular_income"
-reg_income <- df_transaction_complete %>% 
-  mutate(regular_income = ifelse(account_id %in% no_reg_income$account_id, FALSE, TRUE)) %>% 
+# monatlicher Durchschnitt auf das Jahr zusammengefasst
+salary_month <- salary_month %>% 
+  group_by(
+    account_id, 
+    year
+    ) %>% 
+  summarise(incomes_monthly = mean(incomes_monthly)) %>% 
+  ungroup() 
+
+# monatlicher Durchschnitt auf die gesamte Laufzeit zusammengefasst
+salary_month <- salary_month %>% 
+  group_by(account_id) %>% 
+  summarise(incomes_monthly = round(mean(incomes_monthly))) %>% 
+  ungroup()
+
+# Arbeitstabelle zusammen stellen
+working_df <- df %>% 
+  left_join(salary_month, by ="account_id")
+
+# neue Spalte für regelmässiges Einkommen
+working_df <- working_df %>% 
+  mutate(dist_avg_salary = round(owner_district_average_salary / 12 , digits = 0)) %>% 
+  mutate(dist_avg_salary_90_pct = round(dist_avg_salary - (dist_avg_salary * 0.1))) %>% 
+  mutate(dist_avg_salary_80_pct = round(dist_avg_salary - (dist_avg_salary * 0.2))) %>% 
+  mutate(is_regular_income_90 = ifelse(incomes_monthly >= dist_avg_salary_90_pct, TRUE, FALSE)) %>% 
+  mutate(is_regular_income_80 = ifelse(incomes_monthly >= dist_avg_salary_80_pct, TRUE, FALSE))
+
+# Filtern nach Accounts mit regelmässigen monatlichen Einkommen
+foo80 <- working_df %>% 
+  filter(is_regular_income_80 == TRUE) %>% 
+  nrow()
+
+foo90 <- working_df %>% 
+  filter(is_regular_income_90 == TRUE) %>% 
+  nrow()
+
+paste("Es gibt", foo80, "Accounts mit einem regelmässigen Einkommen von mindestens 80% des ortsüblichen Durchschnittsalärs und", foo90, "Accounts mit mindestens 90% ortsüblicher Durchschnitt.", sep = " ")
+rm(foo80, foo90, salary_month, df)
+
+```
+
+Die neuen Spalte können dem konsolidierten Data Frame df_cons angefügt
+werden.
+
+```{r}
+working_df <- working_df %>% 
   select(
     account_id,
-    regular_income
-  ) %>% 
-  distinct()
-
-head(reg_income, 5)
+    is_regular_income_80,
+    is_regular_income_90
+  )
 
 # Anfügen der neuen Spalte an das konsolidierte Data Frame df_cons
 df_cons <- df_cons %>% 
-  left_join(reg_income, by = "account_id")
+  left_join(working_df, by = "account_id")
 
 # save(df_cons, file = "df_cons.RData")
-rm(reg_income, no_reg_income)
+rm(working_df)
 
 ```
 
-Überprüfung anhand des Accounts mit dem unregelmässigsten Einkommen
-```{r}
-df_transaction_complete %>% 
-  filter(account_id == 4059) %>% 
-  drop_na(trans_id) %>% 
-  tail(5)
+#### Vermögensentwicklung
 
-```
-#### 2.1.h. Vermögensentwicklung
+Die Vermögensentwicklung darf nicht negativ sein, da ansonsten die
+Kredite nicht mehr abbezahlt werden können.
 
-Die Vermögensentwicklung darf nicht negativ sein, da ansonsten die Kredite nicht mehr abbezahlt werden können.
-
-[^99] Um einen Überblick der Kunden zu erhalten werden die monatlichen
+Um einen Überblick der Kunden zu erhalten werden die monatlichen
 Einkommen (incomes_per_month), Ausgaben (outgoes_per_month) und die
 Vermögensentwicklung (assets_dev_month) berechnet.
 
-[^99]: Erstellt von Léonie Bécheiraz
-
 Monatliche Kontobewegungen
+
 ```{r}
 
 # Einkommen pro Monat 
@@ -3919,13 +3823,13 @@ head(in_out_monthly)
 rm(incomes_per_month, outgoes_per_month)
 
 ```
-[^100] Weiter werden die monatlichen Kontobewegungen auf ein gesamtes
-Jahr (incomes_per_year, outgoes_per_year, assets_dev_yearly)
-aufgerechnet um so Vergleiche über die Jahre zu erhalten.
 
-[^100]: Erstellt von Léonie Bécheiraz
+Weiter werden die monatlichen Kontobewegungen auf ein gesamtes Jahr
+(incomes_per_year, outgoes_per_year, assets_dev_yearly) aufgerechnet um
+so Vergleiche über die Jahre zu erhalten.
 
 Jährliche Kontobewegungen
+
 ```{r}
 in_out_yearly <- in_out_monthly %>% 
   group_by(account_id, year) %>% 
@@ -3942,13 +3846,14 @@ head(in_out_yearly)
 
 ```
 
-[^101] Dazu werden die Einkommen, Ausgaben und Vermögensentwicklung auf
-die gesamte Zeit berechnet. 
+Dazu werden die Einkommen, Ausgaben und Vermögensentwicklung auf die
+gesamte Zeit berechnet.
 
-[^101]: Erstellt von Léonie Bécheiraz
+Durchschnittliche Vermögensentwicklung über die gesamte Laufzeit.
+Erstellen einer neuen Spalte "assets_dev_pos" mit dem logischen Wert
+TRUE wenn das Konto eine positive Vermögensentwicklung über die gesamte
+Laufzeit aufweist.
 
-Durchschnittliche Vermögensentwicklung über die gesamte Laufzeit. 
-Erstellen einer neuen Spalte "assets_dev_pos" mit dem logischen Wert TRUE wenn das Konto eine positive Vermögensentwicklung über die gesamte Laufzeit aufweist.
 ```{r}
 # Erstellen der durchschnitllichen Einkommen, Ausgaben und der Vermögensentwicklung. Zusäthliche Spalte für die positive Vermögensentwicklung
 avg <- in_out_yearly %>% 
@@ -3971,61 +3876,315 @@ rm(avg)
 ```
 
 #### Kundengruppe Kreditkartenangebote
+
 Wir rekapitulieren nochmals die Voraussetzungen für diese Kundengruppe:
-Erfüllt müssen sein:
-- Kontoart: Girokonto
-- regelmässiges "normales" Einkommen
-- Vermögensentwicklung nicht im Minus
+Erfüllt müssen sein: - Kontoart: Girokonto - regelmässiges "normales"
+Einkommen - Vermögensentwicklung nicht im Minus
 
 Zusammenstellen der Kundengruppe für Krditkartenangebot
+
 ```{r}
-# List of customers for credit card offers
-cust_cc_offer_lst <- df_cons %>% 
+# aktuelles Alter der Kunden
+df_cons <- df_cons %>% 
+  mutate(owner_current_age = trunc((owner_dateofbirth %--% as.Date("1999-01-01")) / years(1))) %>% 
+  mutate(age_groups = case_when(
+    owner_current_age < 18 ~ "0-18",
+    owner_current_age >= 18 & owner_current_age <= 30 ~ "18-30",
+    owner_current_age > 30 & owner_current_age <= 40 ~ "31-40",
+    owner_current_age > 40 & owner_current_age <= 50 ~ "41-50",
+    owner_current_age > 50 & owner_current_age <= 60 ~ "51-60",
+    owner_current_age > 30 & owner_current_age <= 70 ~ "61-70",
+    owner_current_age > 70  ~ "70+"
+  ))
+
+# List of customers for credit card offers over 80% average salary
+cust_cc_offer_lst_80 <- df_cons %>% 
  filter(
     is_checking_account == TRUE,
-    regular_income == TRUE,
+    is_regular_income_80 == TRUE,
     assets_dev_pos == TRUE,
     has_creditcard == FALSE
   )
 
-nrow(cust_cc_offer_lst)
+# List of customers for credit card offers over 90% average salary
+cust_cc_offer_lst_90 <- df_cons %>% 
+ filter(
+    is_checking_account == TRUE,
+    is_regular_income_90 == TRUE,
+    assets_dev_pos == TRUE,
+    has_creditcard == FALSE
+  )
+
+foo80 <- nrow(cust_cc_offer_lst_80)
+foo90 <- nrow(cust_cc_offer_lst_90)
+
+paste(foo80, "Accounts mit einem regelmässigen Einkommen von 80% und", foo90, "Accounts mit 90% des ortsüblichen Einkommens erfüllen die Anforderungen für ein Kreditkartenangebot", sep = " ")
+rm(foo80, foo90)
 
 ```
-2503 Kunden erfüllen die Voraussetzung für ein Kreditkartenangebot und haben bis jetzt noch keine Kreditkarte mit dem Girokonto verbunden.
 
-#### Art der Kontaktaufnahme dieser Kunden
-Wir leben in einem Zeitalter, in dem die Kunden gerne persönlich in der Filiale beraten werden. Diese persönliche Beratung bietet sich vor allem dann an, wenn der Kunde im selben Distrikt wohnt wie seine Filiale angesiedelt ist.
+#### Visualisierung der Kundengruppen "Kreditkartenangebot"
 
-Erstellen einer neuen Spalte "consultation_on_site" mit dem logischen Wert TRUE wenn das Konto eine positive Vermögensentwicklung über die gesamte Laufzeit aufweist.
+Für die Kundengruppe mit mind. 80% ortsübliches Durchschnittseinkommen.
+
+```{r}
+# Altersverteilung
+plt_age_cc_80 <- cust_cc_offer_lst_80 %>% 
+  ggplot(aes(owner_current_age, fill = as.factor(owner_district_region))) +
+  geom_boxplot(varwidth = TRUE) +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      axis.text.y = element_blank(),
+      plot.title = element_text(size = 15)
+    ) +
+    ggtitle("Customers age") +
+  labs(
+    x = "",
+    fill = "Region",
+    # subtitle = "Potential customers for credit card offer [min. 80% salary]"
+  ) 
+
+# Verteilung auf die Regionen
+plt_region_cc_80 <- cust_cc_offer_lst_80 %>% 
+  ggplot(aes(x = owner_district_region, fill = as.factor(owner_district_region))) +
+  geom_bar()+
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 15),
+      axis.text.x = element_text(size = 5)
+    ) +
+    ggtitle("Num of customers") +
+  labs(
+    x = "",
+    y = "",
+    fill = "Region"
+  ) 
+
+# Einkommenshöhe
+plt_income_cc_80 <- cust_cc_offer_lst_80 %>% 
+ ggplot(aes(x = incomes_avg, y = owner_district_region, fill = as.factor(owner_district_region))) +
+    geom_density_ridges(alpha=0.6,  stat="binline", bins=20) +
+    theme_ridges() +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    # theme_minimal() +
+    theme(
+      legend.position = "none",
+      # axis.text.y = element_blank(),
+      plot.title = element_text(size = 15),
+      axis.text.x = element_text(size = 9),
+      axis.text.y = element_text(size = 9),
+      plot.subtitle = element_text(size = 9)
+    ) +
+    ggtitle("Customers salary") +
+  labs(
+    x = "",
+    y = "",
+    subtitle = "amount in k [CZK]"
+  ) 
+
+# Jahr der Kontoeröffung
+plt_year_account_cc_80 <- cust_cc_offer_lst_80 %>% 
+  ggplot(aes(year(account_opening_date), fill = as.factor(year(account_opening_date)))) +
+  geom_bar() +
+  scale_fill_viridis_d(alpha = 0.8, option = "G") +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_blank(),
+      legend.position = "none",
+      plot.title = element_text(size = 15),
+      plot.subtitle = element_text(size = 10)
+    ) +
+    ggtitle("Account opening") +
+  labs(
+    x = "",
+    y = "",
+    # fill = "Region",
+    subtitle = "Number of openings per year"
+  ) +
+  geom_text(stat = 'count', aes(label =..count..), vjust = -1) +
+  ylim(0, 350)
+
+```
+
+#### Zusammenfassung der Gruppe "Kreditkartenangebote"
+
+Erstellen eines verschachtelten Plots.
+
+```{r}
+
+# Create multi-panel Plot with patchwork
+((plt_year_account_cc_80|plt_region_cc_80)/(plt_income_cc_80|plt_age_cc_80)) +
+  plot_annotation(title = "Distribution of potential customers for credit card offer [min. 80% salary]", 
+                  theme = theme(plot.title = element_text(size = 20))) & theme(plot.title = element_text(hjust = 0.5),
+                                                                               plot.subtitle = element_text(hjust = 0.5))
+ 
+
+```
+
+Für die Kundengruppe mit mind. 90% ortsübliches Durchschnittseinkommen.
+
+```{r}
+# Altersverteilung
+plt_age_cc_90 <- cust_cc_offer_lst_90 %>% 
+  ggplot(aes(owner_current_age, fill = as.factor(owner_district_region))) +
+  geom_boxplot(varwidth = TRUE) +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      axis.text.y = element_blank(),
+      plot.title = element_text(size = 15)
+    ) +
+    ggtitle("Customers age") +
+  labs(
+    x = "",
+    fill = "Region",
+    # subtitle = "Potential customers for credit card offer [min. 90% salary]"
+  ) 
+
+# Verteilung auf die Regionen
+plt_region_cc_90 <- cust_cc_offer_lst_90 %>% 
+  ggplot(aes(x = owner_district_region, fill = as.factor(owner_district_region))) +
+  geom_bar()+
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 15),
+      axis.text.x = element_text(size = 5)
+    ) +
+    ggtitle("Num of customers") +
+  labs(
+    x = "",
+    y = "",
+    fill = "Region"
+  ) 
+
+# Einkommenshöhe
+plt_income_cc_90 <- cust_cc_offer_lst_90 %>% 
+ ggplot(aes(x = incomes_avg, y = owner_district_region, fill = as.factor(owner_district_region))) +
+    geom_density_ridges(alpha=0.6,  stat="binline", bins=20) +
+    theme_ridges() +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    # theme_minimal() +
+    theme(
+      legend.position = "none",
+      # axis.text.y = element_blank(),
+      plot.title = element_text(size = 15),
+      axis.text.x = element_text(size = 9),
+      axis.text.y = element_text(size = 9),
+      plot.subtitle = element_text(size = 9)
+    ) +
+    ggtitle("Customers salary") +
+  labs(
+    x = "",
+    y = "",
+    subtitle = "amount in k [CZK]"
+  ) 
+
+# Jahr der Kontoeröffung
+plt_year_account_cc_90 <- cust_cc_offer_lst_90 %>% 
+  ggplot(aes(year(account_opening_date), fill = as.factor(year(account_opening_date)))) +
+  geom_bar() +
+  scale_fill_viridis_d(alpha = 0.8, option = "G") +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_blank(),
+      legend.position = "none",
+      plot.title = element_text(size = 15),
+      plot.subtitle = element_text(size = 10)
+    ) +
+    ggtitle("Account opening") +
+  labs(
+    x = "",
+    y = "",
+    # fill = "Region",
+    subtitle = "Number of openings per year"
+  ) +
+  geom_text(stat = 'count', aes(label =..count..), vjust = -1) +
+  ylim(0, 350)
+
+```
+
+#### Zusammenfassung der Gruppe "Kreditkartenangebote"
+
+Erstellen eines verschachtelten Plots.
+
+```{r}
+
+# Create multi-panel Plot with patchwork
+((plt_year_account_cc_90|plt_region_cc_90)/(plt_income_cc_90|plt_age_cc_90)) +
+  plot_annotation(title = "Distribution of potential customers for credit card offer [min. 90% salary]", 
+                  theme = theme(plot.title = element_text(size = 20))) & theme(plot.title = element_text(hjust = 0.5),
+                                                                               plot.subtitle = element_text(hjust = 0.5))
+ 
+
+```
+
+Entfernen der nicht mehr benötigten Plots aus dem Global Environment
+
+```{r}
+rm(plt_age_cc_80, plt_age_cc_90, plt_income_cc_80, plt_income_cc_90, plt_region_cc_80, plt_region_cc_90, plt_year_account_cc_80, plt_year_account_cc_90)
+```
+
+#### Art der Kontaktaufnahme mit dieser Kunden
+
+Wir leben in einem Zeitalter, in dem die Kunden gerne persönlich in der
+Filiale beraten werden. Diese persönliche Beratung bietet sich vor allem
+dann an, wenn der Kunde im selben Distrikt wohnt wie seine Filiale
+angesiedelt ist.
+
+Erstellen einer neuen Spalte "consultation_on_site" mit dem logischen
+Wert TRUE wenn das Konto eine positive Vermögensentwicklung über die
+gesamte Laufzeit aufweist.
+
 ```{r}
 # erstellen der neuen Spalte
 df_cons <- df_cons %>% 
   mutate(consultation_on_site = ifelse(owner_district_name == account_district_name, TRUE, FALSE))
 
-# unnötige Spalten entfernen
-cust_cc_offer_lst <- df_cons %>% 
-  filter(account_id %in% cust_cc_offer_lst$account_id) %>% 
+# unnötige Spalten entfernen und Erstellen der Liste für Kunden 80%
+cust_cc_offer_lst_80 <- df_cons %>% 
+  filter(account_id %in% cust_cc_offer_lst_80$account_id) %>% 
+  select(-contains("quarterly"),
+         -starts_with("balance_"),
+         -contains("yearly"))
+
+# unnötige Spalten entfernen und Erstellen der Liste für Kunden 90%
+cust_cc_offer_lst_90 <- df_cons %>% 
+  filter(account_id %in% cust_cc_offer_lst_90$account_id) %>% 
   select(-contains("quarterly"),
          -starts_with("balance_"),
          -contains("yearly"))
 
 # Zählen, wieviel vor Ort beraten werden
-cust_cc_offer_lst %>% 
+cust_cc_offer_lst_80 %>% 
   group_by(consultation_on_site) %>% 
   count()
 
+cust_cc_offer_lst_90 %>% 
+  group_by(consultation_on_site) %>% 
+  count()
+
+rm(cust_cc_offer_lst_80, cust_cc_offer_lst_90)
+
 ```
+
 Alle potenziellen Kunden können vor Ort eingeladen werden.
 
-#### iii. Salärentwicklung und -verteilung
+### Salärentwicklung und -verteilung[^14]
 
-[^102] Aus den gewonnenen Daten wird nun die Salärentwicklung und
--verteilung genauer unter die Lupe genommen. Nach den ersten Analysen
-werden die Daten in verschiedene Gruppen je nach Einkommenshöhe
-eingeteilt. Eine Übersicht der Beträge ergibt sich aus dem summary() der
-Spalte "incomes_per_year".
+[^14]: Erstellt von Léonie Bécheiraz
 
-[^102]: Erstellt von Léonie Bécheiraz
+Aus den gewonnenen Daten wird nun die Salärentwicklung und -verteilung
+genauer unter die Lupe genommen. Nach den ersten Analysen werden die
+Daten in verschiedene Gruppen je nach Einkommenshöhe eingeteilt. Eine
+Übersicht der Beträge ergibt sich aus dem summary() der Spalte
+"incomes_per_year".
 
 ```{r}
 # Übersicht über die Verteilung der Jahreseinkommen
@@ -4090,12 +4249,10 @@ Die Kennzahl (skewness) ist 1.58 und somit grösser als 0. Dies heisst,
 dass die Verteilung der Einkommen eine positive Schiefe (rechtsschief)
 aufweist, was im Plot sehr gut zu erkennen ist.
 
-##### Entwicklung Jahreseinkommen
+#### Entwicklung Jahreseinkommen
 
-[^103] Mittels Visualisierung mit einem Boxplot wird die Entwicklung des
+Mittels Visualisierung mit einem Boxplot wird die Entwicklung des
 Jahreseinkommens deutlich.
-
-[^103]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 in_out_monthly$year <- factor(in_out_monthly$year, levels = c("1993", "1994", "1995", "1996", "1997", "1998"))
@@ -4193,17 +4350,15 @@ rm(incomes_under_320K)
 
 ```
 
-##### Salärgruppen
+#### Salärgruppen
 
-[^104] Folgende Gruppen können nun in einer neuen Spalte "salary_groups"
+Folgende Gruppen können nun in einer neuen Spalte "salary_groups"
 erstellt werden: - lower_income für ein Jahreseinkommen bis 60K -
 lower_middle_income für ein Jahreseinkommen von 60K bis 110K -
 middle_income für ein Jahreseinkommen von 110K bis 145K -
 upper_middle_income für ein Jahreseinkommen von 145K bis 220K -
 upper_income für ein Jahreseinkommen von 220K bis 320K - high_income für
 ein Jahreseinkommen über 320K
-
-[^104]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 df_cons <- df_cons %>% 
@@ -4220,54 +4375,30 @@ head(df_cons$salary_groups, 3)
   
 ```
 
-#### iv. Vermögensentwicklung und -Verteilung
+### Vermögensentwicklung und -Verteilung
 
-[^105] Aus Bankensicht ist es auch relevant, wie sich das Vermögen
-entwickelt. Dazu wurde das Einkommen und die Ausgaben miteinander
-abgeglichen und die Differenz in der Spalte "assets_dev" gespeichert.
-
-[^105]: Erstellt von Léonie Bécheiraz
+Aus Bankensicht ist es auch relevant, wie sich das Vermögen entwickelt.
+Dazu wurde das Einkommen und die Ausgaben miteinander abgeglichen und
+die Differenz in der Spalte "assets_dev" gespeichert.
 
 ```{r}
 summary(df_cons$assets_dev_avg)
 
 ```
 
-##### durchschnittliche Vermögensentwicklung (pro Jahr)
+#### durchschnittliche Vermögensentwicklung (pro Jahr)
 
-[^106] Die jährliche Vermögensentwicklung bewegt sich in den Jahren 1993-1998 zwischen -235716 und 716328.
-
-[^106]: Erstellt von Léonie Bécheiraz
-```{r}
-df_cons %>% 
-  mutate(assets_dev_avg = assets_dev_avg / 1000) %>%
-  ggplot(aes(assets_dev_avg)) +
-  geom_density() +
-  theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.title = element_text(size = 15)
-    ) +
-    ggtitle("Assets development") +
-  labs(
-    x = "Amount in k [CZK]",
-    # y = "Salary per year in K [CZK]",
-    subtitle = "Time span: 1993 - 1998, across all accounts avg per year"
-  )
-
-
-```
+Die jährliche Vermögensentwicklung bewegt sich in den Jahren 1993-1998
+zwischen -235716 und 716328.
 
 Die meisten Accounts weisen im Jahresdurchschnitt eine positive
 Vermögensentwicklung auf.
 
-##### positive oder negative Vermögensentwicklung
+#### positive oder negative Vermögensentwicklung
 
-[^107] Es wird eine zusätzliche Spalte erstellt für die Information, ob
-das Konto eine positive oder eine negative Entwicklung über die Laufzeit
+Es wird eine zusätzliche Spalte erstellt für die Information, ob das
+Konto eine positive oder eine negative Entwicklung über die Laufzeit
 erfährt.
-
-[^107]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 
@@ -4279,15 +4410,11 @@ df_cons <- df_cons %>%
 
 df_cons %>% 
   select(account_id, assets_dev_groups) %>% 
-  head(3)
+  head(., 3)
 
 ```
 
 #### Vermögensentwicklung über die Jahre
-
-[^108]
-
-[^108]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 in_out_monthly %>% 
@@ -4310,10 +4437,10 @@ ggplot(aes(x = year, y = assets_dev_year, fill = year)) +
 
 ```
 
-##### Geschichtliches Intermezzo
+#### Geschichtliches Intermezzo
 
-[^109] Im Jahr 1993 gab es die meisten positiven Vermögensentwicklungen.
-Danach gehen die Vermögen zurück analog der Einkommensentwicklung. Diese
+Im Jahr 1993 gab es die meisten positiven Vermögensentwicklungen. Danach
+gehen die Vermögen zurück analog der Einkommensentwicklung. Diese
 Entwicklung könnte auch einen geschichtlichen Zusammenhang haben. Am 1.
 Januar 1993 wurde die heutige Tschechische Republik gegründet. Der noch
 junge souveräne Staat könnte wirtschaftlich in der Findungsphase gewesen
@@ -4328,9 +4455,8 @@ Die darauf folgende Rezession der tschechischen Wirtschaft könnte eine
 Erklärung für die rückläufige Vermögensentwicklung in den Jahren 1997
 und 1998 sein.
 
-[^109]: Erstellt von Léonie Bécheiraz
-
 Vermögensentwicklung auf die einzelnen Jahre
+
 ```{r}
 df <- df_cons %>% 
   select(account_id, assets_dev_groups)
@@ -4355,12 +4481,15 @@ in_out_monthly %>%
     subtitle = "across all accounts per year with positive or negative development"
   )
 
+rm(df)
+
 ```
 
 Erstaundlich ist, dass trotz Rezession sehr viele Accounts eine geringe
 positive Entwicklung verzeichnen.
 
 Durchschnittseinkommen auf die Vermögensentwicklung aufgeteilt
+
 ```{r}
 ggplot(df_cons, aes(x = incomes_avg, fill = as.factor(assets_dev_groups))) +
   geom_density(alpha = 0.3) +
@@ -4377,9 +4506,11 @@ ggplot(df_cons, aes(x = incomes_avg, fill = as.factor(assets_dev_groups))) +
   ) +
   scale_x_continuous(labels = comma) +
   scale_y_continuous(labels = comma)
+
 ```
 
 Das Einkommen mit dem Logarithmus angepasst.
+
 ```{r}
 ggplot(df_cons, aes(x = log(incomes_avg), fill = as.factor(assets_dev_groups))) +
   geom_density(alpha = 0.3) +
@@ -4429,16 +4560,12 @@ ggplot(aes(x = assets_dev_year, fill = as.factor(year))) +
 ```
 
 Das Jahr 1993 hebt sich mit einer höheren positiven und einer sehr
-geringeren negativen Entwicklung deutlich von den folgenden Jahren ab. Ebenso ist
-das Jahr 1998 am stärksten mit negativen Beträgen belastet. Erstaundlich
-ist daher, dass genau in diesem Jahr doch viele Konten sich doch noch in
-den schwarzen Zahlen halten konnten.
+geringeren negativen Entwicklung deutlich von den folgenden Jahren ab.
+Ebenso ist das Jahr 1998 am stärksten mit negativen Beträgen belastet.
+Erstaundlich ist daher, dass genau in diesem Jahr doch viele Konten sich
+doch noch in den schwarzen Zahlen halten konnten.
 
 #### Vemögensentwicklung unterteilt auf die Einkommensgruppen
-
-[^110]
-
-[^110]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 
@@ -4474,11 +4601,9 @@ negative Schlussbilanzen auf.
 
 #### Verteilung der Konten auf die Kunden
 
-[^111] Ein Kunde kann mehrere Konten benutzen. Für die Entwicklung von
+Ein Kunde kann mehrere Konten benutzen. Für die Entwicklung von
 Kundengruppen ist es wichtig, die bis dahin gewonnenen Erkenntnisse auf
 die einzelnen Kunden anzuwenden.
-
-[^111]: Erstellt von Léonie Bécheiraz
 
 Zählen, wieviele Konten pro Owner registriert sind.
 
@@ -4540,12 +4665,9 @@ Es sind auch keine User bei einem anderen Konto als Owner eingetragen.
 
 #### Konten mit sehr geringen Ausgaben
 
-[^112] Wir haben in vorhergehenden Analysen gesehen, dass es Konten
-gibt, welche keine oder sehr geringe Ausgaben haben. Es könnte sich
-hierbei um Sparkonten handeln. Diese Konten wollen wir nun genauer
-anschauen.
-
-[^112]: Erstellt von Léonie Bécheiraz
+Wir haben in vorhergehenden Analysen gesehen, dass es Konten gibt,
+welche keine oder sehr geringe Ausgaben haben. Es könnte sich hierbei um
+Sparkonten handeln. Diese Konten wollen wir nun genauer anschauen.
 
 ```{r}
 less_out <- df_cons %>% 
@@ -4584,10 +4706,6 @@ keinen Verwendungszweck. Da es sich bei diesen Konten nicht um sehr
 grosse Beträge handelt, werden diese nicht weiter untersucht.
 
 #### Vermögensentwicklung bei Konten mit hohem Eikommen
-
-[^113]
-
-[^113]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 accounts_high_incomes <- df_cons %>% 
@@ -4628,9 +4746,9 @@ Region Moravia gemeldet sind. Es ist wieder dieselbe Region, die als
 vermögend heraussticht wie wir bei den Kreditkartenbezügen bereits
 gesehen haben.
 
-##### Das Gebiet Moravia (Mähren)
+#### Das Gebiet Moravia (Mähren)
 
-[^114] In der Region Moravia sind einige wichtige Wirtschaftszentren
+In der Region Moravia sind einige wichtige Wirtschaftszentren
 angesiedelt. Auch die Landwirtschaft spielt eine wichtige Rolle vor
 allem der Weinbau. Über 90% der Weinberge befinden sich im Gebiet
 Mähren. Das Gebiet verfügt weiter über reichlich Braunkohle und Erdöl.
@@ -4638,9 +4756,7 @@ Auch die Automobil- und die tschechische Feuerwaffenindustrie haben ihre
 Produktionsstätten in dieser Region. Das Gebiet um Zlín ist für
 Flugzeughersteller bekannt. Mehrere Firmen haben dort ihren Sitz.
 
-[^114]: Erstellt von Léonie Bécheiraz
-
-##### Jung, dynamisch und gut betucht
+#### Jung, dynamisch und gut betucht
 
 Bei 2 unserer Top 3 Verdienern handelt es sich um junge bis sehr junge
 Personen. Es könnt sein, dass sie aus wohlhabenden Familien stammen und
@@ -4657,11 +4773,7 @@ organisiert durch die Kundschaft - Beratung und Gutscheine für
 Ersteinrichtung der Wohnung/Haus - individuelle Versicherungsberatung -
 Treuhänderische Tätigkeiten
 
-##### Altesverteilung der Kontoinhaber aufgeteilt auf den Einkommensklassen
-
-[^115]
-
-[^115]: Erstellt von Léonie Bécheiraz
+#### Altesverteilung der Kontoinhaber aufgeteilt auf den Einkommensklassen
 
 ```{r}
 df_cons %>% 
@@ -4671,28 +4783,289 @@ df_cons %>%
   summarise(owner_age_median = median(owner_age_at_account_opening)) %>% 
   arrange(owner_age_median)
 
+rm(in_out_monthly)
+
 ```
 
 Bei den hohen Einkommen ist der Altersdurchschnitt am tiefsten. Dies
 widerspricht der allgemeinen Annahme, dass eine Person mit zunehmenden
 Alter auch mehr Einkommen hat.
 
-### Cluster
+### Umkehrhypothek (HELOC)[^15]
 
-nächste Schritte:
+[^15]: Erstellt von Léonie Bécheiraz
 
-Boxplot mit der Salärentwicklung über 320K
+Eine weitere Möglichkeit für Cross Selling ist die Umkehrhypothek
+(HELOC, home equitiy line of credit). Sie bietet Personen im Rentenalter
+mehr finanzielle Flexibilität.
 
-Wie verhalten sich die Konten (Vermögensentwicklung dort anschauen)
-haben vermögende Kunden (hohes Einkommen) positive Vermögensentwicklung?
-welche Konten haben loans? welche Konten haben perm orders? gibt es
-Zusammenhänge zwischen Loans/permorders und der höhe der Einkommen? oder
-der Vermögensentwicklung?
+#### Voraussetzung
 
-Angebot der Bank für die Kundschaft Was kann die Bank tun um der
-Kundschaft zu helfen, das Geld im Griff zu haben?
+-   Kunde muss im Pensionsalter sein
+-   Kunde hat bereits Wohneigentum und nutzt dieses auch selbst
+-   das Wohneigentum ist abbezahlt oder die Hypthek nur noch sehr gering
+-   das Konto darf keine negative Vermögensentwicklung aufweisen
+-   der Kunde hat keine weiteren Darlehensverpflichtungen, welche nicht
+    beglichen werden könnten
 
-#### iv. Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung über die Zeit aus?
+#### Rentenalter
+
+Das Rentenalter tritt ab dem 65 Lebensjahr ein. Dies für beide
+Geschlechter gleich.
+
+Erstellen einer neuen Spalte "is_retirement_age" mit dem logischen Wert
+TRUE wenn der Kunde im Rentenalter ist.
+
+```{r}
+df_cons <- df_cons %>% 
+  mutate(is_retirement_age = ifelse(owner_current_age >= 65, TRUE, FALSE))
+
+foo <- df_cons %>% 
+  filter(is_retirement_age == TRUE) %>% 
+  nrow()
+
+paste("Unter der Kundschaft befinden sich", foo, "Kunden mit Zeichnungsrecht im Rentenalter.")
+rm(foo)
+
+```
+
+#### Wohneigentum
+
+Ob ein Kunde Wohneigentum hat, ist aus den vorliegenden Daten nicht
+abschliessend festzustellen. Wir können aber annehmen, dass Kunden mit
+dem Zahlungshinweis Household oder mit einem Darlehen für Household
+Wohneigentum besitzen.
+
+Erstellen einer neuen Spalte "has_res_prop" mit dem logischen Wert TRUE
+wenn der Kunde Transaktionen für Household hat.
+
+```{r}
+hh_payment <- df_transaction_complete %>% 
+  filter(characterization == "HOUSEHOLD",
+         cashflow == "OUT") %>% 
+  group_by(account_id) %>% 
+  slice_head(n = 1)
+
+df_cons_hh <- df_cons %>% 
+  filter(!is.na(order_num_household)) %>% 
+  mutate(has_res_prop = ifelse(account_id %in% hh_payment$account_id | order_num_household > 0, TRUE, FALSE)) %>% 
+  na_replace(has_res_prop, FALSE) %>% 
+  select(account_id, has_res_prop)
+
+df_cons <- df_cons %>% 
+  left_join(df_cons_hh) 
+
+df_cons <- df_cons %>% 
+  mutate(isNA = is.na(has_res_prop))
+
+df_cons <- df_cons %>% 
+  mutate(has_res_prop = ifelse(isNA == FALSE, has_res_prop, FALSE))
+  
+  
+df_cons %>% 
+  filter(is.na(has_res_prop)) %>% 
+  nrow()
+
+df_cons %>% 
+  filter(has_res_prop == TRUE) %>% 
+  nrow()
+
+df_cons_hh %>% 
+  filter(has_res_prop == TRUE) %>% 
+  nrow()
+
+df_cons <- df_cons %>% 
+  select(-isNA)
+
+rm(hh_payment, df_cons_hh)
+  
+```
+
+#### Liste Kunden für Angebot der Umkehrhypothek
+
+Filtern nach den Voraussetzungen
+
+-   Kunde muss im Pensionsalter sein
+-   Kunde hat bereits Wohneigentum und nutzt dieses auch selbst
+-   das Wohneigentum ist abbezahlt oder die Hypthek nur noch sehr gering
+-   das Konto darf keine negative Vermögensentwicklung aufweisen
+-   der Kunde hat keine weiteren Darlehensverpflichtungen, welche nicht
+    beglichen werden könnten
+
+```{r}
+heloc_cust_list <- df_cons %>% 
+  filter(
+    is_retirement_age == TRUE, 
+    has_res_prop == TRUE,
+    loan_in_dept == FALSE | is.na(loan_in_dept),
+    assets_dev_pos == TRUE
+    )
+
+foo <- heloc_cust_list %>% 
+  nrow()
+
+heloc_cust_list %>% 
+  group_by(consultation_on_site) %>% 
+  count()
+  
+  
+paste("Für das Angebot der Umkehrhypothek kommen", foo, "Kunden in Frage. Alle Kunden können persönlich vor Ort beraten werden.")
+
+rm(heloc_cust_list)
+rm(foo)
+
+```
+
+Für Darlehen: Spalte is_high_cash Für Versicherung: Spalte has_insurance
+
+### Entscheidungsbaum Kreditkarten[^16]
+
+[^16]: Erstellt von Léonie Bécheiraz
+
+Entscheidungsbaum für Cross Selling Angebote wie in diesem Fall zum
+Thema Kreditkarte
+
+```{r}
+
+# Filtern nach Spalten mit logischen Werten
+df_tree <- df_cons %>% 
+  select(
+    loan_in_dept,
+    owner_district_region,
+    owner_current_age,
+    owner_sex,
+    incomes_avg,
+    assets_dev_avg,
+    salary_groups, 
+    has_creditcard
+  )
+
+str(df_tree) 
+
+```
+
+```{r}
+table(df_tree$loan_in_dept)
+
+```
+
+```{r}
+
+df_tree$loan_in_dept <- as.numeric(df_tree$loan_in_dept)
+df_tree$loan_in_dept <- na_replace(df_tree$loan_in_dept, 0)
+table(df_tree$loan_in_dept)
+```
+
+```{r}
+tree_train <- slice_sample(df_tree, n = 900)
+head(tree_train)
+
+```
+
+Daten partitionieren
+
+```{r}
+set.seed(123)
+# 75/25 split für Trainings- und Testdaten
+tree_split <- initial_split(tree_train, prob = 0.75)
+
+mytree_train <- training(tree_split)
+
+mytree_test <- testing(tree_split)
+
+dim(mytree_train)
+
+```
+
+```{r}
+dim(mytree_test)
+
+```
+
+Datenbeschreibung: - loan_in_dept - owner_district_region -
+age_dec1999 - owner_sex - incomes_avg - assets_dev_avg - salary_groups -
+has_creditcard
+
+Geschlechterstatistik erstellen
+
+```{r}
+table(mytree_train$owner_sex)
+```
+
+```{r}
+prop.table(table(mytree_train$owner_sex))
+```
+
+Einfache Analysen erstellen
+
+```{r}
+summary(mytree_train$age_dec1999)
+```
+
+```{r}
+summary(mytree_train$has_creditcard)
+
+```
+
+```{r}
+table(mytree_train$owner_district_region)
+```
+
+Modell trainieren
+
+```{r}
+set.seed(123)
+ct_tree <- rpart(has_creditcard ~ . , data = mytree_train, method = "class", control = rpart.control(cp = 0.005), parms = list(split = "gini"))
+
+```
+
+Modell analysieren
+
+```{r}
+ct_tree
+```
+
+Mit summary analysieren
+
+```{r}
+summary(ct_tree)
+```
+
+CP Statistik
+
+Die CP Statistik gibt Aufschluss über den Kreuzvalidierungsfehler für
+eine bestimmte Anzahl Splits
+
+```{r}
+printcp(ct_tree)
+
+```
+
+Der kleinste Kreuzvalidierungsfehler nach der 1-Standardfehler Regel
+kann fürs Stutzen verwendet werden. Die zugehörige Visualisierung sieht
+wie folgt aus, wobei die obere horizontale Achse die Anzahl Blätter
+widerspiegelt.
+
+```{r}
+# Relativer Fehler der Kreuzvalidierung 
+# Obere x-Achse zeigt hier Anzahl Blätter (upper = "size"), alternativ wählbar sind die Anzahl Splits (upper = "splits")
+plotcp(ct_tree, upper = "size")
+```
+
+Fürs Pruning des Baumes gilt: "A good choice of cp for pruning is often
+the leftmost value for which the mean lies below the horizontal line."
+
+```{r}
+rpart.plot(ct_tree)
+
+```
+
+### Weitere Analysen
+
+Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung
+über die Zeit aus?[^17]
+
+[^17]: Erstellt von Christian Heeb
 
 Gesamtübersicht über die letzten Jahre
 
@@ -4727,7 +5100,8 @@ df_cons %>%
 
 ```
 
-#### iv. Wie sieht die Altersverteilung dieser Kunden aus und was kann daraus hergeleitet werden?
+iv\. Wie sieht die Altersverteilung dieser Kunden aus und was kann
+daraus hergeleitet werden?
 
 ```{r}
 # Calculate age of Customers with Lubridate
@@ -4768,21 +5142,12 @@ Altersverteilung beim eröffnen des Kontos
    scale_x_continuous(breaks = scales::breaks_pretty(10))
 ```
 
-#### v. Neue Fragestellung
+### Neue Fragestellung
 
-[^116]
+vi\. Wie sieht die Verteilung von Kreditkartentypen auf die Population
+der Kreditkarten aus?[^18]
 
-[^116]: Erstellt von Aaron Studer
-
-```{r}
-
-```
-
-#### vi. Wie sieht die Verteilung von Kreditkartentypen auf die Population der Kreditkarten aus?
-
-[^117]
-
-[^117]: Erstellt von Aaron Studer
+[^18]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -4808,15 +5173,13 @@ rm(df_credit_card_by_type)
 
 ```
 
-#### vii. Wie sieht die Verteilung der Typen von Dispositionen aus?
+vii\. Wie sieht die Verteilung der Typen von Dispositionen aus?[^19]
 
-[^118]
-
-[^118]: Erstellt von Aaron Studer
+[^19]: Erstellt von Aaron Studer
 
 ```{r}
-# 
-# df_distribution_disposition_type <- df_mod %>%
+
+# df_distribution_disposition_type <- df_cons %>%
 #   filter(!is.na(disp_id)) %>%
 #   group_by(disp_id) %>%
 #   mutate(disp_type = disp_type) %>%
@@ -4826,7 +5189,7 @@ rm(df_credit_card_by_type)
 #   distinct()
 # 
 # df_distribution_disposition_type
-# 
+
 # ggplot(df_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
 #   labs(title = "Distribution of disposition types", subtitle = "") +
 #   geom_bar(position="fill", stat="identity") +
@@ -4835,13 +5198,18 @@ rm(df_credit_card_by_type)
 #   ylab("Count") +
 #   labs(fill = "Disposition Type")
 
+df_cons %>% 
+  ggplot(aes(x = owner_sex, fill = owner_sex)) +
+    geom_bar() +
+    theme(legend.position = "none") +
+    labs(title = "Distribution of disposition types", x = "Sex") 
+    #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+    
 ```
 
-#### viii. Was ist der am beliebtesten Modus einer Transaktion?
+viii\. Was ist der am beliebtesten Modus einer Transaktion?[^20]
 
-[^119]
-
-[^119]: Erstellt von Aaron Studer
+[^20]: Erstellt von Aaron Studer
 
 ```{r}
 # df_transaction_type_count <- df_transaction_complete %>%
@@ -4850,24 +5218,36 @@ rm(df_credit_card_by_type)
 #   mutate(count = sum(n())) %>%
 #   select(count, characterization, quarter) %>%
 #   distinct()
-# 
-# df_transaction_type_count
-# 
-# ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = count)) +
-#   labs(title = "Distribution of transaction types per quarters", subtitle = "") +
-#   geom_bar(position="stack", stat="identity") +
-#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-#   xlab("Quarter") +
-#   ylab("Count") +
-#   labs(fill = "Transaction Type") +
-#   facet_wrap(vars(characterization), ncol = 4)
+save(df_transaction_complete, file = "df_transaction_complete.RData")
+load("df_transaction_complete.RData")
+
+df_transaction_complete <- df_transaction_complete %>% 
+  mutate(quarter = quarter(date, type = "year.quarter"))
+
+df_transaction_type_count <- df_transaction_complete %>%
+  filter(!is.na(trans_id)) %>%
+  group_by(characterization, quarter) %>%
+  mutate(count = sum(n())) %>%
+  select(count, characterization, quarter) %>%
+  distinct()
+
+df_transaction_type_count
+
+ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = count)) +
+  labs(title = "Distribution of transaction types per quarters", subtitle = "") +
+  geom_bar(position="stack", stat="identity") +
+  # geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
+  xlab("Quarter") +
+  ylab("Count") +
+  labs(fill = "Transaction Type") +
+  facet_wrap(vars(characterization), ncol = 4)
+
 ```
 
-#### ix. Aus welchen Gründen (Charakterisierung) werden Transaktion durchgeführt und wie sieht die Verteilung dieser aus?
+ix\. Aus welchen Gründen (Charakterisierung) werden Transaktion
+durchgeführt und wie sieht die Verteilung dieser aus?[^21]
 
-[^120]
-
-[^120]: Erstellt von Aaron Studer
+[^21]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -4875,63 +5255,72 @@ rm(df_credit_card_by_type)
 
 ```
 
-#### x. Verteilung der Kundschaft auf die Distrikte in Tschechien.
+### Kartenansicht
 
-[^121]
+x\. Verteilung der Kundschaft auf die Distrikte in Tschechien.[^22]
 
-[^121]: Erstellt von Aaron Studer
+[^22]: Erstellt von Aaron Studer
 
-##### Vorbereitung der externen geografischen Daten für die Visualisierung in einer Kartenansicht.
+Vorbereitung der externen geografischen Daten für die Visualisierung in
+einer Kartenansicht.[^23]
 
-[^122]
-
-[^122]: Erstellt von Aaron Studer
+[^23]: Erstellt von Aaron Studer
 
 ```{r}
-
+# 
 #Preparation of the geographical data of the RCzechia package.
-geographical_data <- RCzechia::okresy("low") 
+geographical_data <- RCzechia::okresy("low")
 
 str(geographical_data)
 
 # load("df_district_mod.RData")
 
-str(df_district_mod)
+# str(df_district_mod)
+# 
+# df_district_mod <- df_district_mod %>% mutate(
+#   district_name = as.character(district_name),
+#   district_name = ifelse(district_name == "Hl.m. Praha", "Praha", district_name)
+#   )
+# 
+# df_district_mod <- df_district_mod %>%
+#   arrange(district_name)
+# 
+# geographical_data <- geographical_data %>%
+#   arrange(NAZ_LAU1)
 
-df_district_mod <- df_district_mod %>% mutate(
-  district_name = as.character(district_name),
+str(df_cons$account_district_name)
+
+df_district_mod <- df_cons %>% mutate(
+  district_name = as.character(account_district_name),
   district_name = ifelse(district_name == "Hl.m. Praha", "Praha", district_name)
-  )
-
-df_district_mod <- df_district_mod %>%
+  ) %>%
   arrange(district_name)
 
 geographical_data <- geographical_data %>%
   arrange(NAZ_LAU1)
 
+
 ```
 
-##### x. i. Die Anzahl der Kunden in den einzelnen Distrikten.
+x\. i. Die Anzahl der Kunden in den einzelnen Distrikten.[^24]
 
-[^123]
-
-[^123]: Erstellt von Aaron Studer
+[^24]: Erstellt von Aaron Studer
 
 ```{r}
-
-df_customers_per_district <- df_cons %>%
-  group_by(account_district_name) %>%
+# 
+df_customers_per_district <- df_district_mod %>%
+  group_by(district_name) %>%
   mutate(count = sum(n())) %>%
-  select(account_district_name, count) %>%
+  select(district_name, count) %>%
   distinct()
 
 df_customers_per_district
 
-df_customers_per_district <- df_customers_per_district %>% mutate(
-    district_name = as.character(account_district_name),
-    district_name = ifelse(account_district_name == "Hl.m. Praha", "Praha", district_name)
-  ) %>%
-  arrange(account_district_name)
+# df_customers_per_district <- df_customers_per_district %>% mutate(
+#     district_name = as.character(account_district_name),
+#     district_name = ifelse(account_district_name == "Hl.m. Praha", "Praha", district_name)
+#   ) %>%
+#   arrange(account_district_name)
 
 df_customers_per_district <- cbind(df_customers_per_district, original_district_name = geographical_data$NAZ_LAU1) %>%
   select(district_name, original_district_name, count)
@@ -4952,21 +5341,26 @@ ggplot(data = df_customers_per_district_incl_geo_data) +
 
 ```
 
-##### x. ii. Der Durchschnittliche Lohn in den verschiedenen Distrikten
+x\. ii. Der Durchschnittliche Lohn in den verschiedenen Distrikten[^25]
 
-[^124]
-
-[^124]: Erstellt von Aaron Studer
+[^25]: Erstellt von Aaron Studer
 
 ```{r}
 
-df_district_mod_names <- cbind(df_district_mod, original_name = geographical_data$NAZ_LAU1) %>%
-  select(district_name, original_name, district_average_salary)
+# df_district_mod_names <- cbind(df_district_mod, original_name = geographical_data$NAZ_LAU1) %>%
+#   select(account_district_name, original_name, account_district_average_salary)
+
+df_district_mod_names <- df_district_mod %>% 
+  select(account_district_name, account_district_average_salary) %>% 
+  distinct() %>% 
+  cbind(original_name = geographical_data$NAZ_LAU1)
+
+
 
 df_average_salary_per_district_including_geo_data <- left_join(df_district_mod_names, geographical_data, by = c("original_name" = "NAZ_LAU1"))
 
 ggplot(data = df_average_salary_per_district_including_geo_data) +
-  geom_sf(aes(fill = district_average_salary, geometry= geometry), colour = NA) +
+  geom_sf(aes(fill = account_district_average_salary, geometry= geometry), colour = NA) +
   geom_sf(data = republika("low"), color = "gray30", fill = NA) +
   scale_fill_viridis_c(trans = "log", labels = scales::comma) +
   labs(title = "Average Salary per District",
@@ -4981,11 +5375,10 @@ rm(df_district_mod_names)
 
 ```
 
-#### xi. Können neue Sonderangebote/Pakete geschaffen werden für die am meist verdienenden Kunden?
+xi\. Können neue Sonderangebote/Pakete geschaffen werden für die am
+meist verdienenden Kunden?[^26]
 
-[^125]
-
-[^125]: Erstellt von Aaron Studer
+[^26]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -4993,9 +5386,12 @@ rm(df_district_mod_names)
 
 ```
 
-### b. Für Korrelationen zwischen Datenattributen:
+### Für Korrelationen zwischen Datenattributen:
 
-#### i. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt werden und bei bereits laufenden Krediten können Massnahmen getroffen werden.
+i\. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre
+Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann
+mithilfe der Analyse festgestellt werden und bei bereits laufenden
+Krediten können Massnahmen getroffen werden.
 
 ```{r}
 df_cons %>%
@@ -5132,16 +5528,17 @@ nested_loan_plot
 
 ```
 
-#### ii. Wie sieht das Verhältnis der Benutzung von verschiedenen Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten? Müssen wir das Geschäftsmodell anpassen?
+ii\. Wie sieht das Verhältnis der Benutzung von verschiedenen
+Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die
+Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten?
+Müssen wir das Geschäftsmodell anpassen?[^27]
 
-[^126]
-
-[^126]: Erstellt von Aaron Studer
+[^27]: Erstellt von Aaron Studer
 
 ```{r, warning = FALSE}
 
 # #Make plot with count of different Payment methods ("trans_operation") over time
-# df_cons %>%
+# df_transaction_complete %>%
 #   ggplot(mapping = aes(x = trans_date, fill = trans_operation)) +
 #   geom_histogram(binwidth = 5) +
 #   facet_wrap(~ trans_operation, ncol = 2, scales = "free_y") +
@@ -5150,11 +5547,25 @@ nested_loan_plot
 #   ylab("Count") +
 #    theme(legend.position = "none") +
 #   scale_x_date(date_labels="%y",date_breaks ="1 year", date_minor_breaks = "1 month") +
-#   theme(axis.text.x = element_text(size = 8, angle=90,vjust =0.2)) 
+#   theme(axis.text.x = element_text(size = 8, angle=90,vjust =0.2))
+
+df_transaction_complete %>%
+  ggplot(mapping = aes(x = date, fill = operation)) +
+  geom_histogram(binwidth = 5) +
+  facet_wrap(~ operation, ncol = 2, scales = "free_y") +
+  labs(title = "Overwiev distribution of Transaction methods used from 1993 to 1999 ", subtitle = "Y-axis set independently", fill = "Method of Transaction" ) +
+  xlab("Years") +
+  ylab("Count") +
+   theme(legend.position = "none") +
+  scale_x_date(date_labels="%y",date_breaks ="1 year", date_minor_breaks = "1 month") +
+  theme(axis.text.x = element_text(size = 8, angle=90,vjust =0.2))
+
 
 ```
 
-#### iii. Wie viele der Kunden verwenden eine Kreditkarte von den Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können Angebote für spezifische Kundengruppen erstellt werden?
+iii\. Wie viele der Kunden verwenden eine Kreditkarte von den
+Bonusprogrammen? Welche Attribute weisen diese Kunden auf? Können
+Angebote für spezifische Kundengruppen erstellt werden?
 
 ```{r}
 # Summarize all Cusotmers with Gold Card. 
@@ -5163,33 +5574,41 @@ nested_loan_plot
 
 ```
 
-#### iv. Korrelationsanalyse zwischen den Bankdaten und den soziodemografischen Daten.
+iv\. Korrelationsanalyse zwischen den Bankdaten und den
+soziodemografischen Daten.
 
-### 1. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es diese Unterschiede? Was unterscheidet diese Distrikte?
-
-```{r}
-
-```
-
-### 2. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug zu den restlichen Einwohnern? Können durch diese Zahlen neue Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden führen?
+1\. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es
+diese Unterschiede? Was unterscheidet diese Distrikte?
 
 ```{r}
 
 ```
 
-### 3. Wie sieht die Entwicklung des Einkommens im Bezug zu den Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.
+2\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug
+zu den restlichen Einwohnern? Können durch diese Zahlen neue
+Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden
+führen?
 
 ```{r}
 
 ```
 
-#### v. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu unterteilen?
+3\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
+Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.
 
 ```{r}
 
 ```
 
-#### vi. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer aus? Kann aus der Grafik ein Trend ausgelesen werden?
+v\. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu
+unterteilen?
+
+```{r}
+
+```
+
+vi\. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer
+aus? Kann aus der Grafik ein Trend ausgelesen werden?
 
 ```{r}
 
@@ -5197,7 +5616,9 @@ nested_loan_plot
 
 ```
 
-### 3. Welches Potenzial haben jegliche Datenobjekte und mit Hilfe welcher Mittel kann das beste Produkt daraus generiert werden? (Aaron) und jeder der noch kann....
+3\. Welches Potenzial haben jegliche Datenobjekte und mit Hilfe welcher
+Mittel kann das beste Produkt daraus generiert werden? (Aaron) und jeder
+der noch kann....
 
 ```{r}
 
