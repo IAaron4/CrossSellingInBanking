@@ -5658,6 +5658,10 @@ nested_cardplot
 
 ```
 
+Die Abbildung oben zeigt fünf verschiedene Plots, welche alle Attribute von Kunden mit Gold-Status Kreditkarten aufzeigen. 
+Ziel ist es aufzuzeigen, welche Durchschnittliche Eigenschaften eine solcher Kunde aufweist, um herauszufinden welche weiteren Kunden für diese spezielle Kreditkarte infrage kommen.
+
+
 iv\. Korrelationsanalyse zwischen den Bankdaten und den
 soziodemografischen Daten.
 
