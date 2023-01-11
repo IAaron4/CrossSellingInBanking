@@ -3138,49 +3138,143 @@ glimpse(df_cons)
 
 [^12]: Erstellt von Luca Gisler
 
-Die uns zu Grunde liegenden Daten lassen sich als von der Bank sowie als
-exogen erhoben unterscheiden.
+Die uns zu Grunde liegenden Daten lassen sich als von der Bank sowie als exogen erhoben unterscheiden.
+
 
 a\. Wie können die Daten noch weiter gruppiert und angeordnet werden, um
 eine optimale Grundlage für die Analyse zu bilden?
 
+[^12]: Erstellt von Luca Gisler
+
+Die Daten können je nach Typ und Struktur noch weiter gruppiert werden um für folgende Analysen eine optimale Grundlage zu schaffen.
+Gruppierungen sind von Interesse, da sie eine Systematischen Vorteil liefern können.
+
+Das war unsere Augangslage:
+![an image caption Source: ERD Ausgangslage.](CrossSellingInBanking\Ressources\SOLL-Zustand.png)
+
+Ein paar Beispiele für solche weitere Gruppierungen sind:
+
+-   Einkommen Pro Monat
+-   Einkommen Quartalsweise
+-   Einkommen Jährlich
+-   Ausgaben Pro Monat
+-   Ausgaben Quartalsweise
+-   Ausgaben Jährlich
+-   Kontostand Pro Monat
+-   Kontostand Quartalsweise
+-   Kontostand Jährlich
+
+Mit diesen sind die Daten in einer für uns und die Bank in einer nützlichen Form. Diese Erkenntnisse sind dann in den Konsolidierten Datensatz eingeflossen. Diese Gruppierten Daten sind für uns von Interesse, da wir mit Ihnen effizient, klar und strukturiert arbeiten können. Beim Erstellen des **df_cons** sind unsere Gedanken und Änderungen eingeflossen.
+
 ```{r}
+glimpse(df_cons)
+```
+
+
+b\. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft dies für alle einzelnen Datensätze zu?
+
+[^12]: Erstellt von Luca Gisler
+
+Weshalb eine Überprüfung der Stichprobengrösse? - Ein zu kleiner Stichprobenumfang kann dazu führen, dass nicht die gewünsche Tiefe des eigentlich angestrebten erreicht wird. - Ein zu großer Stichprobenumfang kann dazu führen, dass unnötig Resscourcen verschwendet werden.
+
+Wir bemühen uns, genügend Proben zu haben, um einen Effekt vernünftig zu erkennen, wenn er wirklich vorhanden ist ohne begrenzte Ressourcen für zu viele Proben zu verschwenden.
+
+Deshalb die "Sample Size Calculation"
+
+Bevölkerung in Tschechien:
+
+1993: 10.33 Mio 1994: 10.33 Mio 1995: 10.33 Mio 1996: 10.32 Mio 1997:
+10.30 Mio 1998: 10.29 Mio 1999: 10.28 Mio
+
+Quelle:
+(<https://www.laenderdaten.info/Europa/Tschechien/bevoelkerungswachstum.php>)
+
+Sind durchschnittlich: 10.3114 Mio Confidence Level: 95% Margin of
+Error: 3 %
+
+Berechnung: (Z-Score)2 x StdDev x (1-StdDev)/(margin of error)2
+
+Ideale Sample Grösse: 1067
+
+Der zur verfügung gestellte Anzahl Accounts hat eine grösse von 4500,
+was in ungefähr dem vierfachen der berechneten optimalen
+Stichprobengrösse. Was bedeutet, das wir von mehr Beobachtungen als
+nötig sprechen.
+
+relation account (4500 objects in the file ACCOUNT.ASC) -\> Wie im
+Beispiel oben behandelt relation client (5369 objects in the file
+CLIENT.ASC) -\> Gleicher Fall von einer Ausreichender Stichprobengrösse.
+relation disposition (5369 objects in the file DISP.ASC) -\> Gleicher
+Fall von einer Ausreichender Stichprobengrösse. relation permanent order
+(6471 objects in the file ORDER.ASC) -\> Gleicher Fall von einer
+Ausreichender Stichprobengrösse. relation transaction (1056320 objects
+in the file TRANS.ASC) -\> Da die Transaktionen unregelmässig und
+mehrmals möglich sind haben wir hier eine sehr hohe Anzahl
+Observationen. relation loan (682 objects in the file LOAN.ASC) -\> Um
+eine Aussage über die Richtige Anzahl Kredite machen zu können, bräuchte
+man die gesamte Anzahl von Krediten von 1993-1999. relation credit card
+(892 objects in the file CARD.ASC) -\> Um eine Aussache über die
+Richtige Anzahl Kreditkarten machen zu können, bräuchte man die gesamte
+Anzahl von Kreditkarten von 1993-1999. relation demographic data (77
+objects in the file DISTRICT.ASC) -\> Die Distrikte werden nicht in
+Stichproben erfasst, also werden alle Distrikte so wiedergegeben wie sie
+in Wirklichkeit sind.
+
+
+### Zudem wird die Distribution der Datensätze und deren Qualität überprüft.
+
+Zur Überprüfung der Qualität gehört: - Zuverlässigkeit - Relevanz - Verständlichkeit - Korrektheit - Aktualität
+
+Zuverlässigkeit: Da dies Eine Challenge ist die bereits dutzende male erarbeitet wurde, und von Fachhoschulen, Unis und weiteren Institutionen verwendet wird, haben wir eine Zuverlässige Quelle Relevanz: Diese Daten sind für uns relevant, da diese Daten unseren Informationsbedarf abdecken. Verständlichkeit: Durch die Tansfotmation der Daten ins Englische kam die verständlichkeit. Denn Tschechisch wird bei uns in der Gruppe nicht gesprochen. 
+
+Korrektheit: 
+
+Aktualität:
+
+ 
+Da wir mit den zur Verfügung gestellten Daten arbeiten, und keinen Einfluss auf die Qualitätansprüche bei der Erhebung haben können wir Falsche oder Fehlende Daten verändern oder entfernen.
+
+ 
+c\. Die Datenattribute werden auf ihre Verteilung sowie ihre Veränderung über die Zeit analysiert. Dabei werden technische Mittel der explorativen Datenanalyse angewendet.
+
+[^12]: Erstellt von Luca Gisler
+
+Eine Überprüfung ist die Veränderung des Alters bei der Eröffnung eines Kontos über die Zeit:
+
+```{r}
+ggplot(df_cons, aes(x = account_opening_year, y = as.numeric(owner_age_at_account_opening)))+
+  geom_jitter()+
+  geom_smooth()+
+  labs(title = "Veränderung des Alters bei Eröffnung über die Zeit",
+              subtitle = "1993-1997")+
+  xlab("Jahr")+
+  ylab("Alter bei Kontoeröffnung in Jahren")
 
 ```
 
-b\. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft
-dies für alle einzelnen Datensätze zu?
+Als erstes kann man bei den minimalen Werten einen Trend ablesen, Das minimale Alter bei der Eröffnung wurde wurde über die Jahre konstant höher. 1993 hatten noch Kinder ab 10 Jahren bereits ein Konto, im Jahr 1997 lagen die jüngsten Kontoeröffner bei rund 15 Jahren. Dieser Trend lässt sich auch an der Alters Obergrenze entnehmen. Bei den älteren Menschen kann das ein Zeichen davon sein, dass die Älteren Menschen immer älter werden. auch gab es in den Jahren 1993 und 1995 vermehrte Kontoeröffnungen.
+
+
+Kann man einen Trend bezüglich des Geschlechts der Kontoinhaber feststellen?
 
 ```{r}
-
+ggplot(df_cons, aes(x = account_opening_year, fill = owner_sex))+
+  geom_bar()
 ```
 
-Zudem wird die Distribution der Datensätze und deren Qualität überprüft.
+Wir können keinen Trend bezüglich den Geschlechtern und der Veränderung über die Zeit erkennen. Wir erkennen das es ein in etwa gleiche Verteilung ger konnten über beide Geschlechter gibt.
 
-```{r}
 
-```
+i\. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens analysiert.
 
-c\. Die Datenattribute werden alle auf ihre Verteilung sowie ihre
-Veränderung über die Zeit analysiert. Dabei werden technische Mittel der
-explorativen Datenanalyse angewendet.
+[^12]: Erstellt von Luca Gisler
 
-```{r}
+Diese Analyse und Transformation wurde beim sichten der Daten bereits erledigt, somit konnten bereits zu beginn die Richtigen Datentypen und Formate gewählt werden. Des weiteren wurden für den Konsolidierten Datensatz noch weitere Attribute erstellt, gruppiert und transformiert. Dies wurde gemacht um eine optimale Grundlage für die weiteren Analysen zu haben.
 
-```
-
-i\. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens
-analysiert.
-
-```{r}
-
-```
 
 ## Ausführliche Analysen
 
-Nachdem die Datenattribute einzeln analysiert und geprüft wurden, sollen
-sie miteinander mittels Korrelationsanalysen betrachtet werden. Dabei
-sollten anfällige Zusammenhänge entdeckt werden.\
+Nachdem die Datenattribute einzeln analysiert und geprüft wurden, sollen sie miteinander mittels Korrelationsanalysen betrachtet werden. Dabei sollten anfällige Zusammenhänge entdeckt werden.\
 Beispiele für Hypothesen, welche in der Analyse überprüft werden
 könnten, wären:
 
@@ -5526,7 +5620,6 @@ Die Boxplots in der unteren Reihe stellen den Kreditstatus gegenüber verschiede
 Dabei sind in den Boxplots 1 -3 keine Besonderheiten bezüglich des Kreditstatus gegenüber den jeweiligen Attributen festzustellen. Einzig in Plot 4 ("Ratio Salary to Loan") sieht man, dass das Verhältnis von Kredit zu durchschnittlichem Jahreseinkommen bei den unbezahlten ("Contract Finished unpaid") und den Krediten, welche im Verzug sind ("Contract open indept") tiefer ist. Dies bedeutet, dass die Kreditsumme einen höheren Anteil des jeweiligen Jahreseinkommens ausmacht und somit auch schneller zu einer Belastung wird, was ein Grund für das nicht- oder zu spät bezahlen der Kredite sein könnte.
 
 
-
 ii\. Wie sieht das Verhältnis der Benutzung von verschiedenen
 Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die
 Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten?
@@ -5578,7 +5671,7 @@ df_cons %>%
 
 Das Balkendiagramm zeigt die Verteilung der verschiedenen Kreditkarten Typen. 3608 der insgesamt 4500 Kunden besitzen keine Kreditkarte oder sie ist nicht angegeben. 
 Von den Kreditkartenbesitzern besitzt der grösste Teil eine "Classic" Karte (659 Kunden). Insgesamt 145 Kunden besitzen eine "Junior" Karte. Diese ist nur für Kunden unter 25 Jahren verfügbar.
-Die restlichen Kunden besitzen eine "Gold" Kreditkarte. Diese Kundengruppe möchten wir im nächsten Abschnitt näher untersuchen. 
+Die restlichen Kunden besitzen eine "Gold" Kreditkarte. Da diese Kundengruppe für die Bank interessant ist, möchten wir sie im nächsten Abschnitt näher untersuchen. 
 
 
 ```{r}
@@ -5659,23 +5752,18 @@ nested_cardplot
 ```
 
 Die Abbildung oben zeigt fünf verschiedene Plots, welche alle Attribute von Kunden mit Gold-Status Kreditkarten aufzeigen. 
-Ziel ist es aufzuzeigen, welche Durchschnittliche Eigenschaften eine solcher Kunde aufweist, um herauszufinden welche weiteren Kunden für diese spezielle Kreditkarte infrage kommen.
+Ziel ist es aufzuzeigen, welche Durchschnittliche Eigenschaften eine solcher Kunde aufweist, um herauszufinden welche weiteren Kunden für diese spezielle Kreditkarte in Frage kommen.
 
 
-iv\. Korrelationsanalyse zwischen den Bankdaten und den
-soziodemografischen Daten.
+iv\. Korrelationsanalyse zwischen den Bankdaten und den soziodemografischen Daten.
 
-1\. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es
-diese Unterschiede? Was unterscheidet diese Distrikte?
+1\. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es diese Unterschiede? Was unterscheidet diese Distrikte?
 
 ```{r}
 
 ```
 
-2\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug
-zu den restlichen Einwohnern? Können durch diese Zahlen neue
-Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden
-führen?
+2\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug zu den restlichen Einwohnern? Können durch diese Zahlen neue Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden führen?
 
 ```{r}
 
@@ -5688,26 +5776,104 @@ Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.
 
 ```
 
-v\. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu
-unterteilen?
+v\. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu unterteilen?
+
+[^132]: Erstellt von Luca Gisler
+
+Diese Frage ist in diesem Sinne interessant, dass man im Bereich des Cross Sellings unterschiedliche Angebote für Geschäfts- und Privatkunden ausarbeiten kann. Denn diese zwei Kundengruppen haben andere Ansprüche und eine andere Beziehung zur Bank.
+
+Eine Möglichkeit um herauszufinden ob es ein Geschäftskonto ist, wenn viele Nutzer einer Karte die gleiche Adresse besitzen. Dann kann man darauf schliessen, das dies der Sitz und die Adresse der Firma ist.
+
+Da wir über keine Adressen verfügen ist dieser Ansatz eine Sackgasse.
+
+Kann man anhand von Transaktionen ein Geschäftskonto erkennen?
+
+INSURRANCE - Ein Unternehmen muss auch Versicherungen bezahlen, deshalb ist dieser Transaktionstyp kein sicheres Ausscheide Kriterium.
+HOUSEHOLD - Hat ein Unternehmen Ausgaben die den Haushalt betreffen? Ein Unternehmen zahlt Löhne, Mieten, Versicherungen. Wir vermuten dass ein Unternehmen keine Ausgaben im Bereich Haushalt hat. Aber was ist wenn eine Festlichektit ansteht? Dann fallen diese Ausgaben auch in den Bereich des Haushaltes. Also kein Kriterium für das sichere Identifizieren.
+LEASING - Ein Unternehmen kann auch ein Auto leasen, also ist das kein sicheres Ausscheide Kriterium.
+
+Ist es möglich anhand der Owner/User Kombination ein Geschäftliches Konto zu erkennen?
+
+Wenn es viele User mit unterschiedlichen Adressen auf einen Owner gibt, könnte dies ein Indiz dafür sein, ein Geschäftskonto zu sein.
+
+Auch diesen Ansatz wurde Verworfen, bei den Owner / User ist und ein Muster Aufgefallen.
+
+Für dieses Beispiel wurde die Alter bei Eröffung des Kontos verglichen.
 
 ```{r}
+age_correaltions_owner_user <-df_cons %>% filter((owner_age_at_account_opening == "50" | owner_age_at_account_opening == "30")) %>% 
+  filter(user_age_at_account_opening != "NA") %>% 
+  select(
+    owner_age_at_account_opening,
+    owner_sex,
+    user_age_at_account_opening,
+    user_sex,
+    owner_district_id,
+    user_district_id
+  )
 
+
+head(age_correaltions_owner_user, 30)
 ```
 
-vi\. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer
-aus? Kann aus der Grafik ein Trend ausgelesen werden?
+Wir haben die Alter für diese Tabelle auf 30 und 50 festgelegt, und können somit dieses erkannte Muster aufzeigen. Das Alter des Konto Inhabers und das Alter des weiteren Benutzer (falls vorhanden) bewegt sich im gleichen Altersbereich mit gewissen Abweichungen. Das Geschlecht ergänzt sich auch so, dass wir annehmen können, dass diese Verbindung eine Private und somit keine Geschäftliche Beziehung darstellt. Diese Theorie wird noch davon gestützt, dass die Owner und User immer im gleichen District Wohnhaft sind.
+
+ Aufgrund dieser Erkenntnisse sind wir auf den Schluss gekommen, dass man Geschäfts- und Privatkunden anhand unserer Erkenntnisse nicht unterteilen kann.
+
+ 
+
+
+vi\. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer aus? Kann aus der Grafik ein Trend ausgelesen werden?
+
+[^12]: Erstellt von Luca Gisler
 
 ```{r}
+Loan_trend_over_time <- df_cons %>%
+  filter(loan_status != "NA") %>%
+  ggplot(df_cons, mapping = aes(x = loan_start_date,
+                                y = loan_duration_in_month)) +
+  geom_jitter()+
+  geom_smooth()+
+  labs(title = "Kreditdauer über die Zeit")+
+  xlab("Jahre")+
+  ylab("Dauer des Kredites in Monaten")
 
+ 
 
-
+Loan_trend_over_time
 ```
+
+Was direkt auffällt ist, dass wir über die Zeit eine Zunahme an neuen neuen Krediten erkennen. Die Dauer der Kredite hat sich über dir Zeit nicht spürbar verändert. Um das Jahr 1996 gab es Durchschnittlich weniger Kredite mit kurzer Dauer als vor und nach dieser Zeit. 
+An der Regressionslinie ist ein leichter Aufwärtstrend ersichtlich, welche einen kleinen Dämpfer hatte und zwar um die Jahre 1007 und 1998.
+
+Über den Typ von Krediten kann keine Aussage getroffen werden, da diese nicht ersichtlich sind. Deshalb können nur Veränderungen über die Zeit Analysiert werden.
+
+
+```{r}
+Loan_trend_over_time_ammount <- df_cons %>%
+  filter(loan_status != "NA") %>%
+  ggplot(df_cons, mapping = aes(x = loan_start_date,
+                                y = loan_total_amount)) +
+  geom_jitter()+
+  geom_smooth()+
+  scale_y_continuous(labels=comma)+
+  labs(title = "Kreditsumme über die Zeit")+
+  xlab("Jahre")+
+  ylab("Wert der Kredite in [CZK]")
+
+ 
+
+Loan_trend_over_time_ammount
+```
+
+Die Kreditsumme hat sich über die Zeit nicht wesentlich verändert. Wir sehen einen Stabiles verhalten der Summe von Krediten. Daraus schliessen wir, dass es keine wesentlichen Veränderungen im Bereich der Kreditvergabe, aber auch von Seitens Kreditnehmer gab. Das Volumen der Kredite hat im in der Grafik von vorhin vergrössert.
+
+ 
 
 3\. Welches Potenzial haben jegliche Datenobjekte und mit Hilfe welcher
 Mittel kann das beste Produkt daraus generiert werden? (Aaron) und jeder
 der noch kann....
 
 ```{r}
-
+ 
 ```
