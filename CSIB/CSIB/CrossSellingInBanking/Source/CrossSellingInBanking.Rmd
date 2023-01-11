@@ -99,7 +99,9 @@ library(patchwork)
 library(ggpubr)
 library(ggplot2)
 library(plotly)
+library(rpart)
 library(rpart.plot)
+library(randomForest)
 library(tidymodels)
 library(lubridate)
 library(cluster)
@@ -111,6 +113,10 @@ library(httr)
 library(tidyquant)
 library(xts)
 library(ggridges)
+
+# Package ROSE (Random Over Sampling Examples) for undersampling Problem
+#install.packages("ROSE")
+library(ROSE)
 
 
 tidymodels_prefer()
@@ -5195,7 +5201,9 @@ df_cons %>%
 ```
 
 iv\. Wie sieht die Altersverteilung dieser Kunden aus und was kann
-daraus hergeleitet werden?
+daraus hergeleitet werden?[^17]
+
+[^17]: Erstellt von Christian Heeb
 
 ```{r}
 # Calculate age of Customers with Lubridate
@@ -5396,6 +5404,10 @@ geographical_data <- geographical_data %>%
 
 ```
 
+
+
+
+
 x\. i. Die Anzahl der Kunden in den einzelnen Distrikten.[^24]
 
 [^24]: Erstellt von Aaron Studer
@@ -5485,7 +5497,9 @@ meist verdienenden Kunden?[^26]
 i\. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre
 Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann
 mithilfe der Analyse festgestellt werden und bei bereits laufenden
-Krediten können Massnahmen getroffen werden.
+Krediten können Massnahmen getroffen werden.[^17]
+
+[^17]: Erstellt von Christian Heeb
 
 ```{r}
 df_cons %>%
@@ -5504,8 +5518,7 @@ df_cons %>%
   coord_flip()
 ```
 
-Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive
-deren Status.
+Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive deren Status.
 
 ```{r message=FALSE}
 # Preparation of Plots
@@ -5620,12 +5633,273 @@ Die Boxplots in der unteren Reihe stellen den Kreditstatus gegenüber verschiede
 Dabei sind in den Boxplots 1 -3 keine Besonderheiten bezüglich des Kreditstatus gegenüber den jeweiligen Attributen festzustellen. Einzig in Plot 4 ("Ratio Salary to Loan") sieht man, dass das Verhältnis von Kredit zu durchschnittlichem Jahreseinkommen bei den unbezahlten ("Contract Finished unpaid") und den Krediten, welche im Verzug sind ("Contract open indept") tiefer ist. Dies bedeutet, dass die Kreditsumme einen höheren Anteil des jeweiligen Jahreseinkommens ausmacht und somit auch schneller zu einer Belastung wird, was ein Grund für das nicht- oder zu spät bezahlen der Kredite sein könnte.
 
 
+**Erstellen von Decision Tree und Random Forest Modellen zur Vorhersage der Kreditwürdigkeit**[^1]
+
+[^1]: Erstellt von Christian Heeb
+
+```{r}
+# Loading and installing Packages
+library(rpart)
+library(randomForest)
+
+# Package ROSE (Random Over Sampling Examples) for undersampling Problem
+#install.packages("ROSE")
+library(ROSE)
+```
+
+Für einen einfacheren Umgang mit den Daten wird eine Kopie des Originalen Datensatzes mit allen relevanten Attributen erstellt.
+
+```{r}
+# Preparation of Dataframe with 
+df_cons_predict <- df_cons %>%
+  drop_na(loan_status) %>%
+  select(c(1, 23, 25, 27, 29, 34, 35, 189 ,190, 191)) 
+
+df_cons_predict$loan_in_dept <- gsub("TRUE", "Yes",
+                               gsub("FALSE", "No", df_cons_predict$loan_in_dept))
+
+df_cons_predict$loan_in_dept <- as.factor(df_cons_predict$loan_in_dept)
+  
+# Checking Data
+summary(df_cons_predict)
+```
+
+Aufteilung der Daten in Trainings- und Testsätze
+
+Die Methode split Methode wird verwendet, um die Daten in Trainings- und Testsätze aufzuteilen. Der Datensatz wird in loan_train und loan_test unterteilt. Das loan_test Set wird verwendet um festzustellen, ob das Modell die richtigen Ausgaben vorhersagt.\
+Es wird empfohlen, die Trainingsmengen größer zu halten als die Testmengen.
+
+Trainingsdatensatz: Der Trainingsdatensatz wird für die Anpassung des Modells verwendet. Der Datensatz, auf dem das Modell trainiert wird.
+
+Testdatensatz: Der Testdatensatz ist eine Teilmenge des Trainingsdatensatzes, die verwendet wird, um eine genaue Bewertung der endgültigen Anpassung des Modells zu erhalten.
+
+Unausgeglichener Datensatz
+
+```{r}
+prop.table(table(df_cons_predict$loan_in_dept))
+table(df_cons_predict$loan_in_dept)
+```
+
+Wie mit prop.table dargestellt, ist die Yes und No Verteilung im Datensatz sehr unausgeglichen, von den 682 Beobachtungen sind 606 als No deklariert. Dies liegt hauptsächlich daran, dass die meisten Kunden ihre Kredite zurückzahlen. Dieses Problem kann mit over- oder undersamplig gelöst werden. Durch oversampling werden nun künstliche Yes Werte generiert um einen ausgeglichenen Datensatz zu erstellen.
+
+```{r}
+data_balanced_over <- ovun.sample(loan_in_dept ~ ., data = df_cons_predict, method = "over",N = 1212)$data
+```
+
+Im Code bezieht sich N auf die Anzahl der Beobachtungen welche das angepasst Datensatz nach dem oversampling haben wird. Da sich im originalen Datensatz 606 Yes Werte befinden, sollten die No Werte im angepasste Datensatz diesen Wert nicht übersteigen. Allerdings sollten auch nicht zu viele Yes Werte künstlich generiert werden, da dies die Aussagekraft des Modells verschlechtern kann. Somit erscheint ein Wert von N = 1212 als sinnvoll.
+
+```{r}
+prop.table(table(data_balanced_over$loan_in_dept))
+table(data_balanced_over$loan_in_dept)
+
+df_cons_predict <- data_balanced_over
+```
+
+Der angepasste Datensatz kann jetzt in in Trainings- und Testsätze aufgeteilt werden.
+
+```{r}
+# splitting the data into training and test sets
+set.seed(42)
+sample <- sample.int(n = nrow(df_cons_predict), size = floor(.80*nrow(df_cons_predict)), replace = F)
+loan_train <- df_cons_predict[sample, ]
+loan_test  <- df_cons_predict[-sample, ]
+
+
+# Size of traiing and test set
+dim(loan_train)
+dim(loan_test)
+```
+
+Verteilung der Yes und No Werte im Trainings- und Testdatensatz
+
+```{r}
+prop.table(table(loan_train$loan_in_dept))
+prop.table(table(loan_test$loan_in_dept))
+```
+
+**Decision Tree / Entscheidungsbaum**
+
+Ein Entscheidungsbaum ist eine Art des supervised machine learning, das zur Kategorisierung oder zur Erstellung von Vorhersagen auf der Grundlage der Antworten auf eine frühere Reihe von Fragen verwendet wird.
+
+Durch die Anwendung dieses Modells erhoffen wir uns Attribute zu definieren welche ein prägende Rolle spielen bei der Rückzahlung von Krediten. Dazu wird ein Entscheidungsbaum mithilfe der loan_train Daten erstellt.
+
+```{r warning=FALSE}
+# Building Decision Tree
+set.seed(42)
+dtree_loan <- rpart(loan_in_dept ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + incomes_avg + outgoes_avg, 
+               data = loan_train, 
+               method = "class",
+               control = rpart.control(cp = 0.0001))
+
+# Plotting first draft of Tree, digits argument rounds numbers acording to value (-3) 
+rpart.plot(dtree_loan, digits=-3)
+```
+
+Kreuzvalidierung zur Bestimmung der optimalen Größe des Klassifikationsbaumes. Die Baumgrösse kann gesteuert werden, indem ein sogenannter cp-Werte (complexity parameter) festgesetzt wird.
+
+```{r}
+plotcp(dtree_loan)
+```
+
+Die Spalten in der Ausgabe listen die cp-Werte, die zugehörige Anzahl der Splits (nsplit), den relativen Fehler (rel error) bezogen auf den Fehler im Wurzelknoten auf. Wie man der Tabelle, entnehmen kann, ist der xerror + xstd bei 32 Blättern, also bei 31 Splits am kleinsten. Daraus können wir einen optimalen cp-Wert von 0.0078 ablesen.
+
+```{r}
+# Decision Tree with modifyled cp-Value
+set.seed(42)
+dtree_pruned <- rpart(loan_in_dept ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + incomes_avg + outgoes_avg, 
+               data = loan_train, 
+               method = "class",
+               control = rpart.control(cp = 0.0072))
+
+# Plotting pruned Tree
+rpart.plot(dtree_pruned, split.prefix = "if ", fallen.leaves = TRUE, shadow.col = "gray", digits=-3, main = "Is Customer in Dept?\n(Training Data)")
+
+```
+
+Genauigkeit des Modells mit predict-Funltion und Confusion-Matrix bestimmen
+
+```{r}
+dtred_pred_train <- predict(dtree_pruned, loan_train, type="class")
+
+# Creating Confusion Matrix
+confusion_matrix_train  <- table(loan_train$loan_in_dept, dtred_pred_train)
+confusion_matrix_train
+
+
+# Calculating accuracy 
+accuracy_train <- sum(diag(confusion_matrix_train)) / sum(confusion_matrix_train)
+
+paste("Genauigkeit des Modells: ", accuracy_train, "%" )
+
+```
+
+Mithilfe der Confusion Matrix können wir unser Klassifikationsmodell evaluieren. Die zweidimensionale Matrix stellt die vorhergesagten Klassen steht sowie die tatsächlichen Klassen dar. Daraus kann abgelesen werden, dass das Modell einen grossen Teil richtig klassifiziert hat. Lediglich 108 Kunden wurden falsch klassifiziert.
+
+\
+Testen des Modells mithilfe des loan_test Datensatzes
+
+```{r}
+dtree_pred_test <- predict(dtree_pruned, loan_test, type="class")
+
+# Creating Confusion Matrix
+confusion_matrix_test  <- table(loan_test$loan_in_dept, dtree_pred_test)
+confusion_matrix_test
+
+
+# Calculating accuracy 
+accuracy_test <- sum(diag(confusion_matrix_test)) / sum(confusion_matrix_test)
+
+paste("Genauigkeit des Modells: ", accuracy_test, "%" )
+```
+
+**Random Forest**
+
+Bei Random Forests werden viele Entscheidungsbäume erstellt, wobei bei jedem Baum nur eine Teilmenge der Daten genutzt wird. Für die Prognose der Klasse eines neuen Objekts wird eine Mehrheitsentscheidung der Bäume gefällt (majority vote). Es erfolgt kein Pruning der einzelnen Bäume, da man davon ausgeht, dass sich Overﬁttingprobleme aufgrund der verschiedenen Teilmengen ausgleichen und daher kein Problem mehr darstellen.
+
+Für den Aufbau des Random Forest erfolgt eine Zufallsauswahl auf zwei Ebenen:
+
+1.  Es wird bei jedem Split nur eine zufällig ausgewählte Teilmenge der möglichen Splitvariablen benutzt.
+
+2.  Für jeden Baum werden Bootstrap-Stichproben aus der gesamten Datei gezogen. Bei Bootstrap-Stichproben werden aus der gesamten Datei mit n Objekten nach dem Zufallsprinzip Stichproben wiederum der Größe n gezogen. Die Ziehung erfolgt mit Zurücklegen, d. h. dasselbe Objekt kann auch mehrfach in eine Stichprobe gelangen.
+
+Erstellen des Modells mit den loan_train Daten.
+
+```{r}
+set.seed(42)
+# Creating of Random Forest Model (default Number of Trees = 100, na.action = na.omit removes incomplete cases)
+rf_model <- randomForest(as.factor(loan_in_dept) ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + incomes_avg + outgoes_avg, 
+                   data = loan_train,
+                   na.action = na.omit,
+                   importance=TRUE)
+
+# Output the total error rate
+plot(rf_model)
+
+```
+
+Der Ausgabe können wir die Gesamtfehlerrate (schwarze Linie), die Rate der fälschlicherweise als korrekt prognostizierten (grüne Linie) und die fälschlicherweise als falsch prognostizierten (rote Linie) Objekte entnehmen. In der Graﬁk sind die Werte für random forests mit 500 Bäumen dargestellt. Bei spätestens 150 Bäumen stabilisieren sich alle Werte. Daher führen wir die Analyse nochmals mit 150 Bäumen durch.
+
+```{r}
+set.seed(42)
+rf_model_150 <- randomForest(as.factor(loan_in_dept) ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + incomes_avg + outgoes_avg, 
+                   data = loan_train,
+                   na.action = na.omit,
+                   importance = TRUE,
+                   ntree = 150)
+
+rf_model_150
+
+# Output the total error rate
+plot(rf_model_150)
+```
+
+Genauigkeit des Modells mit predict-Funktion und Confusion-Matrix bestimmen
+
+```{r}
+
+rf_pred_test <- predict(rf_model_150, loan_test)
+
+# Creating Confusion Matrix
+rf_confusion_matrix_test  <- table(loan_test$loan_in_dept, rf_pred_test)
+rf_confusion_matrix_test
+
+# Calculating accuracy 
+rf_accuracy_test <- sum(diag(rf_confusion_matrix_test)) / sum(rf_confusion_matrix_test)
+
+rf_accuracy_test
+```
+
+Mithilfe der Confusion Matrix können wir unser Klassifikationsmodell evaluieren. Die zweidimensionale Matrix stellt die vorhergesagten Klassen steht sowie die tatsächlichen Klassen dar. Daraus kann abgelesen werden, dass das Modell einen grossen Teil richtig klassifiziert hat.
+
+Anwenden des Modells auf den Gesamten Datensatz
+
+```{r}
+rf_pred_all <- predict(rf_model_150, df_cons_predict)
+
+# Creating Confusion Matrix
+rf_confusion_matrix_all  <- table(df_cons_predict$loan_in_dept, rf_pred_all)
+rf_confusion_matrix_all
+
+# Calculating accuracy 
+rf_accuracy_all <- sum(diag(rf_confusion_matrix_all)) / sum(rf_confusion_matrix_all)
+
+rf_accuracy_all
+```
+
+Wichtigkeit der Variablen (Importance)
+
+Neben der Bewertung der Gesamtleistung des Modells ist es auch nützlich, die relative Bedeutung der verschiedenen Eingabevariablen für die Vorhersagen des Modells zu untersuchen. Indem wir die Verbesserung mit den Trainingsiterationen untersuchen, können wir auch Einblicke in den Lernprozess des Modells gewinnen.
+
+Das angegebene Maß für die relative Wichtigkeit ist der Gesamtrückgang der Knotenverunreinigungen durch die Aufteilung auf diese Variable, gemittelt über alle Bäume.\
+
+```{r}
+# Calculate  importance of Model
+importance(rf_model_150, type = 2)
+
+```
+
+In unseren Modellen ist die wichtigste Variable loan_per_year und die unwichtigste ist owner_sex.
+
+Alternativ kann die importance auch in einem Variable Importance Plot dargestellt werden
+
+```{r}
+varImpPlot(rf_model_150, pch = 20)
+```
+
+Der Variable Importance Plot ist ein grundlegendes Ergebnis des Random Forest und zeigt für jede Variable, wie wichtig sie für die Klassifizierung der Daten ist.\
+Die Grafik "Mean Decrease Accuracy" drückt aus, wie viel Genauigkeit das Modell durch den Ausschluss jeder Variable verliert. Je mehr die Genauigkeit leidet, desto wichtiger ist die Variable für eine erfolgreiche Klassifizierung. Die Variablen werden in absteigender Reihenfolge ihrer Bedeutung dargestellt.\
+Der "Mean Decrease Gini" Koeffizient ist ein Maß dafür, wie jede Variable zur Homogenität der Knoten und Blätter im Random Forest beiträgt. Je höher der Wert der mittleren Abnahme der Genauigkeit oder der mittleren Abnahme des Gini-Scores ist, desto wichtiger ist die Variable im Modell.\
+
+Quelle: Von der Hude, M. (2020). *Predictive Analytics und Data Mining* (S. 137 -166). Springer
+
+
+
 ii\. Wie sieht das Verhältnis der Benutzung von verschiedenen
 Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die
 Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten?
-Müssen wir das Geschäftsmodell anpassen?[^27]
+Müssen wir das Geschäftsmodell anpassen?[^17]
 
-[^27]: Erstellt von Aaron Studer
+[^17]: Erstellt von Christian Heeb
 
 ```{r, warning = FALSE}
 df_transaction_complete %>%
@@ -5651,7 +5925,9 @@ Der Rückgang der Bezüge im Bereich "Credit Card Withdrawal" und "Cash Withdraw
 
 
 iii\. Wie viele der Kunden verwenden eine Gold Kreditkarte? Welche Attribute weisen diese Kunden auf? Können
-Angebote für spezifische Kundengruppen erstellt werden?
+Angebote für spezifische Kundengruppen erstellt werden?[^17]
+
+[^17]: Erstellt von Christian Heeb
 
 ```{r}
 # Overview of Card tpyes used
@@ -5672,6 +5948,7 @@ df_cons %>%
 Das Balkendiagramm zeigt die Verteilung der verschiedenen Kreditkarten Typen. 3608 der insgesamt 4500 Kunden besitzen keine Kreditkarte oder sie ist nicht angegeben. 
 Von den Kreditkartenbesitzern besitzt der grösste Teil eine "Classic" Karte (659 Kunden). Insgesamt 145 Kunden besitzen eine "Junior" Karte. Diese ist nur für Kunden unter 25 Jahren verfügbar.
 Die restlichen Kunden besitzen eine "Gold" Kreditkarte. Da diese Kundengruppe für die Bank interessant ist, möchten wir sie im nächsten Abschnitt näher untersuchen. 
+
 
 
 ```{r}
@@ -5801,8 +6078,10 @@ Auch diesen Ansatz wurde Verworfen, bei den Owner / User ist und ein Muster Aufg
 Für dieses Beispiel wurde die Alter bei Eröffung des Kontos verglichen.
 
 ```{r}
+#filter for the ages 30 and 50
 age_correaltions_owner_user <-df_cons %>% filter((owner_age_at_account_opening == "50" | owner_age_at_account_opening == "30")) %>% 
-  filter(user_age_at_account_opening != "NA") %>% 
+  filter(user_age_at_account_opening != "NA") %>%  #remove all NA for this example
+  #select the wanted Informations Age, district, sex for both owner and user
   select(
     owner_age_at_account_opening,
     owner_sex,
@@ -5811,9 +6090,9 @@ age_correaltions_owner_user <-df_cons %>% filter((owner_age_at_account_opening =
     owner_district_id,
     user_district_id
   )
-
-
+#show the first 30 entries
 head(age_correaltions_owner_user, 30)
+
 ```
 
 Wir haben die Alter für diese Tabelle auf 30 und 50 festgelegt, und können somit dieses erkannte Muster aufzeigen. Das Alter des Konto Inhabers und das Alter des weiteren Benutzer (falls vorhanden) bewegt sich im gleichen Altersbereich mit gewissen Abweichungen. Das Geschlecht ergänzt sich auch so, dass wir annehmen können, dass diese Verbindung eine Private und somit keine Geschäftliche Beziehung darstellt. Diese Theorie wird noch davon gestützt, dass die Owner und User immer im gleichen District Wohnhaft sind.
@@ -5828,18 +6107,23 @@ vi\. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer aus? Kann 
 [^12]: Erstellt von Luca Gisler
 
 ```{r}
+#prepare informations, removed NAs and plot
 Loan_trend_over_time <- df_cons %>%
   filter(loan_status != "NA") %>%
   ggplot(df_cons, mapping = aes(x = loan_start_date,
                                 y = loan_duration_in_month)) +
+
+  #add jittering for visability
   geom_jitter()+
+  #add geom_smooth for visual trend changes
   geom_smooth()+
+  #new Title, axis-labels
   labs(title = "Kreditdauer über die Zeit")+
   xlab("Jahre")+
   ylab("Dauer des Kredites in Monaten")
 
  
-
+#print plot
 Loan_trend_over_time
 ```
 
@@ -5850,19 +6134,24 @@ An der Regressionslinie ist ein leichter Aufwärtstrend ersichtlich, welche eine
 
 
 ```{r}
+#prepare informations, removed NAs and plot
 Loan_trend_over_time_ammount <- df_cons %>%
   filter(loan_status != "NA") %>%
   ggplot(df_cons, mapping = aes(x = loan_start_date,
                                 y = loan_total_amount)) +
+
+  #add jittering
   geom_jitter()+
+  #add geom_smooth for for visual trends
   geom_smooth()+
   scale_y_continuous(labels=comma)+
+  #create new title and axis-labels
   labs(title = "Kreditsumme über die Zeit")+
   xlab("Jahre")+
   ylab("Wert der Kredite in [CZK]")
 
- 
 
+#print plot
 Loan_trend_over_time_ammount
 ```
 
@@ -5877,3 +6166,116 @@ der noch kann....
 ```{r}
  
 ```
+
+#### i. Gibt es einen Zusammenhang zwischen den unterschiedlichen Regionen und dem Kreditverhalten (Kreditgrösse, Dauer) von den Kunden? Für eine Optimierung der lokalen Werbekampagnen und Angebote in den entsprechenden Regionen(Cross Selling)
+[^134]:
+[^134]: Erstellt von Luca Gisler
+
+ 
+
+```{r}
+#filter the NAs and create plot
+district_loan_correlation <- df_cons %>% 
+  filter(!is.na(loan_start_date)) %>%
+  ggplot(aes (x = account_district_region,
+              y = loan_total_amount))+
+
+  #add title and axis names, labels for CZK not in hex
+  geom_boxplot()+
+  scale_y_continuous(labels=comma)+
+  labs(title = "Boxplot Kreditunterschiede in den Distrikten",
+       subtitle = "Kreditgrösse [CZK]")+
+  xlab("Regionen")+
+  ylab("Kreditgrösse [CZK]")+
+  theme(axis.text.x = element_text(angle = 45))
+
+ 
+
+#creat plotly plot, for more informations by hoverinfo
+ggplotly(district_loan_correlation)
+```
+
+ 
+
+In den Distrikten haben wir einen MIN/MAX unterschied im Median von 58’782 CZK (MAX: east Bohemia 155'178, MIN: west Bohemia 96'396).
+Das ist ein grosser unterschied, auf was ist dieser zurückzuführen?
+
+ 
+
+
+```{r}
+#filter the NAs and create plot
+district_loan_correlation_duartion <- df_cons %>% 
+  filter(!is.na(loan_start_date)) %>%
+  ggplot(aes (x = account_district_region,
+              y = loan_duration_in_month))+
+
+  #add title and axis names, labels for CZK not in hex  
+  geom_boxplot()+
+  scale_y_continuous(labels=comma)+
+  labs(title = "Boxplot Kreditunterschiede in den Distrikten",
+       subtitle = "Kreditdauer")+
+  xlab("Regionen")+
+  ylab("Kreditdauer [Monat]")+
+  theme(axis.text.x = element_text(angle = 45))
+
+ 
+
+#creat plotly plot, for more informations by hoverinfo
+ggplotly(district_loan_correlation_duartion)
+```
+
+ 
+
+East Bohemia ist mit einem Median von 48 Monaten (4 Jahre) Kreditdauer weit über dem anderen Regionen. In den anderen Regionen ist der Median genau bei 36 Monaten (3 Jahre) Kreditdauer. 
+In Kombination mit der für Tschechien überdurchschnittlichen Kreditgrösse, kann man das in den Zusammenhang bringen, das die Dauer und die Kreditgrösse zusammenhängen.
+
+ 
+
+Jetzt werden wir uns die Monatliche Summe pro Region betrachten.
+
+ 
+
+```{r}
+#filter the NAs and create plot
+district_loan_correlation_monthly_amount <- df_cons %>% 
+  filter(!is.na(loan_start_date)) %>%
+  ggplot(aes (x = account_district_region,
+              y = loan_total_amount/loan_duration_in_month))+
+
+  #add title and axis names, labels for CZK not in hex  
+  geom_boxplot()+
+  scale_y_continuous(labels=comma)+
+  labs(title = "Boxplot Kreditunterschiede in den Distrikten")+
+  xlab("Regionen")+
+  ylab("Kreditgrösse/Monat [CZK]")+
+  theme(axis.text.x = element_text(angle = 45))
+
+ 
+
+#creat plotly plot, for more informations by hoverinfo
+ggplotly(district_loan_correlation_monthly_amount)
+```
+
+
+Damit wir einen Einheitlichen Vergleich erstellen können, stellen wir die Monatlichen Kreditkosten dar.
+Des weiteren Verleichen wir jetzt diese Grafik mit dem Durchschnittlichen Distrikt Einkommen
+
+Berechnung des Einkommens auf die Region.
+
+```{r}
+#calculate average salary per region for compariswon with loan
+df_account_region_average_salary <- df_cons %>% 
+  group_by(account_district_region) %>% 
+  summarise(account_region_average_salary = mean(account_district_average_salary)) %>% 
+  arrange(desc(account_region_average_salary))
+
+ 
+
+#print the calculated values
+df_account_region_average_salary
+```
+
+Wir sehen, Prag hat das höchste Einkommen aller Regionen in Tschechien. Im Vergleich mit den monatlichen Kosten für einen Kredit ist Prag nicht oben ausgerissen wie hier beim Lohn. Das heisst, in Prag wird MEHR verdient und somit könnten auch die Angebote in höheren Preisklassen beworben werden.
+In Prag könnte die Bank für ihre "STANDARD" und GOLD" Kreditkarten Werbung machen. Zusätzlich kann die Bank ihre Angebote im Bereich der Hypotheken bewerben, denn die Städte werden auf Grund der guten Angebote weiter wachsen, und somit ist der Markt für Hypotheken auch ein Boomendes Geschäft.
+Durch die Vergabe von mehr Krediten verdient die Bank an den Zinsen und kann somit ihren Gewinn steigern und das Angebot verbessern und wo nötig erweitern.
