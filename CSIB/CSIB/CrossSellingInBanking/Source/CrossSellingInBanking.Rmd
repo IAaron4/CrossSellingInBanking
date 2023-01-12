@@ -113,11 +113,11 @@ library(httr)
 library(tidyquant)
 library(xts)
 library(ggridges)
+library(ggfortify)
 
 # Package ROSE (Random Over Sampling Examples) for undersampling Problem
 #install.packages("ROSE")
 library(ROSE)
-
 
 tidymodels_prefer()
 ```
@@ -4764,7 +4764,6 @@ rm(owner_num_accounts, user_num_accounts)
 Es sind auch keine User bei einem anderen Konto als Owner eingetragen.
 
 #### Konten mit sehr geringen Ausgaben
-
 Wir haben in vorhergehenden Analysen gesehen, dass es Konten gibt,
 welche keine oder sehr geringe Ausgaben haben. Es könnte sich hierbei um
 Sparkonten handeln. Diese Konten wollen wir nun genauer anschauen.
@@ -4797,7 +4796,7 @@ rm(less_in_out, less_out)
 rm(in_out_yearly_avg)
 # save(in_out_monthly, file = "in_out_monthly.RData")
 # save(in_out_yearly, file = "in_out_yearly.RData")
-rm(in_out_monthly, in_out_yearly)
+rm(in_out_yearly)
 
 ```
 
@@ -4882,8 +4881,6 @@ df_cons %>%
   ) %>% 
   summarise(owner_age_median = median(owner_age_at_account_opening)) %>% 
   arrange(owner_age_median)
-
-rm(in_out_monthly)
 
 ```
 
@@ -5243,9 +5240,6 @@ Altersverteilung beim eröffnen des Kontos
         y = "Number of Customers") +
    scale_x_continuous(breaks = scales::breaks_pretty(10))
 ```
-
-### Neue Fragestellung
-
 vi\. Wie sieht die Verteilung von Kreditkartentypen auf die Population
 der Kreditkarten aus?[^18]
 
@@ -5275,38 +5269,106 @@ rm(df_credit_card_by_type)
 
 ```
 
-vii\. Wie sieht die Verteilung der Typen von Dispositionen aus?[^19]
+vii\. Clustering des Einkommens und der Ausgaben[^19]
 
 [^19]: Erstellt von Aaron Studer
 
 ```{r}
 
-# df_distribution_disposition_type <- df_cons %>%
-#   filter(!is.na(disp_id)) %>%
-#   group_by(disp_id) %>%
-#   mutate(disp_type = disp_type) %>%
-#   mutate(count = sum(n())) %>%
-#   mutate(frequency = paste0(round(prop.table(count), digits = 3)* 100, "%")) %>%
-#   select(sex, count, frequency, disp_type) %>%
-#   distinct()
-# 
-# df_distribution_disposition_type
+df_cons_metrics <- df_cons %>%
+  dplyr::select(starts_with(c("income", "outgoes")))
 
-# ggplot(df_distribution_disposition_type, aes(fill = disp_type, x = count, y = sex)) +
-#   labs(title = "Distribution of disposition types", subtitle = "") +
-#   geom_bar(position="fill", stat="identity") +
-#   #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-#   xlab("Sex") +
-#   ylab("Count") +
-#   labs(fill = "Disposition Type")
+str(df_cons_metrics)
 
-df_cons %>% 
-  ggplot(aes(x = owner_sex, fill = owner_sex)) +
-    geom_bar() +
-    theme(legend.position = "none") +
-    labs(title = "Distribution of disposition types", x = "Sex") 
-    #geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
-    
+# Scale the data down
+df_cons_metrics_scaled <- scale(df_cons_metrics)
+
+# K-Means Clustering (Example with K = 20)
+fitK <- kmeans(df_cons_metrics_scaled, 20)
+
+str(fitK)
+cluster_metrics <- plot(df_cons_metrics_scaled, col = fitK$cluster)
+
+# let's find out the best value for k in the kmean function
+k <- list()
+for(i in 1:30){
+  k[[i]] <- kmeans(df_cons_metrics_scaled, i)
+}
+
+betweenss_totss <- list()
+for(i in 1:30){
+  betweenss_totss[[i]] <- k[[i]]$betweenss/k[[i]]$totss
+}
+
+cluster_overview <- plot(1:30, betweenss_totss, type = "b",
+     ylab = "Between SS / Total SS", xlab = "Clusters (k)")
+
+
+```
+Nach dem Graph sollten wir nun entweder nach der Elbow- oder Silhouette-Methode definieren mit wie vielen Cluster, dass wir arbeiten werden. Nach der Elbow-Methode habe wir Potenzial für k = 8, k = 15 und k = 25. Wir bauen die Cluster Analyse nun mit 15 Clusters für eine mittelmässig granulare Lösung.
+
+Source (https://medium.com/analytics-vidhya/how-to-determine-the-optimal-k-for-k-means-708505d204eb)
+
+```{r}
+
+for (i in c(8, 15, 25)){
+  distributed_clusters_with_coloring <- plot(df_cons_metrics_scaled, col = k[[i]]$cluster)
+  
+  distributed_clusters_with_coloring
+}
+
+fitK <- kmeans(df_cons_metrics_scaled, 8)
+
+autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
+
+fitK <- kmeans(df_cons_metrics_scaled, 15)
+
+autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
+
+fitK <- kmeans(df_cons_metrics_scaled, 25)
+
+autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
+
+
+fitK$centers
+
+```
+
+
+Clustering with the yearly income avg and outcome avg of the customer
+
+```{r}
+
+df_cons_metrics <- df_cons %>%
+  dplyr::select(starts_with(c("incomes_avg", "outgoes_avg")))
+
+str(df_cons_metrics)
+
+df_cons_metrics_scaled <- scale(df_cons_metrics)
+
+# K-Means Clustering (Example with K = 10)
+fitK <- kmeans(df_cons_metrics_scaled, 10)
+
+str(fitK)
+cluster_metrics <- plot(df_cons_metrics_scaled, col = fitK$cluster)
+
+# let's find out the best value for k in the kmean function
+k <- list()
+for(i in 1:30){
+  k[[i]] <- kmeans(df_cons_metrics_scaled, i)
+}
+
+betweenss_totss <- list()
+for(i in 1:30){
+  betweenss_totss[[i]] <- k[[i]]$betweenss/k[[i]]$totss
+}
+
+cluster_overview <- plot(1:30, betweenss_totss, type = "b",
+     ylab = "Between SS / Total SS", xlab = "Clusters (k) for avg income/outgoes")
+
+autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
+
+
 ```
 
 viii\. Was ist der am beliebtesten Modus einer Transaktion?[^20]
@@ -5346,20 +5408,9 @@ ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = 
 
 ```
 
-ix\. Aus welchen Gründen (Charakterisierung) werden Transaktion
-durchgeführt und wie sieht die Verteilung dieser aus?[^21]
-
-[^21]: Erstellt von Aaron Studer
-
-```{r}
-
-
-
-```
-
 ### Kartenansicht
 
-x\. Verteilung der Kundschaft auf die Distrikte in Tschechien.[^22]
+ix\. Verteilung der Kundschaft auf die Distrikte in Tschechien.[^22]
 
 [^22]: Erstellt von Aaron Studer
 
@@ -5465,32 +5516,100 @@ df_district_mod_names <- df_district_mod %>%
 
 df_average_salary_per_district_including_geo_data <- left_join(df_district_mod_names, geographical_data, by = c("original_name" = "NAZ_LAU1"))
 
-ggplot(data = df_average_salary_per_district_including_geo_data) +
+ggplot_average_salary_per_district <- ggplot(data = df_average_salary_per_district_including_geo_data) +
   geom_sf(aes(fill = account_district_average_salary, geometry= geometry), colour = NA) +
   geom_sf(data = republika("low"), color = "gray30", fill = NA) +
   scale_fill_viridis_c(trans = "log", labels = scales::comma) +
   labs(title = "Average Salary per District",
-       fill = "Average Salary") +
+       fill = "Average Salary (CZK)") +
   theme(legend.text.align = 1,
         legend.title.align = 0.5)
 
-rm(geographical_data)
-rm(df_district_mod)
-# save(df_district_mod_names, file = "df_district_mod_names.RData")
-rm(df_district_mod_names)
-
 ```
-
-xi\. Können neue Sonderangebote/Pakete geschaffen werden für die am
-meist verdienenden Kunden?[^26]
+x\. iii. Average Salary berechnet durch die von Kunden getätigten Transaktionen in den verschiedenen Distrikten[^26]
 
 [^26]: Erstellt von Aaron Studer
 
 ```{r}
 
+df_transaction_complete_with_district_information <- left_join(df_transaction_complete, df_cons %>% select(account_id, account_district_name), by = "account_id")
+
+incomes_average_overall_with_district_information <- df_transaction_complete_with_district_information %>%
+  filter(incomes != 0) %>%
+  group_by(
+    account_district_name
+  ) %>%
+  summarise(incomes_avg = round(mean(incomes), digits = 0)) %>% 
+  ungroup()
+
+df_transaction_complete_with_district_information <- left_join(incomes_average_overall_with_district_information, df_district_mod_names %>% select(account_district_name, original_name), by = "account_district_name")
+
+
+df_average_income_per_district_including_geo_data <- left_join(df_transaction_complete_with_district_information, geographical_data, by = c("original_name" = "NAZ_LAU1"))
+
+ggplot_average_income_calculated <- ggplot(data = df_average_income_per_district_including_geo_data) +
+  geom_sf(aes(fill = incomes_avg, geometry= geometry), colour = NA) +
+  geom_sf(data = republika("low"), color = "gray30", fill = NA) +
+  scale_fill_viridis_c(trans = "log", labels = scales::comma) +
+  labs(title = "Average Income calulcated from transactions per District",
+       fill = "Average Income (CZK)") +
+  theme(legend.text.align = 1,
+        legend.title.align = 0.5)
+
+```
+x\. iiii. Vergleich Average Einkommen von den Distrikten und dem Durchschnittlichen Einkommen der Kunden:
+
+ggplot_average_salary_per_district
+
+```{r}
+
+nested_income_and_salary_plot <- (ggplot_average_income_calculated/ggplot_average_salary_per_district)
+
+nested_income_and_salary_plot
+
+```
+In den beiden Graphen sieht man beim ersten Blick klar, das sich die beiden Fill-Attribute (Average Salary und Average Income) verschiedene Skalen brauchen, dies kann zuerst ein bisschen täuschend erscheinen. Das Average Income der Kunden der Bank liegt deutlich tiefer als das allgmeine durschnittliche Einkommen (Average Salary) in den Distrikten. Dies kann von folgenden Gründen abhängig sein:
+- Ein Kunde kann sein Konto weiterhin erstellt haben, aber auch nach einem Datum x ein neues Lohnkonto bei einer weiteren Bank eröffnen.
+- Die Kunden kommen aus den tieferverdienenden Segmenten.
+
+x\. iiiii. Aufräumen nach der Darstellungen in der Kartenübersicht
+
+```{r}
+
+rm(geographical_data)
+rm(df_district_mod)
+# save(df_district_mod_names, file = "df_district_mod_names.RData")
+rm(df_district_mod_names, df_transaction_complete_with_district_information, incomes_average_overall_with_district_information, df_transaction_complete_with_district_information, df_average_income_per_district_including_geo_data)
+
+```
+
+
+xi\. Können neue Sonderangebote/Pakete geschaffen werden für die am
+meist verdienenden Kunden?[^27]
+
+[^27]: Erstellt von Aaron Studer
+
+Wie beim Density-Plot (Verteilung) kommt deutlich zum Ausdruck, dass die
+meisten Konten Einkommen bis 320'000 CZK aufweisen. Die
+Einkommensentwicklung ist nicht so leicht zu erkennen. Ein geringer
+Anstieg über die beobachteten fünf Jahre lässt sich ausmachen mit
+Ausnahme des Jahres 1996. Für die nächste Analyse werden alle Accounts genommen, die ein 
+Einkommen von mehr als 320'000 CZK haben.
+
+Wir greifen hier auf die bereits vorhanden Analyse zu von Leonie.
+
+```{r}
+# incomes_over_320K <- in_out_monthly %>% 
+#   filter(incomes_per_year > 320000) %>%
+#   select(account_id) %>%
+#   
+# 
+# incomes_over_320K
+
 
 
 ```
+
 
 ### Für Korrelationen zwischen Datenattributen:
 
@@ -5897,6 +6016,7 @@ Quelle: Von der Hude, M. (2020). *Predictive Analytics und Data Mining* (S. 137
 ii\. Wie sieht das Verhältnis der Benutzung von verschiedenen
 Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die
 Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten?
+
 Müssen wir das Geschäftsmodell anpassen?[^17]
 
 [^17]: Erstellt von Christian Heeb
