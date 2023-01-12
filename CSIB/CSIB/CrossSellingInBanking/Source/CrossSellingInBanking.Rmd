@@ -951,8 +951,6 @@ if (!grepl("owner_", names(df_district_owner )[2])) {
 names(df_district_owner) <- paste0("owner_", names(df_district_owner))
 }
 
-# save(df_district_mod, file = "df_district_mod.RData")
-rm(df_district, df_district_mod)
 
 ```
 
@@ -5934,6 +5932,7 @@ rf_model <- randomForest(as.factor(loan_in_dept) ~ loan_duration_in_month + loan
 # Output the total error rate
 plot(rf_model)
 
+
 ```
 
 Der Ausgabe können wir die Gesamtfehlerrate (schwarze Linie), die Rate der fälschlicherweise als korrekt prognostizierten (grüne Linie) und die fälschlicherweise als falsch prognostizierten (rote Linie) Objekte entnehmen. In der Graﬁk sind die Werte für random forests mit 500 Bäumen dargestellt. Bei spätestens 150 Bäumen stabilisieren sich alle Werte. Daher führen wir die Analyse nochmals mit 150 Bäumen durch.
@@ -5952,7 +5951,10 @@ rf_model_150
 plot(rf_model_150)
 ```
 
-Genauigkeit des Modells mit predict-Funktion und Confusion-Matrix bestimmen
+Das Summary zeigt verschiedenen Angaben des Modells wie Art des Modells, Anzahl Trees (von uns auf 150 gesetzt), sowie die OOB estimate of  error rate von  2.17%. OOB steht für Out-Of-Bag Samples. OOB Samples sind solche welche nicht im Bootstraped Dataset aufgenommen wurden.
+
+
+Genauigkeit des Modells mit predict-Funktion und Confusion-Matrix and den test Daten bestimmen
 
 ```{r}
 
@@ -6007,7 +6009,8 @@ varImpPlot(rf_model_150, pch = 20)
 
 Der Variable Importance Plot ist ein grundlegendes Ergebnis des Random Forest und zeigt für jede Variable, wie wichtig sie für die Klassifizierung der Daten ist.\
 Die Grafik "Mean Decrease Accuracy" drückt aus, wie viel Genauigkeit das Modell durch den Ausschluss jeder Variable verliert. Je mehr die Genauigkeit leidet, desto wichtiger ist die Variable für eine erfolgreiche Klassifizierung. Die Variablen werden in absteigender Reihenfolge ihrer Bedeutung dargestellt.\
-Der "Mean Decrease Gini" Koeffizient ist ein Maß dafür, wie jede Variable zur Homogenität der Knoten und Blätter im Random Forest beiträgt. Je höher der Wert der mittleren Abnahme der Genauigkeit oder der mittleren Abnahme des Gini-Scores ist, desto wichtiger ist die Variable im Modell.\
+Der "Mean Decrease Gini" Koeffizient ist ein Maß dafür, wie jede Variable zur Homogenität der Knoten und Blätter im Random Forest beiträgt. Ein Knoten wird als "reiner" betrachtet, wenn er nur Instanzen einer Klasse enthält. Ein Knoten ist umso reiner, je niedriger der Gini-Koeffizient ist. Der Gini-Koeffizient berechnet sich aus der Summe der Wahrscheinlichkeiten, dass eine zufällig ausgewählte Instanz in einem Knoten der Klasse i zugeordnet ist, multipliziert mit der Wahrscheinlichkeit, dass eine zufällig ausgewählte Instanz nicht der Klasse i zugeordnet ist.
+Für Entscheidungsbaum-Algorithmen, welche die Gini-Impurity als Auswahlkriterium verwenden, werden bei jeder Stufe des Baumes die Merkmale ausgewählt, die dazu beitragen, die Gini-Impurity zu minimieren, also die Knotenreinheit zu maximieren, so das sich in jedem Knoten eine Klasse bildet.\
 
 Quelle: Von der Hude, M. (2020). *Predictive Analytics und Data Mining* (S. 137 -166). Springer
 
@@ -6160,18 +6163,320 @@ iv\. Korrelationsanalyse zwischen den Bankdaten und den soziodemografischen Date
 
 ```
 
-2\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug zu den restlichen Einwohnern? Können durch diese Zahlen neue Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden führen?
+
+2\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug zu den restlichen Einwohnern? Können durch diese Zahlen neue Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden führen?[^132]
+
+
+[^132]: Erstellt von Luca Gisler
+
+ 
+
+Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur verfügung steht.
+
+ 
+
+```{r}
+#prepare new df to join with df_district_mod
+district_new_name <- df_district_mod %>% 
+  rename(account_district_name = district_name)
+
+ 
+
+#join dfcons with district_new_names
+df_crimes_cons <- inner_join(df_cons, district_new_name, by = "account_district_name")
+
+ 
+
+#check data district number comparison
+head(df_crimes_cons)
+
+ 
+
+#prepare unemploymentrate for 1995 1996
+in_out_yearly_crime_unemployment <- in_out_yearly [!(in_out_yearly$year=="1993" | in_out_yearly$year=="1994" | in_out_yearly$year=="1997" | in_out_yearly$year=="1998"),]
+
+ 
+
+#check Data
+in_out_yearly_crime_unemployment
+```
+Es wurden die nötigen Spalten in einem neuen DF hinzugefügt. Damit mit der Kriminalität und Arbeitslosenrate gearbeitet werden kann.
+
+ 
 
 ```{r}
 
+ 
+
+#plot salary 1995-1996 change appearence
+in_out_yearly_crime_unemployment %>% 
+ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
+  geom_boxplot() +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 15)
+    ) +
+    ggtitle("Incomes development") +
+  labs(
+    x = "",
+    y = "Amount per year [CZK]",
+    subtitle = "Time span: 1995-1996, across all accounts")
+
+ 
+
+#plot unemploymentrate 1995
+df_crimes_cons %>% 
+  ggplot(aes(x= district_unemployment_rate_95,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Unemployment rate 1995",
+       subtitle = "grouped by salary groups",
+       x ="Unemployment Rate ",
+       y = "Density",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+ 
+
+#plot unemploymentrate 1996
+df_crimes_cons %>% 
+  ggplot(aes(x= district_unemployment_rate_96,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Unemployment rate 1996",
+       subtitle = "grouped by salary groups",
+       x ="Unemployment Rate",
+       y = "Density",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+ 
+
 ```
+
+ 
+
+Erkenntnisse bezüglich dem Einkommen, wie  bereits in einer anderen Fragestellung erläutert, gabe es 1996 einen leichten Einbruch. Im Vergleich mit der Arbeitslosenrate, sehen wir, dass in de "High Income" Kategorie im jahr 1996 einen erhöhten Anstieg bei der Rate von 7.5 gab. Dies kann einen Grossen Einfluss gehabt haben, denn die "High Incomes" machen ein Grossteil des Volumens aus. Wo die Arbeitslosenrate im Jahr 1995 im gleichen Bereich eine Abflachung im Schrumpfen der Arbeitslosigkeit erfuhr, ist sie im 1996 bei den "High Incomes angestiegen.
+
+ 
+
+
+Überprüfung ob die Kriminalitätsrate einen Einfluss auf die Einkommensentwicklung hat.
+
+ 
+
+```{r}
+#plot salary 1995-1996 change appearence
+in_out_yearly_crime_unemployment %>% 
+ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
+  geom_boxplot() +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 15)
+    ) +
+    ggtitle("Incomes development") +
+  labs(
+    x = "",
+    y = "Amount per year [CZK]",
+    subtitle = "Time span: 1995-1996, across all accounts")
+
+ 
+
+#plot crime rate 1995
+df_crimes_cons %>% 
+  ggplot(aes(x= district_commited_crimes_95,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Crime rate 1995",
+       subtitle = "grouped by salary groups",
+       x ="Crime Rate ",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+ 
+
+#plot crime rate 1996
+df_crimes_cons %>% 
+  ggplot(aes(x= district_commited_crimes_96,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Crime rate 1996",
+       subtitle = "grouped by salary groups",
+       x ="Crime Rate",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+```
+
+Zwischen dem Einkommen und Kriminalitätsrate erkennen wir hier keinen Zusammenhang. Die Kriminalitätsrate verändert sich von 1995 auf 1996 kaum. Somit ist die Einkommensentwicklung unabhängig von der Kriminalitätsrate zu betrachten.
+
 
 3\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
-Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.
+Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.[^132]
+
+
+[^132]: Erstellt von Luca Gisler
+
+ 
+
+Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur verfügung steht.
+
+ 
+
+```{r}
+#prepare new df to join with df_district_mod
+district_new_name <- df_district_mod %>% 
+  rename(account_district_name = district_name)
+
+ 
+
+#join dfcons with district_new_names
+df_crimes_cons <- inner_join(df_cons, district_new_name, by = "account_district_name")
+
+ 
+
+#check data district number comparison
+head(df_crimes_cons)
+
+ 
+
+#prepare unemploymentrate for 1995 1996
+in_out_yearly_crime_unemployment <- in_out_yearly [!(in_out_yearly$year=="1993" | in_out_yearly$year=="1994" | in_out_yearly$year=="1997" | in_out_yearly$year=="1998"),]
+
+ 
+
+#check Data
+in_out_yearly_crime_unemployment
+```
+
+Es wurden die nötigen Spalten in einem neuen DF hinzugefügt. Damit mit der Kriminalität und Arbeitslosenrate gearbeitet werden kann.
+
+ 
 
 ```{r}
 
+ 
+
+#plot salary 1995-1996 change appearence
+in_out_yearly_crime_unemployment %>% 
+ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
+  geom_boxplot() +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 15)
+    ) +
+    ggtitle("Incomes development") +
+  labs(
+    x = "",
+    y = "Amount per year [CZK]",
+    subtitle = "Time span: 1995-1996, across all accounts")
+
+ 
+
+#plot unemploymentrate 1995
+df_crimes_cons %>% 
+  ggplot(aes(x= district_unemployment_rate_95,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Unemployment rate 1995",
+       subtitle = "grouped by salary groups",
+       x ="Unemployment Rate ",
+       y = "Density",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+ 
+
+#plot unemploymentrate 1996
+df_crimes_cons %>% 
+  ggplot(aes(x= district_unemployment_rate_96,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Unemployment rate 1996",
+       subtitle = "grouped by salary groups",
+       x ="Unemployment Rate",
+       y = "Density",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+ 
+
 ```
+
+ 
+
+Erkenntnisse bezüglich dem Einkommen, wie  bereits in einer anderen Fragestellung erläutert, gabe es 1996 einen leichten Einbruch. Im Vergleich mit der Arbeitslosenrate, sehen wir, dass in de "High Income" Kategorie im jahr 1996 einen erhöhten Anstieg bei der Rate von 7.5 gab. Dies kann einen Grossen Einfluss gehabt haben, denn die "High Incomes" machen ein Grossteil des Volumens aus. Wo die Arbeitslosenrate im Jahr 1995 im gleichen Bereich eine Abflachung im Schrumpfen der Arbeitslosigkeit erfuhr, ist sie im 1996 bei den "High Incomes angestiegen.
+
+ 
+
+
+Überprüfung ob die Kriminalitätsrate einen Einfluss auf die Einkommensentwicklung hat.
+
+ 
+
+```{r}
+
+ 
+
+#plot salary 1995-1996 change appearence
+in_out_yearly_crime_unemployment %>% 
+ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
+  geom_boxplot() +
+  scale_fill_viridis_d(alpha = 0.6, option = "A") +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 15)
+    ) +
+    ggtitle("Incomes development") +
+  labs(
+    x = "",
+    y = "Amount per year [CZK]",
+    subtitle = "Time span: 1995-1996, across all accounts")
+
+ 
+
+#plot crime rate 1995
+df_crimes_cons %>% 
+  ggplot(aes(x= district_commited_crimes_95,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Crime rate 1995",
+       subtitle = "grouped by salary groups",
+       x ="Crime Rate ",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+ 
+
+#plot crime rate 1996
+df_crimes_cons %>% 
+  ggplot(aes(x= district_commited_crimes_96,
+         group = salary_groups,
+         fill = salary_groups))+
+  labs(title = "Crime rate 1996",
+       subtitle = "grouped by salary groups",
+       x ="Crime Rate",
+       fill = "Salary groups")+
+
+  geom_density(adjust=1.5, alpha=.4)
+
+```
+
+Zwischen dem Einkommen und Kriminalitätsrate erkennen wir hier keinen Zusammenhang. Die Kriminalitätsrate verändert sich von 1995 auf 1996 kaum. Somit ist die Einkommensentwicklung unabhängig von der Kriminalitätsrate zu betrachten.
+
 
 v\. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu unterteilen?
 
