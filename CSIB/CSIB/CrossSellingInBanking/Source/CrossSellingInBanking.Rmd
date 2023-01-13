@@ -3253,18 +3253,18 @@ um für folgende Analysen eine optimale Grundlage zu schaffen.
 Gruppierungen sind von Interesse, da sie eine Systematischen Vorteil
 liefern können.
 
-Das war unsere Augangslage: ![an image caption Source: ERD
+Das war unsere Ausgangslage: ![an image caption Source: ERD
 Ausgangslage.](CrossSellingInBanking%5CRessources%5CSOLL-Zustand.png)
 
 Ein paar Beispiele für solche weitere Gruppierungen sind:
 
--   Einkommen Pro Monat
+-   Einkommen pro Monat
 -   Einkommen Quartalsweise
 -   Einkommen Jährlich
--   Ausgaben Pro Monat
+-   Ausgaben pro Monat
 -   Ausgaben Quartalsweise
 -   Ausgaben Jährlich
--   Kontostand Pro Monat
+-   Kontostand pro Monat
 -   Kontostand Quartalsweise
 -   Kontostand Jährlich
 
@@ -3283,9 +3283,9 @@ b\. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft
 dies für alle einzelnen Datensätze zu?
 
 Weshalb eine Überprüfung der Stichprobengrösse? - Ein zu kleiner
-Stichprobenumfang kann dazu führen, dass nicht die gewünsche Tiefe des
+Stichprobenumfang kann dazu führen, dass nicht die gewünschte  Tiefe des
 eigentlich angestrebten erreicht wird. - Ein zu großer Stichprobenumfang
-kann dazu führen, dass unnötig Resscourcen verschwendet werden.
+kann dazu führen, dass unnötig Ressourcen  verschwendet werden.
 
 Wir bemühen uns, genügend Proben zu haben, um einen Effekt vernünftig zu
 erkennen, wenn er wirklich vorhanden ist, ohne begrenzte Ressourcen für
@@ -3301,14 +3301,14 @@ Bevölkerung in Tschechien:
 Quelle:
 (<https://www.laenderdaten.info/Europa/Tschechien/bevoelkerungswachstum.php>)
 
-Sind durchschnittlich: 10.3114 Mio Confidence Level: 95% Margin of
+Sind Durchschnittlich: 10.3114 Mio Confidence Level: 95% Margin of
 Error: 3 %
 
 Berechnung: (Z-Score)2 x StdDev x (1-StdDev)/(margin of error)2
 
 Ideale Sample Grösse: 1067
 
-Der zur verfügung gestellte Anzahl Accounts hat eine Grösse von 4500 Zeilen,
+Der zur Verfügung gestellte Anzahl Accounts hat eine Grösse von 4500 Zeilen,
 was in ungefähr dem vierfachen der berechneten optimalen
 Stichprobengrösse entspricht. Dies bedeutet, dass wir von mehr Beobachtungen als
 nötig sprechen.
@@ -3325,7 +3325,7 @@ mehrmals möglich sind haben wir hier eine sehr hohe Anzahl
 Observationen. relation loan (682 objects in the file LOAN.ASC) -\> Um
 eine Aussage über die Richtige Anzahl Kredite machen zu können, bräuchte
 man die gesamte Anzahl von Krediten von 1993-1999. relation credit card
-(892 objects in the file CARD.ASC) -\> Um eine Aussache über die
+(892 objects in the file CARD.ASC) -\> Um eine Aussage über die
 Richtige Anzahl Kreditkarten machen zu können, bräuchte man die gesamte
 Anzahl von Kreditkarten von 1993-1999. relation demographic data (77
 objects in the file DISTRICT.ASC) -\> Die Distrikte werden nicht in
@@ -3339,11 +3339,13 @@ Verständlichkeit - Korrektheit - Aktualität
 
 Zuverlässigkeit: Da dies Eine Challenge ist die bereits dutzende male
 erarbeitet wurde, und von Fachhoschulen, Unis und weiteren Institutionen
-verwendet wird, haben wir eine Zuverlässige Quelle Relevanz: Diese Daten
-sind für uns relevant, da diese Daten unseren Informationsbedarf
-abdecken. Verständlichkeit: Durch die Transfotmation der Daten ins
+verwendet wird, haben wir eine Zuverlässige Quelle.
+Relevanz: Diese Daten sind für uns relevant, da diese Daten unseren Informationsbedarf
+abdecken. 
+Verständlichkeit: Durch die Transformation der Daten ins
 Englische kam die Verständlichkeit. Denn Tschechisch wird bei uns in der
 Gruppe nicht gesprochen.
+Aktualität: Diese Daten stammen aus den Jahren 1993-1999 und sind für die heutige Zeit nicht mehr aktuell, da sich dieses Gebiet stark digitalisiert hat und somit nicht mehr das selbe ist wie dazumal
 
 Da wir mit den zur Verfügung gestellten Daten arbeiten, und keinen
 Einfluss auf die Qualitätansprüche bei der Erhebung haben können wir
@@ -3385,15 +3387,15 @@ ggplot(df_cons, aes(x = account_opening_year, fill = owner_sex))+
 ```
 
 Wir können keinen Trend bezüglich den Geschlechtern und der Veränderung
-über die Zeit erkennen. Wir erkennen das es ein in etwa gleiche
-Verteilung ger konnten über beide Geschlechter gibt.
+über die Zeit erkennen. Wir erkennen das es eine in etwa gleiche
+Verteilung der Konten über beide Geschlechter gibt.
 
 i\. Jegliche Datenattribute werden innerhalb des eigenen Datenrahmens
 analysiert.
 
-Diese Analyse und Transformation wurde beim sichten der Daten bereits
-erledigt, somit konnten bereits zu beginn die Richtigen Datentypen und
-Formate gewählt werden. Des weiteren wurden für den Konsolidierten
+Diese Analyse und Transformation wurde beim Sichten der Daten bereits
+erledigt, somit konnten bereits zu Beginn die Richtigen Datentypen und
+Formate gewählt werden. Des Weiteren wurden für den Konsolidierten
 Datensatz noch weitere Attribute erstellt, gruppiert und transformiert.
 Dies wurde gemacht um eine optimale Grundlage für die weiteren Analysen
 zu haben.
@@ -5601,27 +5603,34 @@ Der Barplot zeigt die die Verteilung der Kundenalters beim eröffnen des Kontos.
 
 ```{r}
 
+# Preparation for the visualization of the distribution of credit cards by the credit card type and the sex of the customer.
 df_credit_card_by_type <- df_cons %>%
   filter(!is.na(card_id)) %>%
   select(card_type, owner_sex) %>%
-  group_by(card_type, owner_sex) %>%
+  # group_by to get the count of each credit card by type and sex of the customer.
+  group_by(owner_sex, card_type) %>%
   summarise(n = n()) %>%
-  mutate(prop = paste0((round(prop.table(n), 3))," %")) %>%
+  mutate(freq = n / sum(n)) %>%
+  #Prepare the frequency as a character to display the exact information in the graph.
+  mutate(prop = paste0((round(freq, 3))," %")) %>%
   ungroup()
 
 df_credit_card_by_type
 
+#Display of the distribution of the credit cards by type and sex.
 ggplot(df_credit_card_by_type, aes(fill = card_type, x = owner_sex, y = n)) +
   labs(title = "Distribution of Credit Card Type per Sex", subtitle = "The percentage displayed on the plot is the frequency of the type over the whole population.") +
-  geom_col(position = "fill") + 
-  geom_text(aes(label = prop), position = position_fill(vjust = 0.5)) +
+  geom_col(position = "stack") + 
+  geom_text(aes(label = prop), position = position_stack(vjust = 0.5)) +
   xlab("Sex") +
   ylab("Count") +
   labs(fill = "Card Type")
 
+#Cleanup data frame.
 rm(df_credit_card_by_type)
 
 ```
+ In dieser Grafik sehen wir die relative Verteilung von Kreditkarten typen gruppiert nach den Geschlechtern. Dabei sehen wir das die grösste Menge der Kunden eine Kreditkarte vom Type 'Classic' haben. Wenn man genauer die Unterschiede zwischen den beiden Geschlechtern anschaut, sieht man, dass ein grössere Anteil der Männlichen Kundschaft eine Kreditkarte mit dem Typ 'Gold' besitzen. Jedoch gleicht sich das ganze aus, da die Weibliche Kundschaft einen grösseren relativen Anteil an Kreditkarten vom Type 'Junior' und 'Classic' haben. Wenn man die beiden Balken vergleicht wird festgestellt, dass mehr männliche Kunden einen Kreditkarte besitzen.
 
 #### Clustering des Einkommens und der Ausgaben[^117]
 
@@ -5649,11 +5658,13 @@ for(i in 1:30){
   k[[i]] <- kmeans(df_cons_metrics_scaled, i)
 }
 
+# Calculate the squares in the clusters which will later be used to define the best value for k.
 betweenss_totss <- list()
 for(i in 1:30){
   betweenss_totss[[i]] <- k[[i]]$betweenss/k[[i]]$totss
 }
 
+# Display the calculated values that can be used to define a optimial value for k.
 cluster_overview <- plot(1:30, betweenss_totss, type = "b",
      ylab = "Between SS / Total SS", xlab = "Clusters (k)")
 
@@ -5671,38 +5682,55 @@ Source
 
 ```{r}
 
+#Distribution of the data points for the three custers with the different k-values. The data points are coloured by the cluster number.
 for (i in c(8, 15, 25)){
   distributed_clusters_with_coloring <- plot(df_cons_metrics_scaled, col = k[[i]]$cluster)
   
   distributed_clusters_with_coloring
 }
 
+# Display of the cluster (k=8). with autoplot
 fitK <- kmeans(df_cons_metrics_scaled, 8)
-
 autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
 
-fitK <- kmeans(df_cons_metrics_scaled, 15)
-
-autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
-
-fitK <- kmeans(df_cons_metrics_scaled, 25)
-
-autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
-
-
+#Display the centers of the clusters.
 fitK$centers
 
+# Display of the cluster (k=15). with autoplot
+fitK <- kmeans(df_cons_metrics_scaled, 15)
+autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
+
+# Display of the cluster (k=25). with autoplot
+fitK <- kmeans(df_cons_metrics_scaled, 25)
+autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
+
+
+
 ```
+Für die Cluster Analyse müssen wir die Clusters Vergleichen von verschiedenen k-Werten. Dazu haben wir die drei Werte 8, 15 und 25 benutzt. Die genauen Graphen sind nachfolgend aufgelistet:
+1. Der Plot wurde dargestellt um die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 8 gearbeitet.
+2. Der Plot wurde dargestellt um die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 15 gearbeitet.
+3. Der Plot wurde dargestellt um die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 25 gearbeitet.
+
+Nach der Analyse werden die Clusters mithilfe von Autplot visuell noch weiter dargestellt.
+
+4. Der Autplot zeigt die verschiedene Cluster 2 dimensional an und bildet eine Areal um die einzelnen Datenpunkte von einem Cluster. Diese Clusteriung wurde mit 8 Clustern aufgebaut.
+5. Der Autplot zeigt die verschiedene Cluster 2 dimensional an und bildet eine Areal um die einzelnen Datenpunkte von einem Cluster. Diese Clusteriung wurde mit 15 Clustern aufgebaut.
+6. Der Autplot zeigt die verschiedene Cluster 2 dimensional an und bildet eine Areal um die einzelnen Datenpunkte von einem Cluster. Diese Clusteriung wurde mit 25 Clustern aufgebaut.
+
+Wir sehen klar das die Datenpunkte in den Clusters überlappend sind, daher kann man erkenne, dass die Funktion mit kmeans Probleme hat bei der Bildung von Clusters oder das die Daten in einer Komplexität herkommen, wodurch sie von dem Algoritmus nicht korrekt zugewiesen werden können.
 
 Clustering with the yearly income avg and outcome avg of the customer
 
 ```{r}
 
+#Select the income and outgoes for the clustering
 df_cons_metrics <- df_cons %>%
   dplyr::select(starts_with(c("income_avg", "outgoes_avg")))
 
 str(df_cons_metrics)
 
+#Scale the metrics down for smaller margins between the data points.
 df_cons_metrics_scaled <- scale(df_cons_metrics)
 
 # K-Means Clustering (Example with K = 10)
@@ -5727,8 +5755,14 @@ cluster_overview <- plot(1:30, betweenss_totss, type = "b",
 
 autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
 
+fitK$centers
 
 ```
+Wir sehen hier eine weiteres Clustering Verfahren, dabei versuchen wir Clusters aufzubauen nur mit den jährlichen Einkommen und Ausgaben von Kunden. Der Scatter-plot zeigt eine saubere Auftrennung der Datenpunkte in den verschiedenen CLusters.
+
+Für die Bestimmung der Clusters wird wieder die Elbow-Methode gebraucht in dem zweiten Graphen sind man dazu zwei Möglichkeiten nämlich mit dem Wert K = 5 und K = 10.
+
+In dem dritten Graphen sieht man eine klare, aber eng beieinandere Verteilung der Datenpunkte in den einzelnen Cluster. Die Clusters könnten nun weiterhin gebraucht werden für eine Analyse der einzelnen Datenpunkte (Kunden) in den Clusters. Man kann weitere Angebote analysieren, die diese Kunden brauchen und den Kunden empfehlen, die sich in dem selben Cluster befinden, die jedoch dieses Produkt noch nicht brauchen.
 
 #### Beliebtester Modus einer Transaktion?[^118]
 
@@ -5741,12 +5775,16 @@ autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
 #   mutate(count = sum(n())) %>%
 #   select(count, characterization, quarter) %>%
 #   distinct()
+
+#Load the data frame 'df_transaction_complete' for the following visualization.
 save(df_transaction_complete, file = "df_transaction_complete.RData")
 load("df_transaction_complete.RData")
 
+#add the quarter attribute to generate a overview by the quarters in each year.
 df_transaction_complete <- df_transaction_complete %>% 
   mutate(quarter = quarter(date, type = "year.quarter"))
 
+# Filter empty transaction, group the data frame by the charachterization and the quarter to get the count of each transaction type in each quarter. 
 df_transaction_type_count <- df_transaction_complete %>%
   filter(!is.na(trans_id)) %>%
   group_by(characterization, quarter) %>%
@@ -5756,16 +5794,18 @@ df_transaction_type_count <- df_transaction_complete %>%
 
 df_transaction_type_count
 
+#Display of the transaction type data
 ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = count)) +
-  labs(title = "Distribution of transaction types per quarters", subtitle = "") +
+  labs(title = "Distribution of transaction types per quarters (1993 Q1 - 1998 Q4)", subtitle = "") +
   geom_bar(position="stack", stat="identity") +
   # geom_text(aes(label = frequency), position = position_stack(vjust = 0.5), size = 2) +
   xlab("Quarter") +
   ylab("Count") +
   labs(fill = "Transaction Type") +
-  facet_wrap(vars(characterization), ncol = 4)
+  facet_wrap(vars(characterization), ncol = 1)
 
 ```
+Wir sehen in dieser Visualisierung die Entwicklung der Transaktionen bezogene auf die Zeit (Nach den Quartalen). Über alle Typen sehen wir einen ganz klaren Anstieg der Transaktionen, dass kann durch den Zuwachs neuer Kundschaft enstanden sein. Desweiteren sehen wir das die meisten Transaktionen den Typ 'NA' aufweisen. Dieses Verhalten liegt sehr wahrscheinlich davon ab, dass der Typ von der Transaktion nur bei grösseren Transaktionen aufgenommen wurde oder bei der Ausführung der Transaktion am Schalter. Da die definierten Typen 'Credit Interest', 'Houhsehold' und 'Statement Payment' am meisten gebraucht wurden. Könnte man neue Angebote entwickeln die genau Vorteile bei diesen Transaktionstypen aufweisen.
 
 ### Kartografische Darstellung von Analysen
 
@@ -5783,6 +5823,7 @@ einer Kartenansicht.[^120]
 #Preparation of the geographical data of the RCzechia package.
 geographical_data <- RCzechia::okresy("low")
 
+# Analysis of the structure of the imported geographical data frame.
 str(geographical_data)
 
 # load("df_district_mod.RData")
@@ -5802,24 +5843,28 @@ str(geographical_data)
 
 str(df_cons$account_district_name)
 
+# The data frame have different values for the district Praha therefore we will change the value in the consolidated data frame from 'H1.m. Praha' to 'Praha'. After the mutation we arrange the data frame by the district name, which will later be used to bind the values.
 df_district_mod <- df_cons %>% mutate(
   district_name = as.character(account_district_name),
   district_name = ifelse(district_name == "Hl.m. Praha", "Praha", district_name)
   ) %>%
   arrange(district_name)
 
+#Arrange the data frame to bind it easier in later steps.
 geographical_data <- geographical_data %>%
   arrange(NAZ_LAU1)
 
 
 ```
 
+Mithilfe des Data Frames 'geographical_data' wird uns in den folgenden R-Snippets ermöglicht Informationen zu den Distrikten in einer Heatmap darzustellen bei der das ganze Land untertrennt durch die Staaten dargestellt wird.
+
 #### Anzahl der Kunden in den einzelnen Distrikten.[^121]
 
 [^121]: Erstellt von Aaron Studer
 
 ```{r}
-# 
+# Preparation of the data frame that will be used to display the count of customers in each district
 df_customers_per_district <- df_district_mod %>%
   group_by(district_name) %>%
   mutate(count = sum(n())) %>%
@@ -5834,10 +5879,11 @@ df_customers_per_district
 #   ) %>%
 #   arrange(account_district_name)
 
+#add the native original name to the metric data frame.
 df_customers_per_district <- cbind(df_customers_per_district, original_district_name = geographical_data$NAZ_LAU1) %>%
   select(district_name, original_district_name, count)
 
-
+# We bind the geometry information from the data frame geographical_data with our metric data frame.
 df_customers_per_district_incl_geo_data <- left_join(df_customers_per_district, geographical_data, by = c("original_district_name" = "NAZ_LAU1"))
 
 ggplot(data = df_customers_per_district_incl_geo_data) +
@@ -5852,6 +5898,7 @@ ggplot(data = df_customers_per_district_incl_geo_data) +
 
 
 ```
+Wir sehen in dieser Heatmap die Verteilung von Kunden in den einzelnen Distrikten. Wir haben das Land mithilfe der Geometry Formeln des Packages 'RCzechia' erstellt. Wir sehen das die meisten Kunden sich in dem Staat 'Hl.m. Praha' befinden. Eine grössere Dichte besteht auch im Osten des Landes. Aus dem Graph können wir ableiten, in welchen Staaten es sich lohnt die bereits vorhandenen Kundschaft weiter auszubauen, da die Infrastruktur schon besteht.
 
 #### Durchschnittslohn in den verschiedenen Distrikten[^122]
 
@@ -5861,13 +5908,14 @@ ggplot(data = df_customers_per_district_incl_geo_data) +
 
 # df_district_mod_names <- cbind(df_district_mod, original_name = geographical_data$NAZ_LAU1) %>%
 #   select(account_district_name, original_name, account_district_average_salary)
-# 
+
+# Prepare the data frame with the average_salary and the name of the district.
 df_district_mod_names <- df_district_mod %>%
   select(account_district_name, account_district_average_salary) %>%
   distinct() %>%
   cbind(original_name = geographical_data$NAZ_LAU1)
 
-
+# Join the prepared data frame by the native original district name with the data frame from RCzechia.
 df_average_salary_per_district_including_geo_data <- left_join(df_district_mod_names, geographical_data, by = c("original_name" = "NAZ_LAU1"))
 
 ggplot_average_salary_per_district <- ggplot(data = df_average_salary_per_district_including_geo_data) +
@@ -5888,8 +5936,10 @@ Transaktionen in den verschiedenen Distrikten[^123]
 
 ```{r}
 
+# Join the two data frames to add the district name to the transactions
 df_transaction_complete_with_district_information <- left_join(df_transaction_complete, df_cons %>% select(account_id, account_district_name), by = "account_id")
 
+# Prepare the data frame with the data that will be displayed by grouping it by the district name and rounding the values.
 incomes_average_overall_with_district_information <- df_transaction_complete_with_district_information %>%
   filter(incomes != 0) %>%
   group_by(
@@ -5898,9 +5948,10 @@ incomes_average_overall_with_district_information <- df_transaction_complete_wit
   summarise(incomes_avg = round(mean(incomes), digits = 0)) %>% 
   ungroup()
 
+#add the native original name to the prepared dataframe to add the geometry data from RCzechia package which has already been prepared in a previous chunk.
 df_transaction_complete_with_district_information <- left_join(incomes_average_overall_with_district_information, df_district_mod_names %>% select(account_district_name, original_name), by = "account_district_name")
 
-
+#Join the map data frame with the prepared transaction data frame by using the native district name.
 df_average_income_per_district_including_geo_data <- left_join(df_transaction_complete_with_district_information, geographical_data, by = c("original_name" = "NAZ_LAU1"))
 
 ggplot_average_income_calculated <- ggplot(data = df_average_income_per_district_including_geo_data) +
@@ -5914,13 +5965,14 @@ ggplot_average_income_calculated <- ggplot(data = df_average_income_per_district
 
 ```
 
+
 #### Vergleich Average Einkommen von den Distrikten und dem
 Durchschnittlichen Einkommen der Kunden:
 
-ggplot_average_salary_per_district
 
 ```{r}
 
+# Create a nested plot to see the comparison between the heatmaps created from the customer transactions and the average salary from the district.
 nested_income_and_salary_plot <- (ggplot_average_income_calculated/ggplot_average_salary_per_district)
 
 nested_income_and_salary_plot
@@ -5964,14 +6016,23 @@ Wir greifen hier auf die bereits vorhanden Analyse zu von Leonie.
 
 ```{r}
 
-incomes_over_320K <- in_out_yearly %>% 
-   filter(incomes_per_year > 320000) %>%
-   select(account_id) 
-   
-incomes_over_320K
+str(df_cons %>% select(!starts_with("balance")) %>% select(!starts_with("incomes_quarterly")) %>% select(!starts_with("outgoes_quarterly")))
+
+account_ids_incomes_over_320K <- df_cons %>%
+  filter(income_avg > 320000) %>%
+  distinct()
+
+str(account_ids_incomes_over_320K)
+
+frequency_card_type_accounts_over_320K <- account_ids_incomes_over_320K %>%
+  group_by(card_type) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+
+frequency_card_type_accounts_over_320K
 
 ```
-
+Mithilfer der Häufigkeitstabelle erhalten wir eine klare Übersicht über die Verteilung der Kreditkarten Typen von den Grossverdienern. Wir sehene das ca. 29.46% der Kunden eine Kreditkarte vom Type 'Classic' besitzen und das ca. 60% der Kunden in diesem Segment keine Kreditkarten von dieser Bank besitzen. Daher kann nun ein Angebot erstellt werden, das zusammen mit der Aktivierung einer Kreditkarte eingelöst werden kann. Dadurch können weitere Kunden angezogen werden und auch die Kunden in diesem Segmente könnten sich entscheiden eine Kreditkarte zu beantragen.
 
 
 
@@ -6729,24 +6790,19 @@ incomes_per_month <- df_transaction_complete %>%
 
 # monatliche Einkommen und Ausgaben und die Vermögensentwicklung
 in_out_monthly <- incomes_per_month %>% 
-  left_join(outgoes_per_month, by = c("account_id", "year(date)", "month(date)")) %>% 
-  mutate(assets_dev_month = incomes_per_month - outgoes_per_month) %>%
-  filter(incomes_per_month != 0 | outgoes_per_month != 0) %>% 
+  filter(incomes_per_month != 0) %>% 
   rename(year = `year(date)`,
          month = `month(date)`)
 
 
 in_out_monthly <- incomes_per_month %>% 
-  left_join(outgoes_per_month, by = c("account_id", "year(date)", "month(date)")) %>% 
-  mutate(assets_dev_month = incomes_per_month - outgoes_per_month) %>%
-  filter(incomes_per_month != 0 | outgoes_per_month != 0) %>% 
+  filter(incomes_per_month != 0) %>% 
   rename(year = `year(date)`,
          month = `month(date)`) 
 
 in_out_yearly <- in_out_monthly %>% 
   group_by(account_id, year) %>% 
-  summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12,
-            assets_dev_yearly = round(sum(assets_dev_month), digits = 0)) %>% 
+  summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12) %>% 
   ungroup()
 
 
@@ -6757,8 +6813,7 @@ in_out_monthly <- in_out_monthly %>%
 
 in_out_yearly <- in_out_monthly %>% 
   group_by(account_id, year) %>% 
-  summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12,
-            assets_dev_year = round(sum(assets_dev_month), digits = 0)) %>% 
+  summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12) %>% 
   ungroup()
 
 
@@ -7136,5 +7191,20 @@ verdient die Bank an den Zinsen und kann somit ihren Gewinn steigern und
 das Angebot verbessern und wo nötig erweitern.
 
 
-## Summary
-Wird noch durch Christian erstellt
+## Summary:
+
+Ziel dieser Gruppenarbeit war es, aufgrund des vorgegebenen Datensatzes Einsicht in die Transaktionsvorgänge einer Bank zu erhalten, um daraus Erkenntnisse zu gewinnen welche für die Bank im Bereich des cross-selling von Relevanz sein könnten.
+
+In einem ersten Schritt wurden dazu nach erster Sichtung der Daten, Fragestellungen erarbeitet, welche die Gruppe in dieser Arbeit beantworten möchte.
+
+Da der Datensatz von einer Tschechischen Bank stammt und somit auf Tschechisch beschrieben war, musste er in einem ersten Schritt übersetzt werden. Weiter bestand der Datensatz aus mehreren Dateien, welche in einem nächsten Schritt konsolidiert, und zu einem einzigen Datensatz kombiniert wurden.
+
+Der zusammengefasste, konsolidiert Datensatz konnte anschliessend mit verschiedenen Vorgehensweisen der explorativen Datenanalyse bearbeitet werden.
+
+Dazu wurden die Hypothesen unter den Gruppenmittgliedern aufgeteilt und grösstenteils einzeln erarbeitet. Um eine Kontinuität innerhalb der Arbeit zu erhalten, besprachen wir uns mehrere male bezüglich des weiteren Vorgehens. Weiter wurde der erstelle Code in der Gruppe besprochen und verbessert.
+
+Durch diese Gruppenarbeit haben wir gelernt, wie wichtig es ist, unsere Vorgehensweise sorgfältig zu planen und zu gestalten, um sicherzustellen, dass arbeiten nicht mehrere Male oder Parallel durchgeführt werden. Die Arbeit im Team hat es uns ermöglicht, uns gegenseitig mit Ideen zu versorgen und von einer Vielfalt von Perspektiven zu profitieren.
+
+Die Fähigkeiten, die wir in den Bereichen R, Data Wrangling, explorativen Datenanalyse sowie supervised learning erworben haben, werden uns sicher bei zukünftigen Arbeiten sowie im Berufsalltag von Nutzen sein.
+
+Wir freuen uns darauf, die Erkenntnisse dieser Arbeit am 27.01.2023 zu präsentieren. 
