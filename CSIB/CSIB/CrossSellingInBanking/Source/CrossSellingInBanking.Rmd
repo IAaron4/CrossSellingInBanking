@@ -1381,7 +1381,10 @@ ist immer ein OUT. Diese Hypothese wird nun nochmals überprüft.
 df_transaction_mod %>% 
   filter(
     amount == 14.6
-  )
+  ) %>%
+  head()
+
+
   
 ```
 
@@ -3283,9 +3286,9 @@ b\. Wie umfassend sind die Stichproben der Daten der Bank? Und trifft
 dies für alle einzelnen Datensätze zu?
 
 Weshalb eine Überprüfung der Stichprobengrösse? - Ein zu kleiner
-Stichprobenumfang kann dazu führen, dass nicht die gewünschte  Tiefe des
+Stichprobenumfang kann dazu führen, dass nicht die gewünschte Tiefe des
 eigentlich angestrebten erreicht wird. - Ein zu großer Stichprobenumfang
-kann dazu führen, dass unnötig Ressourcen  verschwendet werden.
+kann dazu führen, dass unnötig Ressourcen verschwendet werden.
 
 Wir bemühen uns, genügend Proben zu haben, um einen Effekt vernünftig zu
 erkennen, wenn er wirklich vorhanden ist, ohne begrenzte Ressourcen für
@@ -3308,10 +3311,10 @@ Berechnung: (Z-Score)2 x StdDev x (1-StdDev)/(margin of error)2
 
 Ideale Sample Grösse: 1067
 
-Der zur Verfügung gestellte Anzahl Accounts hat eine Grösse von 4500 Zeilen,
-was in ungefähr dem vierfachen der berechneten optimalen
-Stichprobengrösse entspricht. Dies bedeutet, dass wir von mehr Beobachtungen als
-nötig sprechen.
+Der zur Verfügung gestellte Anzahl Accounts hat eine Grösse von 4500
+Zeilen, was in ungefähr dem vierfachen der berechneten optimalen
+Stichprobengrösse entspricht. Dies bedeutet, dass wir von mehr
+Beobachtungen als nötig sprechen.
 
 relation account (4500 objects in the file ACCOUNT.ASC) -\> Wie im
 Beispiel oben behandelt relation client (5369 objects in the file
@@ -3325,12 +3328,12 @@ mehrmals möglich sind haben wir hier eine sehr hohe Anzahl
 Observationen. relation loan (682 objects in the file LOAN.ASC) -\> Um
 eine Aussage über die Richtige Anzahl Kredite machen zu können, bräuchte
 man die gesamte Anzahl von Krediten von 1993-1999. relation credit card
-(892 objects in the file CARD.ASC) -\> Um eine Aussage über die
-Richtige Anzahl Kreditkarten machen zu können, bräuchte man die gesamte
-Anzahl von Kreditkarten von 1993-1999. relation demographic data (77
-objects in the file DISTRICT.ASC) -\> Die Distrikte werden nicht in
-Stichproben erfasst, also werden alle Distrikte so wiedergegeben wie sie
-in Wirklichkeit sind.
+(892 objects in the file CARD.ASC) -\> Um eine Aussage über die Richtige
+Anzahl Kreditkarten machen zu können, bräuchte man die gesamte Anzahl
+von Kreditkarten von 1993-1999. relation demographic data (77 objects in
+the file DISTRICT.ASC) -\> Die Distrikte werden nicht in Stichproben
+erfasst, also werden alle Distrikte so wiedergegeben wie sie in
+Wirklichkeit sind.
 
 ### Zudem wird die Distribution der Datensätze und deren Qualität überprüft.
 
@@ -3339,13 +3342,14 @@ Verständlichkeit - Korrektheit - Aktualität
 
 Zuverlässigkeit: Da dies Eine Challenge ist die bereits dutzende male
 erarbeitet wurde, und von Fachhoschulen, Unis und weiteren Institutionen
-verwendet wird, haben wir eine Zuverlässige Quelle.
-Relevanz: Diese Daten sind für uns relevant, da diese Daten unseren Informationsbedarf
-abdecken. 
-Verständlichkeit: Durch die Transformation der Daten ins
+verwendet wird, haben wir eine Zuverlässige Quelle. Relevanz: Diese
+Daten sind für uns relevant, da diese Daten unseren Informationsbedarf
+abdecken. Verständlichkeit: Durch die Transformation der Daten ins
 Englische kam die Verständlichkeit. Denn Tschechisch wird bei uns in der
-Gruppe nicht gesprochen.
-Aktualität: Diese Daten stammen aus den Jahren 1993-1999 und sind für die heutige Zeit nicht mehr aktuell, da sich dieses Gebiet stark digitalisiert hat und somit nicht mehr das selbe ist wie dazumal
+Gruppe nicht gesprochen. Aktualität: Diese Daten stammen aus den Jahren
+1993-1999 und sind für die heutige Zeit nicht mehr aktuell, da sich
+dieses Gebiet stark digitalisiert hat und somit nicht mehr das selbe ist
+wie dazumal
 
 Da wir mit den zur Verfügung gestellten Daten arbeiten, und keinen
 Einfluss auf die Qualitätansprüche bei der Erhebung haben können wir
@@ -4088,9 +4092,9 @@ Verteilung der negativen Vermögensentwicklung ist unimodal leicht
 linksschief und die der positiven Vermögensentwicklung bimodal ebenfalls
 mit einer leichten Tendez zu linksschief.
 
-#### Vemögensentwicklung unterteilt auf die Einkommensgruppen[^78]
+#### Vemögensentwicklung unterteilt auf die Einkommensgruppen[^77]
 
-[^78]: Erstellt von Aaron Studer
+[^77]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -4121,9 +4125,9 @@ df_cons %>%
 Auffällig ist das mittlere Einkommen: sehr viele Konten weisen negative
 Vermögensentwilcklung auf
 
-### Verteilung der Konten auf die Kunden[^79]
+### Verteilung der Konten auf die Kunden[^78]
 
-[^79]: Erstellt von Aaron Studer
+[^78]: Erstellt von Aaron Studer
 
 Ein Kunde kann mehrere Konten benutzen. Für die Entwicklung von
 Kundengruppen ist es wichtig, die bis dahin gewonnenen Erkenntnisse auf
@@ -4193,18 +4197,18 @@ rm(owner_num_accounts, user_num_accounts)
 
 Es sind auch keine User bei einem anderen Konto als Owner eingetragen.
 
-### Kontoarten[^80]
+### Kontoarten[^79]
 
-[^80]: Erstellt von Aaron Studer
+[^79]: Erstellt von Aaron Studer
 
 Wir haben in vorhergehenden Analysen gesehen, dass es Konten gibt,
 welche nicht dem Girokonto zugeordnet werden können. Diese Konten haben
 keine häufigen und regelmässigen Transaktionen. Es könnte sich hierbei
 um Sparkonten handeln. Diese Konten wollen wir nun genauer anschauen.
 
-#### Sparkonten[^81]
+#### Sparkonten[^80]
 
-[^81]: Erstellt von Léonie Bécheiraz
+[^80]: Erstellt von Léonie Bécheiraz
 
 Die Sparkonten haben die Eigenschaft, dass sie mit keinen Daueraufträgen
 oder Darlehen verbunden sind.
@@ -4243,9 +4247,9 @@ sind einerseits Sparkonten (solche ohne Daueraufträge oder Darlehen) und
 die restlichen Darlehenskonten, verbunden mit Daueraufträgen und oder
 Darlehen.
 
-#### Spalte Sparkonto (is_savings_account)[^82]
+#### Spalte Sparkonto (is_savings_account)[^81]
 
-[^82]: Erstellt von Aaron Studer
+[^81]: Erstellt von Aaron Studer
 
 ```{r}
 df_cons <- df_cons %>% 
@@ -4255,9 +4259,9 @@ summary(df_cons$is_savings_account)
   
 ```
 
-#### Spalte Darlehenskonto (is_loan_account)[^83]
+#### Spalte Darlehenskonto (is_loan_account)[^82]
 
-[^83]: Erstellt von Aaron Studer
+[^82]: Erstellt von Aaron Studer
 
 ```{r}
 df_cons <- df_cons %>% 
@@ -4267,9 +4271,9 @@ summary(df_cons$is_loan_account)
   
 ```
 
-#### Vermögensentwicklung bei Konten mit hohem Eikommen[^84]
+#### Vermögensentwicklung bei Konten mit hohem Eikommen[^83]
 
-[^84]: Erstellt von Aaron Studer
+[^83]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -4285,9 +4289,9 @@ Die Top 3 Accounts werden von Personen betrieben, welche alle in der
 Region Böhmen gemeldet sind. Das Alter der Konto-owner ist von 28 bis 46
 jährig.
 
-#### Altesverteilung der Kontoinhaber aufgeteilt auf den Einkommensklassen[^85]
+#### Altesverteilung der Kontoinhaber aufgeteilt auf den Einkommensklassen[^84]
 
-[^85]: Erstellt von Aaron Studer
+[^84]: Erstellt von Aaron Studer
 
 ```{r}
 df_cons %>% 
@@ -4303,9 +4307,9 @@ Bei den hohen Einkommen ist der Altersdurchschnitt am tiefsten. Dies
 widerspricht der allgemeinen Annahme, dass eine Person mit zunehmenden
 Alter auch mehr Einkommen hat.
 
-### Bargeldbezüge ohne Angabe des Verwendungszwecks[^86]
+### Bargeldbezüge ohne Angabe des Verwendungszwecks[^85]
 
-[^86]: Erstellt von Aaron Studer
+[^85]: Erstellt von Aaron Studer
 
 Vorbereiten des Datensatzes.
 
@@ -4334,9 +4338,9 @@ rm(owner_district)
 
 ```
 
-#### Varialbelbeschreibung (Levels)[^87]
+#### Varialbelbeschreibung (Levels)[^86]
 
-[^87]: Erstellt von Aaron Studer
+[^86]: Erstellt von Aaron Studer
 
 Folgende Levels sind vorhanden:
 
@@ -4430,9 +4434,9 @@ Die Beträge für Versicherungszwecke sind alle auf einem sehr tiefen
 Niveau. Die höheren Beträge (ab 10'000 CZK) werden nun genauer
 untersucht.
 
-#### Bargeldbezüge über 10'000 CZK[^88]
+#### Bargeldbezüge über 10'000 CZK[^87]
 
-[^88]: Erstellt von Léonie Bécheiraz
+[^87]: Erstellt von Léonie Bécheiraz
 
 Anzahl Bezüge mit anteilmässiger Verteilung auf die Regionen.
 
@@ -4469,9 +4473,9 @@ Die hohen Bezüge sind über das ganze Land verteilt. Die Region West
 Böhmen weist am häufigsten, Nord und Zentral Böhmen am wenigsten hohe
 Bargeldbezüge aus.
 
-#### Das Gebiet Moravia (Mähren)[^89]
+#### Das Gebiet Moravia (Mähren)[^88]
 
-[^89]: Erstellt von Léonie Bécheiraz
+[^88]: Erstellt von Léonie Bécheiraz
 
 In der Region Moravia sind einige wichtige Wirtschaftszentren
 angesiedelt. Auch die Landwirtschaft spielt eine wichtige Rolle vor
@@ -4481,9 +4485,9 @@ Auch die Automobil- und die tschechische Feuerwaffenindustrie haben ihre
 Produktionsstätten in dieser Region. Das Gebiet um Zlín ist für
 Flugzeughersteller bekannt. Mehrere Firmen haben dort ihren Sitz.
 
-### Kreditkarten[^90]
+### Kreditkarten[^89]
 
-[^90]: Erstellt von Léonie Bécheiraz
+[^89]: Erstellt von Léonie Bécheiraz
 
 Wieviele Accounts haben eine Kreditkarte?
 
@@ -4518,9 +4522,9 @@ df_cons %>%
 
 ```
 
-#### Analysen zur Kreditkarte[^91]
+#### Analysen zur Kreditkarte[^90]
 
-[^91]: Erstellt von Léonie Bécheiraz
+[^90]: Erstellt von Léonie Bécheiraz
 
 Wieviele Kreditkarten werden benutzt?
 
@@ -4752,9 +4756,9 @@ df_cons %>%
 Hier fällt wiederum die Region Moravia mit den meisten hohen
 Kreditkartenbezügen auf.
 
-#### Top 3 der höchsten Kreditkartenbezüge[^92]
+#### Top 3 der höchsten Kreditkartenbezüge[^91]
 
-[^92]: Erstellt von Léonie Bécheiraz
+[^91]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 df_cons %>% 
@@ -4803,21 +4807,21 @@ rm(cardwidthdrawals, cardwidthdrawals_4, cashwidthdrawals, cashwidthdrawals_10, 
 
 ```
 
-### CrossSelling Produkt Kreditkarte[^93]
+### CrossSelling Produkt Kreditkarte[^92]
+
+[^92]: Erstellt von Léonie Bécheiraz
+
+#### Ziel[^93]
 
 [^93]: Erstellt von Léonie Bécheiraz
-
-#### Ziel[^94]
-
-[^94]: Erstellt von Léonie Bécheiraz
 
 Wenn ein Kunde bereits ein Girokonto hat aber noch nicht mit einer
 Kreditkarte verbunden ist, ein Angebot für die Kreditkarte unterbreiten.
 Bei Neueröffnung eines Girokontos die Kreditkarte gleich mitanbieten.
 
-#### Voraussetzung an Konto/Kunde[^95]
+#### Voraussetzung an Konto/Kunde[^94]
 
-[^95]: Erstellt von Léonie Bécheiraz
+[^94]: Erstellt von Léonie Bécheiraz
 
 Das Angebot einer Kreditkarte sollte für den Kunden sowie für die Bank
 einen Mehrwert bedeuten. Darum ist es sehr wichtig, die Kriterien,
@@ -4837,17 +4841,17 @@ Folgende Punkte müssen erfüllt sein:
 
 -   positive Vermögensentwicklung
 
-#### Vermögensentwicklung[^96]
+#### Vermögensentwicklung[^95]
 
-[^96]: Erstellt von Léonie Bécheiraz
+[^95]: Erstellt von Léonie Bécheiraz
 
 Die Vermögensentwicklung darf nicht negativ sein, da ansonsten die
 Kredite nicht mehr abbezahlt werden können. Die Spalte mit den
 Informationen zur Vermögensentwicklung wurde bereits erstellt.
 
-#### Kundengruppe Kreditkartenangebote[^97]
+#### Kundengruppe Kreditkartenangebote[^96]
 
-[^97]: Erstellt von Léonie Bécheiraz
+[^96]: Erstellt von Léonie Bécheiraz
 
 Wir rekapitulieren nochmals die Voraussetzungen für diese Kundengruppe:
 Erfüllt müssen sein: - Kontoart: Girokonto - regelmässiges "normales"
@@ -4876,9 +4880,9 @@ rm(foo80)
 
 ```
 
-#### Visualisierung der Kundengruppen "Kreditkartenangebot"[^98]
+#### Visualisierung der Kundengruppen "Kreditkartenangebot"[^97]
 
-[^98]: Erstellt von Léonie Bécheiraz
+[^97]: Erstellt von Léonie Bécheiraz
 
 Für die Kundengruppe mit mind. 80% ortsübliches Durchschnittseinkommen.
 
@@ -4984,9 +4988,9 @@ plt_year_account_cc_80 <- cust_cc_offer_lst_80 %>%
   
 ```
 
-#### Zusammenfassung der Gruppe "Kreditkartenangebote"[^99]
+#### Zusammenfassung der Gruppe "Kreditkartenangebote"[^98]
 
-[^99]: Erstellt von Léonie Bécheiraz
+[^98]: Erstellt von Léonie Bécheiraz
 
 Erstellen eines verschachtelten Plots.
 
@@ -5007,9 +5011,9 @@ rm(plt_age_cc_80, plt_income_cc_80, plt_region_cc_80, plt_year_account_cc_80)
 
 ```
 
-#### Art der Kontaktaufnahme mit dieser Kundengruppe[^100]
+#### Art der Kontaktaufnahme mit dieser Kundengruppe[^99]
 
-[^100]: Erstellt von Léonie Bécheiraz
+[^99]: Erstellt von Léonie Bécheiraz
 
 Wir leben in einem Zeitalter, in dem die Kunden gerne persönlich in der
 Filiale beraten werden. Diese persönliche Beratung bietet sich vor allem
@@ -5046,9 +5050,9 @@ rm(cust_cc_offer_lst_80)
 
 ```
 
-#### Resultat / Empfehlung[^101]
+#### Resultat / Empfehlung[^100]
 
-[^101]: Erstellt von Léonie Bécheiraz
+[^100]: Erstellt von Léonie Bécheiraz
 
 Für die aquise neuer Kreditkartenkunden unter den bestehenden Kunden
 diese persönlich zu einem Beratungsgespräch einladen. (Plot mit
@@ -5059,9 +5063,9 @@ wenn mit der Kreditkarte bezahlt wird oder Zinsen für einen Monat
 aussetzen wenn in diesem Monat ab einem bestimmten Betrag mit der
 Kreditkarte bezahlt wird.
 
-### Entscheidungsbaum Kreditkarten[^102]
+### Entscheidungsbaum Kreditkarten[^101]
 
-[^102]: Erstellt von Léonie Bécheiraz
+[^101]: Erstellt von Léonie Bécheiraz
 
 Entscheidungsbaum für Cross Selling Angebote wie in diesem Fall zum
 Thema Kreditkarte
@@ -5179,9 +5183,9 @@ summary(tree_train$income)
 
 ```
 
-#### Modell trainieren[^103]
+#### Modell trainieren[^102]
 
-[^103]: Erstellt von Léonie Bécheiraz
+[^102]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 set.seed(123)
@@ -5215,9 +5219,9 @@ printcp(ct_tree)
 
 ```
 
-#### Ausdrucken des Cp Wertes[^104]
+#### Ausdrucken des Cp Wertes[^103]
 
-[^104]: Erstellt von Léonie Bécheiraz
+[^103]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 # Relativer Fehler der Kreuzvalidierung 
@@ -5308,9 +5312,9 @@ rm(tree_train, tree_test)
 
 ```
 
-### Cross-Selling Produkt Umkehrhypothek (HELOC)[^105]
+### Cross-Selling Produkt Umkehrhypothek (HELOC)[^104]
 
-[^105]: Erstellt von Léonie Bécheiraz
+[^104]: Erstellt von Léonie Bécheiraz
 
 Eine weitere Möglichkeit für Cross Selling ist die Umkehrhypothek
 (HELOC, home equity line of credit). Sie bietet Personen im Rentenalter
@@ -5335,9 +5339,9 @@ Zum Beispiel habe ich die Informationen der Transaktionen für Household
 oder auch die Observationen der Orders mit der Bezeichnung Household
 verwendet, um Erkenntnisse über mögliche Hausbesitzer zu erhalten.
 
-#### Annahme[^106]
+#### Annahme[^105]
 
-[^106]: Erstellt von Léonie Bécheiraz
+[^105]: Erstellt von Léonie Bécheiraz
 
 Die Information, wer diese mögliche Liegenschaft effektiv nutzt oder ob
 es sich überhaupt um eine Liegenschaft handelt, enzieht sich unserer
@@ -5345,9 +5349,9 @@ Kenntnis. Die folgenden Analysen wurden in der Annahme gemacht, dass es
 sich A um Liegenschaften handelt und B diese auch durch die Kunden
 selbst genutzt werden.
 
-#### Voraussetzung[^107]
+#### Voraussetzung[^106]
 
-[^107]: Erstellt von Léonie Bécheiraz
+[^106]: Erstellt von Léonie Bécheiraz
 
 -   Kunde muss im Pensionsalter sein
 -   Kunde hat bereits Wohneigentum und nutzt dieses auch selbst
@@ -5356,9 +5360,9 @@ selbst genutzt werden.
 -   der Kunde hat keine weiteren Darlehensverpflichtungen, welche nicht
     beglichen werden könnten
 
-#### Rentenalter[^108]
+#### Rentenalter[^107]
 
-[^108]: Erstellt von Léonie Bécheiraz
+[^107]: Erstellt von Léonie Bécheiraz
 
 Das Rentenalter tritt ab dem 65 Lebensjahr ein. Dies für beide
 Geschlechter gleich.
@@ -5379,9 +5383,9 @@ rm(foo)
 
 ```
 
-#### Wohneigentum[^109]
+#### Wohneigentum[^108]
 
-[^109]: Erstellt von Léonie Bécheiraz
+[^108]: Erstellt von Léonie Bécheiraz
 
 Ob ein Kunde Wohneigentum hat, ist aus den vorliegenden Daten nicht
 abschliessend festzustellen. Wir können aber annehmen, dass Kunden mit
@@ -5433,9 +5437,9 @@ rm(hh_payment, df_cons_hh)
   
 ```
 
-#### Liste Kunden für Angebot der Umkehrhypothek[^110]
+#### Liste Kunden für Angebot der Umkehrhypothek[^109]
 
-[^110]: Erstellt von Léonie Bécheiraz
+[^109]: Erstellt von Léonie Bécheiraz
 
 Home Equity Line of Credit
 
@@ -5465,9 +5469,9 @@ heloc_cust_list %>%
   count()
 ```
 
-#### Spalte Angebot Umkehrhypothek (heloc_offer)[^111]
+#### Spalte Angebot Umkehrhypothek (heloc_offer)[^110]
 
-[^111]: Erstellt von Léonie Bécheiraz
+[^110]: Erstellt von Léonie Bécheiraz
 
 ```{r}
 # Spalte für Angebot Umkehrhypothek
@@ -5484,17 +5488,17 @@ rm(foo)
 
 ```
 
-#### Weitere Cross-Selling Produkte[^112]
+#### Weitere Cross-Selling Produkte[^111]
 
-[^112]: Erstellt von Léonie Bécheiraz
+[^111]: Erstellt von Léonie Bécheiraz
 
 Weitere Cross-Selling Produkte könnten sein: Darlehens- und
 Leasingsangebote, Versicherungsangebote, Anlagepakete (Aktien,
 Obligationen), Devisenhandel
 
-#### Client Analytical Record[^113]
+#### Client Analytical Record[^112]
 
-[^113]: Erstellt von Léonie Bécheiraz
+[^112]: Erstellt von Léonie Bécheiraz
 
 Das Data Frame df_cons wurde während der verschiedenen Analysen immer
 wieder mit relevanten Daten angereichert, somit sollte es als Client
@@ -5505,9 +5509,9 @@ Analytical Record dienen.
 ### Analyse von Kundenattributen
 
 Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung
-über die Zeit aus?[^114]
+über die Zeit aus?[^113]
 
-[^114]: Erstellt von Christian Heeb
+[^113]: Erstellt von Christian Heeb
 
 ##### Gesamtübersicht dern neu eröffneten Konten in den letzten Jahren
 
@@ -5523,8 +5527,8 @@ ggplot(data = df_cons, aes(x = account_opening_date)) +
 
 ```
 
-Das Histogramm zeigt die Jährliche Übersicht der neu gewonnenen Kunden in den Jahren 1993 bis 1998
-
+Das Histogramm zeigt die Jährliche Übersicht der neu gewonnenen Kunden
+in den Jahren 1993 bis 1998
 
 #### Detaillierten Jahresansicht
 
@@ -5547,10 +5551,9 @@ df_cons %>%
 
 Detaillierte Überischt der Neukunden unterteilt nach Jahren.
 
+#### Altersverteilung der Kunden[^114]
 
-#### Altersverteilung der Kunden[^115]
-
-[^115]: Erstellt von Christian Heeb
+[^114]: Erstellt von Christian Heeb
 
 ```{r}
 # Calculate age of Customers with Lubridate
@@ -5578,8 +5581,9 @@ df_cons %>%
  
 ```
 
-Der Barplot zeigt die die Verteilung der Kundenalters. Da eine Darstellung mit dem Kundenalter im Jahr 2023 nur bedingt aussagekräftig wäre, wurde als Stichtag der 31.12.1999 definiert. 
-
+Der Barplot zeigt die die Verteilung der Kundenalters. Da eine
+Darstellung mit dem Kundenalter im Jahr 2023 nur bedingt aussagekräftig
+wäre, wurde als Stichtag der 31.12.1999 definiert.
 
 #### Altersverteilung beim eröffnen des Kontos
 
@@ -5594,12 +5598,12 @@ Der Barplot zeigt die die Verteilung der Kundenalters. Da eine Darstellung mit d
    scale_x_continuous(breaks = scales::breaks_pretty(10))
 ```
 
-Der Barplot zeigt die die Verteilung der Kundenalters beim eröffnen des Kontos.
+Der Barplot zeigt die die Verteilung der Kundenalters beim eröffnen des
+Kontos.
 
+#### Verteilung der Kreditkartentypen [^115]
 
-#### Verteilung der Kreditkartentypen [^116]
-
-[^116]: Erstellt von Aaron Studer
+[^115]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -5630,11 +5634,21 @@ ggplot(df_credit_card_by_type, aes(fill = card_type, x = owner_sex, y = n)) +
 rm(df_credit_card_by_type)
 
 ```
- In dieser Grafik sehen wir die relative Verteilung von Kreditkarten typen gruppiert nach den Geschlechtern. Dabei sehen wir das die grösste Menge der Kunden eine Kreditkarte vom Type 'Classic' haben. Wenn man genauer die Unterschiede zwischen den beiden Geschlechtern anschaut, sieht man, dass ein grössere Anteil der Männlichen Kundschaft eine Kreditkarte mit dem Typ 'Gold' besitzen. Jedoch gleicht sich das ganze aus, da die Weibliche Kundschaft einen grösseren relativen Anteil an Kreditkarten vom Type 'Junior' und 'Classic' haben. Wenn man die beiden Balken vergleicht wird festgestellt, dass mehr männliche Kunden einen Kreditkarte besitzen.
 
-#### Clustering des Einkommens und der Ausgaben[^117]
+In dieser Grafik sehen wir die relative Verteilung von Kreditkarten
+typen gruppiert nach den Geschlechtern. Dabei sehen wir das die grösste
+Menge der Kunden eine Kreditkarte vom Type 'Classic' haben. Wenn man
+genauer die Unterschiede zwischen den beiden Geschlechtern anschaut,
+sieht man, dass ein grössere Anteil der Männlichen Kundschaft eine
+Kreditkarte mit dem Typ 'Gold' besitzen. Jedoch gleicht sich das ganze
+aus, da die Weibliche Kundschaft einen grösseren relativen Anteil an
+Kreditkarten vom Type 'Junior' und 'Classic' haben. Wenn man die beiden
+Balken vergleicht wird festgestellt, dass mehr männliche Kunden einen
+Kreditkarte besitzen.
 
-[^117]: Erstellt von Aaron Studer
+#### Clustering des Einkommens und der Ausgaben[^116]
+
+[^116]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -5707,18 +5721,37 @@ autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
 
 
 ```
-Für die Cluster Analyse müssen wir die Clusters Vergleichen von verschiedenen k-Werten. Dazu haben wir die drei Werte 8, 15 und 25 benutzt. Die genauen Graphen sind nachfolgend aufgelistet:
-1. Der Plot wurde dargestellt um die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 8 gearbeitet.
-2. Der Plot wurde dargestellt um die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 15 gearbeitet.
-3. Der Plot wurde dargestellt um die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 25 gearbeitet.
 
-Nach der Analyse werden die Clusters mithilfe von Autplot visuell noch weiter dargestellt.
+Für die Cluster Analyse müssen wir die Clusters Vergleichen von
+verschiedenen k-Werten. Dazu haben wir die drei Werte 8, 15 und 25
+benutzt. Die genauen Graphen sind nachfolgend aufgelistet: 1. Der Plot
+wurde dargestellt um die verschiedene Datenpunkte im Cluster
+darzustellen die Punkte sind nach den zugewiesen Cluster eingefärbt. Es
+wird mit einem k-Wert von 8 gearbeitet. 2. Der Plot wurde dargestellt um
+die verschiedene Datenpunkte im Cluster darzustellen die Punkte sind
+nach den zugewiesen Cluster eingefärbt. Es wird mit einem k-Wert von 15
+gearbeitet. 3. Der Plot wurde dargestellt um die verschiedene
+Datenpunkte im Cluster darzustellen die Punkte sind nach den zugewiesen
+Cluster eingefärbt. Es wird mit einem k-Wert von 25 gearbeitet.
 
-4. Der Autplot zeigt die verschiedene Cluster 2 dimensional an und bildet eine Areal um die einzelnen Datenpunkte von einem Cluster. Diese Clusteriung wurde mit 8 Clustern aufgebaut.
-5. Der Autplot zeigt die verschiedene Cluster 2 dimensional an und bildet eine Areal um die einzelnen Datenpunkte von einem Cluster. Diese Clusteriung wurde mit 15 Clustern aufgebaut.
-6. Der Autplot zeigt die verschiedene Cluster 2 dimensional an und bildet eine Areal um die einzelnen Datenpunkte von einem Cluster. Diese Clusteriung wurde mit 25 Clustern aufgebaut.
+Nach der Analyse werden die Clusters mithilfe von Autplot visuell noch
+weiter dargestellt.
 
-Wir sehen klar das die Datenpunkte in den Clusters überlappend sind, daher kann man erkenne, dass die Funktion mit kmeans Probleme hat bei der Bildung von Clusters oder das die Daten in einer Komplexität herkommen, wodurch sie von dem Algoritmus nicht korrekt zugewiesen werden können.
+4.  Der Autplot zeigt die verschiedene Cluster 2 dimensional an und
+    bildet eine Areal um die einzelnen Datenpunkte von einem Cluster.
+    Diese Clusteriung wurde mit 8 Clustern aufgebaut.
+5.  Der Autplot zeigt die verschiedene Cluster 2 dimensional an und
+    bildet eine Areal um die einzelnen Datenpunkte von einem Cluster.
+    Diese Clusteriung wurde mit 15 Clustern aufgebaut.
+6.  Der Autplot zeigt die verschiedene Cluster 2 dimensional an und
+    bildet eine Areal um die einzelnen Datenpunkte von einem Cluster.
+    Diese Clusteriung wurde mit 25 Clustern aufgebaut.
+
+Wir sehen klar das die Datenpunkte in den Clusters überlappend sind,
+daher kann man erkenne, dass die Funktion mit kmeans Probleme hat bei
+der Bildung von Clusters oder das die Daten in einer Komplexität
+herkommen, wodurch sie von dem Algoritmus nicht korrekt zugewiesen
+werden können.
 
 Clustering with the yearly income avg and outcome avg of the customer
 
@@ -5758,15 +5791,27 @@ autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
 fitK$centers
 
 ```
-Wir sehen hier eine weiteres Clustering Verfahren, dabei versuchen wir Clusters aufzubauen nur mit den jährlichen Einkommen und Ausgaben von Kunden. Der Scatter-plot zeigt eine saubere Auftrennung der Datenpunkte in den verschiedenen CLusters.
 
-Für die Bestimmung der Clusters wird wieder die Elbow-Methode gebraucht in dem zweiten Graphen sind man dazu zwei Möglichkeiten nämlich mit dem Wert K = 5 und K = 10.
+Wir sehen hier eine weiteres Clustering Verfahren, dabei versuchen wir
+Clusters aufzubauen nur mit den jährlichen Einkommen und Ausgaben von
+Kunden. Der Scatter-plot zeigt eine saubere Auftrennung der Datenpunkte
+in den verschiedenen CLusters.
 
-In dem dritten Graphen sieht man eine klare, aber eng beieinandere Verteilung der Datenpunkte in den einzelnen Cluster. Die Clusters könnten nun weiterhin gebraucht werden für eine Analyse der einzelnen Datenpunkte (Kunden) in den Clusters. Man kann weitere Angebote analysieren, die diese Kunden brauchen und den Kunden empfehlen, die sich in dem selben Cluster befinden, die jedoch dieses Produkt noch nicht brauchen.
+Für die Bestimmung der Clusters wird wieder die Elbow-Methode gebraucht
+in dem zweiten Graphen sind man dazu zwei Möglichkeiten nämlich mit dem
+Wert K = 5 und K = 10.
 
-#### Beliebtester Modus einer Transaktion?[^118]
+In dem dritten Graphen sieht man eine klare, aber eng beieinandere
+Verteilung der Datenpunkte in den einzelnen Cluster. Die Clusters
+könnten nun weiterhin gebraucht werden für eine Analyse der einzelnen
+Datenpunkte (Kunden) in den Clusters. Man kann weitere Angebote
+analysieren, die diese Kunden brauchen und den Kunden empfehlen, die
+sich in dem selben Cluster befinden, die jedoch dieses Produkt noch
+nicht brauchen.
 
-[^118]: Erstellt von Aaron Studer
+#### Beliebtester Modus einer Transaktion?[^117]
+
+[^117]: Erstellt von Aaron Studer
 
 ```{r}
 # df_transaction_type_count <- df_transaction_complete %>%
@@ -5805,18 +5850,29 @@ ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = 
   facet_wrap(vars(characterization), ncol = 1)
 
 ```
-Wir sehen in dieser Visualisierung die Entwicklung der Transaktionen bezogene auf die Zeit (Nach den Quartalen). Über alle Typen sehen wir einen ganz klaren Anstieg der Transaktionen, dass kann durch den Zuwachs neuer Kundschaft enstanden sein. Desweiteren sehen wir das die meisten Transaktionen den Typ 'NA' aufweisen. Dieses Verhalten liegt sehr wahrscheinlich davon ab, dass der Typ von der Transaktion nur bei grösseren Transaktionen aufgenommen wurde oder bei der Ausführung der Transaktion am Schalter. Da die definierten Typen 'Credit Interest', 'Houhsehold' und 'Statement Payment' am meisten gebraucht wurden. Könnte man neue Angebote entwickeln die genau Vorteile bei diesen Transaktionstypen aufweisen.
+
+Wir sehen in dieser Visualisierung die Entwicklung der Transaktionen
+bezogene auf die Zeit (Nach den Quartalen). Über alle Typen sehen wir
+einen ganz klaren Anstieg der Transaktionen, dass kann durch den Zuwachs
+neuer Kundschaft enstanden sein. Desweiteren sehen wir das die meisten
+Transaktionen den Typ 'NA' aufweisen. Dieses Verhalten liegt sehr
+wahrscheinlich davon ab, dass der Typ von der Transaktion nur bei
+grösseren Transaktionen aufgenommen wurde oder bei der Ausführung der
+Transaktion am Schalter. Da die definierten Typen 'Credit Interest',
+'Houhsehold' und 'Statement Payment' am meisten gebraucht wurden. Könnte
+man neue Angebote entwickeln die genau Vorteile bei diesen
+Transaktionstypen aufweisen.
 
 ### Kartografische Darstellung von Analysen
 
-#### Verteilung der Kundschaft auf die Distrikte in Tschechien.[^119]
+#### Verteilung der Kundschaft auf die Distrikte in Tschechien.[^118]
 
-[^119]: Erstellt von Aaron Studer
+[^118]: Erstellt von Aaron Studer
 
 Vorbereitung der externen geografischen Daten für die Visualisierung in
-einer Kartenansicht.[^120]
+einer Kartenansicht.[^119]
 
-[^120]: Erstellt von Aaron Studer
+[^119]: Erstellt von Aaron Studer
 
 ```{r}
 # 
@@ -5857,11 +5913,14 @@ geographical_data <- geographical_data %>%
 
 ```
 
-Mithilfe des Data Frames 'geographical_data' wird uns in den folgenden R-Snippets ermöglicht Informationen zu den Distrikten in einer Heatmap darzustellen bei der das ganze Land untertrennt durch die Staaten dargestellt wird.
+Mithilfe des Data Frames 'geographical_data' wird uns in den folgenden
+R-Snippets ermöglicht Informationen zu den Distrikten in einer Heatmap
+darzustellen bei der das ganze Land untertrennt durch die Staaten
+dargestellt wird.
 
-#### Anzahl der Kunden in den einzelnen Distrikten.[^121]
+#### Anzahl der Kunden in den einzelnen Distrikten.[^120]
 
-[^121]: Erstellt von Aaron Studer
+[^120]: Erstellt von Aaron Studer
 
 ```{r}
 # Preparation of the data frame that will be used to display the count of customers in each district
@@ -5898,11 +5957,18 @@ ggplot(data = df_customers_per_district_incl_geo_data) +
 
 
 ```
-Wir sehen in dieser Heatmap die Verteilung von Kunden in den einzelnen Distrikten. Wir haben das Land mithilfe der Geometry Formeln des Packages 'RCzechia' erstellt. Wir sehen das die meisten Kunden sich in dem Staat 'Hl.m. Praha' befinden. Eine grössere Dichte besteht auch im Osten des Landes. Aus dem Graph können wir ableiten, in welchen Staaten es sich lohnt die bereits vorhandenen Kundschaft weiter auszubauen, da die Infrastruktur schon besteht.
 
-#### Durchschnittslohn in den verschiedenen Distrikten[^122]
+Wir sehen in dieser Heatmap die Verteilung von Kunden in den einzelnen
+Distrikten. Wir haben das Land mithilfe der Geometry Formeln des
+Packages 'RCzechia' erstellt. Wir sehen das die meisten Kunden sich in
+dem Staat 'Hl.m. Praha' befinden. Eine grössere Dichte besteht auch im
+Osten des Landes. Aus dem Graph können wir ableiten, in welchen Staaten
+es sich lohnt die bereits vorhandenen Kundschaft weiter auszubauen, da
+die Infrastruktur schon besteht.
 
-[^122]: Erstellt von Aaron Studer
+#### Durchschnittslohn in den verschiedenen Distrikten[^121]
+
+[^121]: Erstellt von Aaron Studer
 
 ```{r}
 
@@ -5929,10 +5995,10 @@ ggplot_average_salary_per_district <- ggplot(data = df_average_salary_per_distri
 
 ```
 
-Average Salary berechnet durch die von Kunden getätigten
-Transaktionen in den verschiedenen Distrikten[^123]
+Average Salary berechnet durch die von Kunden getätigten Transaktionen
+in den verschiedenen Distrikten[^122]
 
-[^123]: Erstellt von Aaron Studer
+[^122]: Erstellt von Luca Gisler
 
 ```{r}
 
@@ -5965,10 +6031,9 @@ ggplot_average_income_calculated <- ggplot(data = df_average_income_per_district
 
 ```
 
-
 #### Vergleich Average Einkommen von den Distrikten und dem
-Durchschnittlichen Einkommen der Kunden:
 
+Durchschnittlichen Einkommen der Kunden:
 
 ```{r}
 
@@ -5989,7 +6054,6 @@ Konto weiterhin erstellt haben, aber auch nach einem Datum x ein neues
 Lohnkonto bei einer weiteren Bank eröffnen. - Die Kunden kommen aus den
 tieferverdienenden Segmenten.
 
-
 Aufräumen nach der Darstellungen in der Kartenübersicht
 
 ```{r}
@@ -6001,9 +6065,9 @@ rm(df_district_mod_names, df_transaction_complete_with_district_information, inc
 ```
 
 xi\. Können neue Sonderangebote/Pakete geschaffen werden für die am
-meist verdienenden Kunden?[^124]
+meist verdienenden Kunden?[^123]
 
-[^124]: Erstellt von Aaron Studer
+[^123]: Erstellt von Aaron Studer
 
 Wie beim Density-Plot (Verteilung) kommt deutlich zum Ausdruck, dass die
 meisten Konten Einkommen bis 320'000 CZK aufweisen. Die
@@ -6032,20 +6096,28 @@ frequency_card_type_accounts_over_320K <- account_ids_incomes_over_320K %>%
 frequency_card_type_accounts_over_320K
 
 ```
-Mithilfer der Häufigkeitstabelle erhalten wir eine klare Übersicht über die Verteilung der Kreditkarten Typen von den Grossverdienern. Wir sehene das ca. 29.46% der Kunden eine Kreditkarte vom Type 'Classic' besitzen und das ca. 60% der Kunden in diesem Segment keine Kreditkarten von dieser Bank besitzen. Daher kann nun ein Angebot erstellt werden, das zusammen mit der Aktivierung einer Kreditkarte eingelöst werden kann. Dadurch können weitere Kunden angezogen werden und auch die Kunden in diesem Segmente könnten sich entscheiden eine Kreditkarte zu beantragen.
 
-
+Mithilfer der Häufigkeitstabelle erhalten wir eine klare Übersicht über
+die Verteilung der Kreditkarten Typen von den Grossverdienern. Wir
+sehene das ca. 29.46% der Kunden eine Kreditkarte vom Type 'Classic'
+besitzen und das ca. 60% der Kunden in diesem Segment keine Kreditkarten
+von dieser Bank besitzen. Daher kann nun ein Angebot erstellt werden,
+das zusammen mit der Aktivierung einer Kreditkarte eingelöst werden
+kann. Dadurch können weitere Kunden angezogen werden und auch die Kunden
+in diesem Segmente könnten sich entscheiden eine Kreditkarte zu
+beantragen.
 
 ### Korrelationen zwischen Datenattributen:
 
 #### Wahrscheinlichkeit dass ein Kunden seinen Kredit zurückbezahlen wird
 
-Ziel dieses Abschnittes ist es, Prognosen für die Bank zu erarbeiten, um festzustellen, ob Kunden ihre
-Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann
-mithilfe der Analyse festgestellt werden und bei bereits laufenden
-Krediten können Massnahmen getroffen werden.[^125]
+Ziel dieses Abschnittes ist es, Prognosen für die Bank zu erarbeiten, um
+festzustellen, ob Kunden ihre Kredite zurückzahlen können. Die
+Kreditwürdigkeit des Kunden kann mithilfe der Analyse festgestellt
+werden und bei bereits laufenden Krediten können Massnahmen getroffen
+werden.[^124]
 
-[^125]: Erstellt von Christian Heeb
+[^124]: Erstellt von Christian Heeb
 
 ```{r}
 df_cons %>%
@@ -6065,7 +6137,9 @@ df_cons %>%
 ```
 
 Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive
-deren Status. Daraus wird ersichtlich, dass der grösste Teil der Kunden ihren Kredit bereits erfolgreich zurückzahlen wird, oder ihn bereits zurückbezahlt hat.
+deren Status. Daraus wird ersichtlich, dass der grösste Teil der Kunden
+ihren Kredit bereits erfolgreich zurückzahlen wird, oder ihn bereits
+zurückbezahlt hat.
 
 ```{r message=FALSE}
 # Preparation of Plots
@@ -6192,13 +6266,9 @@ Jahreseinkommens ausmacht und somit auch schneller zu einer Belastung
 wird, was ein Grund für das nicht- oder zu spät bezahlen der Kredite
 sein könnte.
 
+#### Decision Tree und Random Forest Modelle zur Vorhersage der Kreditwürdigkeit[^125]
 
-
-#### Erstellen von Decision Tree und Random Forest Modellen zur Vorhersage
-der Kreditwürdigkeit[^126]
-
-[^126]: Erstellt von Christian Heeb
-
+[^125]: Erstellt von Christian Heeb
 
 Für einen einfacheren Umgang mit den Daten wird eine Kopie des
 Originalen Datensatzes mit allen relevanten Attributen erstellt.
@@ -6233,7 +6303,7 @@ Modells verwendet. Der Datensatz, auf dem das Modell trainiert wird.
 Testdatensatz: Der Testdatensatz ist eine Teilmenge des
 Trainingsdatensatzes, die verwendet wird, um eine genaue Bewertung der
 endgültigen Anpassung des Modells zu erhalten.
-\
+
 Unausgeglichener Datensatz
 
 ```{r}
@@ -6328,8 +6398,8 @@ printcp(dtree_loan)
 Die Spalten in der Ausgabe listen die cp-Werte, die zugehörige Anzahl
 der Splits (nsplit), den relativen Fehler (rel error) bezogen auf den
 Fehler im Wurzelknoten auf. Wie man der Tabelle, entnehmen kann, ist der
-xerror + xstd bei 28 Blättern, also bei 27 Splits am kleinsten. Daraus
-können wir einen optimalen cp-Wert von 0.00724638 ablesen.
+xerror + xstd bei 24 Blättern, also bei 23 Splits am kleinsten. Daraus
+können wir einen optimalen cp-Wert von 0.00828157 ablesen.
 
 ```{r}
 # Decision Tree with modifyled cp-Value
@@ -6337,7 +6407,7 @@ set.seed(321)
 dtree_pruned <- rpart(loan_in_dept ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + income_avg + outgoes_avg, 
                data = loan_train, 
                method = "class",
-               control = rpart.control(cp = 0.00724638))
+               control = rpart.control(cp = 0.00828157))
 
 # Plotting pruned Tree
 rpart.plot(dtree_pruned, split.prefix = "if ", fallen.leaves = TRUE, shadow.col = "gray", digits=-3, main = "Is Customer in Dept?\n(Training Data)")
@@ -6389,17 +6459,17 @@ accuracy_test <- sum(diag(confusion_matrix_test)) / sum(confusion_matrix_test)
 paste("Genauigkeit des Modells: ", round((accuracy_test * 100), digits = 2), "%" )
 ```
 
-##### Random Forest[^126]
+##### Random Forest[^127]
 
-[^126]: Erstellt von Christian Heeb
+[^127]: Erstellt von Christian Heeb
 
-Bei Random Forests werden viele Entscheidungsbäume gleichzeitig erstellt, wobei bei
-jedem Baum nur eine Teilmenge der Daten genutzt wird. Für die Prognose
-der Klasse eines neuen Objekts wird eine Mehrheitsentscheidung der Bäume
-gefällt (majority vote). Es erfolgt kein Pruning der einzelnen Bäume, da
-man davon ausgeht, dass sich Overﬁttingprobleme aufgrund der
-verschiedenen Teilmengen ausgleichen und daher kein Problem mehr
-darstellen.
+Bei Random Forests werden viele Entscheidungsbäume gleichzeitig
+erstellt, wobei bei jedem Baum nur eine Teilmenge der Daten genutzt
+wird. Für die Prognose der Klasse eines neuen Objekts wird eine
+Mehrheitsentscheidung der Bäume gefällt (majority vote). Es erfolgt kein
+Pruning der einzelnen Bäume, da man davon ausgeht, dass sich
+Overﬁttingprobleme aufgrund der verschiedenen Teilmengen ausgleichen und
+daher kein Problem mehr darstellen.
 
 Für den Aufbau des Random Forest erfolgt eine Zufallsauswahl auf zwei
 Ebenen:
@@ -6548,11 +6618,9 @@ Knoten eine Klasse bildet.\
 Quelle: Von der Hude, M. (2020). *Predictive Analytics und Data Mining*
 (S. 137 -166). Springer
 
+#### Wie sieht das Verhältnis der der Verwendung von verschiedenen Zahlungsmittel in Abhängigkeit der Zeit aus?[^128]
 
-
-#### Wie seiht das Verhältnis der der Verwendung von verschiedenen Zahlungsmittel in abhängigkeit der Zeit aus?[^127]
-
-[^127]: Erstellt von Christian Heeb
+[^128]: Erstellt von Christian Heeb
 
 ```{r, warning = FALSE}
 df_transaction_complete %>%
@@ -6581,9 +6649,9 @@ begründen, dass wahrscheinlich noch weitere Bezüge nach dem
 Jahreswechsel getätigt wurden, da die gespeicherten Daten aber nur bis
 zum 31.12.1999 reichen, wurden diese Bezüge nicht aufgezeichnet.
 
-#### Analyse der Kundengruppe welche eine Gold-Kreditkarte verwendet[^128]
+#### Analyse der Kundengruppe welche eine Gold-Kreditkarte verwendet[^129]
 
-[^128]: Erstellt von Christian Heeb
+[^129]: Erstellt von Christian Heeb
 
 ```{r}
 # Overview of Card tpyes used
@@ -6693,18 +6761,15 @@ aufzuzeigen, welche Durchschnittliche Eigenschaften eine solcher Kunde
 aufweist, um herauszufinden welche weiteren Kunden für diese spezielle
 Kreditkarte in Frage kommen.
 
-
-
 ### Korrelationsanalyse zwischen den Bankdaten und den
-soziodemografischen Daten.[^123]
 
-[^123]: Erstellt von Luca Gisler
+soziodemografischen Daten.[^130]
+
+[^130]: Erstellt von Luca Gisler
 
 #### Distribution von Kunden in den Distrikten im Bezug
+
 zu den restlichen Einwohnern
-
-[^129]: Erstellt von Luca Gisler
-
 
 ```{r}
 #create new df
@@ -6745,20 +6810,24 @@ head(combined_owner_over_district_size %>% arrange(desc(percentage_of_district_o
 
 ```
 
-Wir sehen In den grösseren Distrikten ist gibt es Prozentual weniger Kunden als in den kleinen. Als direkter Vergleich: Ceske Budejovice der Bezirk mit dem kleinsten Anteil an Kontoinhabern hat eine Einwohnerzahl von Insgesamt 177'686. Und der Bezirk mit dem grössten Anteil hat eine Grösse von 42'821 Einwohnern.
-Ein Ansatz für die Bank ist, die Präsenz in den Distrikten mit niedrigem Prozentsatz ihre Präsenz zu verstärken. Um somit mehr Kunden in diesen Bezirken zu generieren.
-Zusätzlich kann bei bestehenden Kunden ein Profitprogramm Eingeführt werden um neue Kunden zu akquirieren Damit ist gemeint, dass bestehende Kunden durch Akquisition gewisse Vorteile erhalten können.
+Wir sehen In den grösseren Distrikten ist gibt es Prozentual weniger
+Kunden als in den kleinen. Als direkter Vergleich: Ceske Budejovice der
+Bezirk mit dem kleinsten Anteil an Kontoinhabern hat eine Einwohnerzahl
+von Insgesamt 177'686. Und der Bezirk mit dem grössten Anteil hat eine
+Grösse von 42'821 Einwohnern. Ein Ansatz für die Bank ist, die Präsenz
+in den Distrikten mit niedrigem Prozentsatz ihre Präsenz zu verstärken.
+Um somit mehr Kunden in diesen Bezirken zu generieren. Zusätzlich kann
+bei bestehenden Kunden ein Profitprogramm Eingeführt werden um neue
+Kunden zu akquirieren Damit ist gemeint, dass bestehende Kunden durch
+Akquisition gewisse Vorteile erhalten können.
 
+#### Entwicklung des Einkommens im Bezug zu begangenen Straftaten[^131]
 
-#### Entwicklung des Einkommens im Bezug zu begangenen Straftaten[^130]
-
-[^130]: Erstellt von Luca Gisler
-
-
+[^131]: Erstellt von Luca Gisler
 
 Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da
 und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur
-Verfügung  steht.
+Verfügung steht.
 
 ```{r, error=FALSE}
 #prepare new df to join with df_district_mod
@@ -6881,14 +6950,14 @@ df_crimes_cons %>%
 
 Erkenntnisse bezüglich dem Einkommen, wie bereits in einer anderen
 Fragestellung erläutert, gäbe es 1996 einen leichten Einbruch. Im
-Vergleich mit der Arbeitslosenrate, sehen wir, dass in den höheren Einkommensgruppen
-Kategorie im Jahr 1996 einen leichten Anstieg bei der Rate von 7.5% gab.
-Dies kann einen grossen Einfluss gehabt haben, denn die höheren Einkommensgruppen
-machen eben durch Ihre Grösse ein Grossteil des Volumens aus. Als die Arbeitslosenrate im Jahr
-1995 im gleichen Bereich eine Abflachung im Schrumpfen der
-Arbeitslosigkeit erfuhr, ist sie im 1996 bei den höheren Einkommen noch einen leichten Anstieg, mit 
-angestiegen.
-
+Vergleich mit der Arbeitslosenrate, sehen wir, dass in den höheren
+Einkommensgruppen Kategorie im Jahr 1996 einen leichten Anstieg bei der
+Rate von 7.5% gab. Dies kann einen grossen Einfluss gehabt haben, denn
+die höheren Einkommensgruppen machen eben durch Ihre Grösse ein
+Grossteil des Volumens aus. Als die Arbeitslosenrate im Jahr 1995 im
+gleichen Bereich eine Abflachung im Schrumpfen der Arbeitslosigkeit
+erfuhr, ist sie im 1996 bei den höheren Einkommen noch einen leichten
+Anstieg, mit angestiegen.
 
 Überprüfung ob die Kriminalitätsrate einen Einfluss auf die
 Einkommensentwicklung hat.
@@ -6943,12 +7012,14 @@ Zusammenhang. Die Kriminalitätsrate verändert sich von 1995 auf 1996
 kaum. Somit ist die Einkommensentwicklung unabhängig von der
 Kriminalitätsrate zu betrachten.
 
-
 v\. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu
 unterteilen?
 
-[^1212]
-[^1212]: Erstellt von Luca Gisler
+[^132] [^133]: Erstellt von Luca Gisler
+
+[^132]: Erstellt von Luca Gisler
+
+[^133]: Erstellt von Luca Gisler
 
 Diese Frage ist in diesem Sinne interessant, dass man im Bereich des
 Cross Sellings unterschiedliche Angebote für Geschäfts- und Privatkunden
@@ -6968,7 +7039,7 @@ ist dieser Transaktionstyp kein sicheres Ausscheide Kriterium.
 HOUSEHOLD - Hat ein Unternehmen Ausgaben die den Haushalt betreffen? Ein
 Unternehmen zahlt Löhne, Mieten, Versicherungen. Wir vermuten dass ein
 Unternehmen keine Ausgaben im Bereich Haushalt hat. Aber was ist wenn
-eine Festlichkeit  ansteht? Dann fallen diese Ausgaben auch in den
+eine Festlichkeit ansteht? Dann fallen diese Ausgaben auch in den
 Bereich des Haushaltes. Also kein Kriterium für das sichere
 Identifizieren. LEASING - Ein Unternehmen kann auch ein Auto leasen,
 also ist das kein sicheres Ausscheide Kriterium.
@@ -7018,8 +7089,11 @@ unterteilen kann.
 vi\. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer
 aus? Kann aus der Grafik ein Trend ausgelesen werden?
 
-[^1212]
-[^1212]: Erstellt von Luca Gisler
+[^134] [^135]: Erstellt von Luca Gisler
+
+[^134]: Erstellt von Luca Gisler
+
+[^135]: Erstellt von Luca Gisler
 
 ```{r}
 
@@ -7081,12 +7155,14 @@ wir, dass es keine wesentlichen Veränderungen im Bereich der
 Kreditvergabe, aber auch von Seitens Kreditnehmer gab. Das Volumen der
 Kredite hat im in der Grafik von vorhin vergrössert.
 
-
 #### Aufzeigen von Zusammenhänge im Kreditverhalten der Kunden
 
-Gibt es einen Zusammenhang zwischen den unterschiedlichen Regionen und dem Kreditverhalten (Kreditgrösse, Dauer) von den Kunden? Für eine Optimierung der lokalen Werbekampagnen und Angebote in den entsprechenden Regionen(Cross Selling)[^1212]
+Gibt es einen Zusammenhang zwischen den unterschiedlichen Regionen und
+dem Kreditverhalten (Kreditgrösse, Dauer) von den Kunden? Für eine
+Optimierung der lokalen Werbekampagnen und Angebote in den
+entsprechenden Regionen(Cross Selling)[^136]
 
-[^1212]: Erstellt von Luca Gisler
+[^136]: Erstellt von Luca Gisler
 
 ```{r}
 #filter the NAs and create plot
@@ -7160,7 +7236,7 @@ ggplotly(district_loan_correlation_monthly_amount)
 ```
 
 Damit wir einen Einheitlichen Vergleich erstellen können, stellen wir
-die Monatlichen Kreditkosten dar. Des weiteren Vergleichen  wir jetzt
+die Monatlichen Kreditkosten dar. Des weiteren Vergleichen wir jetzt
 diese Grafik mit dem Durchschnittlichen Distrikt Einkommen
 
 Berechnung des Einkommens auf die Region.
@@ -7190,21 +7266,44 @@ auch ein Boomendes Geschäft. Durch die Vergabe von mehr Krediten
 verdient die Bank an den Zinsen und kann somit ihren Gewinn steigern und
 das Angebot verbessern und wo nötig erweitern.
 
-
 ## Summary:
 
-Ziel dieser Gruppenarbeit war es, aufgrund des vorgegebenen Datensatzes Einsicht in die Transaktionsvorgänge einer Bank zu erhalten, um daraus Erkenntnisse zu gewinnen welche für die Bank im Bereich des cross-selling von Relevanz sein könnten.
+Ziel dieser Gruppenarbeit war es, aufgrund des vorgegebenen Datensatzes
+Einsicht in die Transaktionsvorgänge einer Bank zu erhalten, um daraus
+Erkenntnisse zu gewinnen welche für die Bank im Bereich des
+cross-selling von Relevanz sein könnten.
 
-In einem ersten Schritt wurden dazu nach erster Sichtung der Daten, Fragestellungen erarbeitet, welche die Gruppe in dieser Arbeit beantworten möchte.
+In einem ersten Schritt wurden dazu nach erster Sichtung der Daten,
+Fragestellungen erarbeitet, welche die Gruppe in dieser Arbeit
+beantworten möchte.
 
-Da der Datensatz von einer Tschechischen Bank stammt und somit auf Tschechisch beschrieben war, musste er in einem ersten Schritt übersetzt werden. Weiter bestand der Datensatz aus mehreren Dateien, welche in einem nächsten Schritt konsolidiert, und zu einem einzigen Datensatz kombiniert wurden.
+Da der Datensatz von einer Tschechischen Bank stammt und somit auf
+Tschechisch beschrieben war, musste er in einem ersten Schritt übersetzt
+werden. Weiter bestand der Datensatz aus mehreren Dateien, welche in
+einem nächsten Schritt konsolidiert, und zu einem einzigen Datensatz
+kombiniert wurden.
 
-Der zusammengefasste, konsolidiert Datensatz konnte anschliessend mit verschiedenen Vorgehensweisen der explorativen Datenanalyse bearbeitet werden.
+Der zusammengefasste, konsolidiert Datensatz konnte anschliessend mit
+verschiedenen Vorgehensweisen der explorativen Datenanalyse bearbeitet
+werden.
 
-Dazu wurden die Hypothesen unter den Gruppenmittgliedern aufgeteilt und grösstenteils einzeln erarbeitet. Um eine Kontinuität innerhalb der Arbeit zu erhalten, besprachen wir uns mehrere male bezüglich des weiteren Vorgehens. Weiter wurde der erstelle Code in der Gruppe besprochen und verbessert.
+Dazu wurden die Hypothesen unter den Gruppenmittgliedern aufgeteilt und
+grösstenteils einzeln erarbeitet. Um eine Kontinuität innerhalb der
+Arbeit zu erhalten, besprachen wir uns mehrere male bezüglich des
+weiteren Vorgehens. Weiter wurde der erstelle Code in der Gruppe
+besprochen und verbessert.
 
-Durch diese Gruppenarbeit haben wir gelernt, wie wichtig es ist, unsere Vorgehensweise sorgfältig zu planen und zu gestalten, um sicherzustellen, dass arbeiten nicht mehrere Male oder Parallel durchgeführt werden. Die Arbeit im Team hat es uns ermöglicht, uns gegenseitig mit Ideen zu versorgen und von einer Vielfalt von Perspektiven zu profitieren.
+Durch diese Gruppenarbeit haben wir gelernt, wie wichtig es ist, unsere
+Vorgehensweise sorgfältig zu planen und zu gestalten, um
+sicherzustellen, dass arbeiten nicht mehrere Male oder Parallel
+durchgeführt werden. Die Arbeit im Team hat es uns ermöglicht, uns
+gegenseitig mit Ideen zu versorgen und von einer Vielfalt von
+Perspektiven zu profitieren.
 
-Die Fähigkeiten, die wir in den Bereichen R, Data Wrangling, explorativen Datenanalyse sowie supervised learning erworben haben, werden uns sicher bei zukünftigen Arbeiten sowie im Berufsalltag von Nutzen sein.
+Die Fähigkeiten, die wir in den Bereichen R, Data Wrangling,
+explorativen Datenanalyse sowie supervised learning erworben haben,
+werden uns sicher bei zukünftigen Arbeiten sowie im Berufsalltag von
+Nutzen sein.
 
-Wir freuen uns darauf, die Erkenntnisse dieser Arbeit am 27.01.2023 zu präsentieren. 
+Wir freuen uns darauf, die Erkenntnisse dieser Arbeit am 27.01.2023 zu
+präsentieren.
