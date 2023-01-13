@@ -88,7 +88,9 @@ orders and ask for a loan
 
 [^2]: Erstellt von Aaron Studer
 
-```{r}
+
+
+```{r include=FALSE}
 library(tidyverse)
 library(ggmosaic)
 library(ggalluvial)
@@ -124,7 +126,7 @@ tidymodels_prefer()
 
 ### Setup Account Data Frame
 
-In diesem Schritt wird das Data Frame Account vorbereitet und der
+In diesem Schritt wird das Data Frame "Account" vorbereitet und der
 'Transform'-Schritt wird durchgeführt.
 
 ```{r}
@@ -3559,8 +3561,7 @@ inperyear <- df_cons %>%
 # Anfügen der neuen Spalte an das df_cons
 df_cons <- df_cons %>% 
   left_join(inperyear, by = "account_id")
-  
-rm(inperyear)
+
 
 ```
 
@@ -5934,8 +5935,7 @@ x\. iiiii. Aufräumen nach der Darstellungen in der Kartenübersicht
 
 ```{r}
 
-rm(geographical_data)
-rm(df_district_mod)
+
 # save(df_district_mod_names, file = "df_district_mod_names.RData")
 rm(df_district_mod_names, df_transaction_complete_with_district_information, incomes_average_overall_with_district_information, df_transaction_complete_with_district_information, df_average_income_per_district_including_geo_data)
 
@@ -6624,14 +6624,7 @@ Kreditkarte in Frage kommen.
 iv\. Korrelationsanalyse zwischen den Bankdaten und den
 soziodemografischen Daten.
 
-1\. Gibt es Unterschiede bei den Cashflows der Distrikte? Wieso gibt es
-diese Unterschiede? Was unterscheidet diese Distrikte?
-
-```{r}
-
-```
-
-2\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug
+1\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug
 zu den restlichen Einwohnern? Können durch diese Zahlen neue
 Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden
 führen?[^129]
@@ -6644,13 +6637,16 @@ verfügung steht.
 
 ```{r}
 #prepare new df to join with df_district_mod
-district_new_name <- df_cons %>%
-  rename(account_district_name = district_name)
+district_new_name <- df_district_mod
+#  rename(account_district_name = district_name)
 
  
 
+
 #join dfcons with district_new_names
 df_crimes_cons <- inner_join(df_cons, district_new_name, by = "account_district_name")
+
+ 
 
  
 
@@ -6659,13 +6655,30 @@ head(df_crimes_cons)
 
  
 
+# Anfügen der Information an die Monatsübersicht
+in_out_monthly <- in_out_monthly %>% 
+  left_join(in_out_yearly, by = c("account_id", "year"))
+
+in_out_yearly <- in_out_monthly %>% 
+  group_by(account_id, year) %>% 
+  summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12,
+            outgoes_per_year = round(mean(outgoes_per_month), digits = 0) * 12,
+            assets_dev_year = round(sum(assets_dev_month), digits = 0)) %>% 
+  ungroup()
+
+head(in_out_yearly)  
+ 
+
 #prepare unemploymentrate for 1995 1996
+
+
+
+
 in_out_yearly_crime_unemployment <- in_out_yearly [!(in_out_yearly$year=="1993" | in_out_yearly$year=="1994" | in_out_yearly$year=="1997" | in_out_yearly$year=="1998"),]
-
-
 
 #check Data
 in_out_yearly_crime_unemployment
+
 ```
 
 Es wurden die nötigen Spalten in einem neuen DF hinzugefügt. Damit mit
@@ -6789,7 +6802,7 @@ Zusammenhang. Die Kriminalitätsrate verändert sich von 1995 auf 1996
 kaum. Somit ist die Einkommensentwicklung unabhängig von der
 Kriminalitätsrate zu betrachten.
 
-3\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
+2\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
 Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.[^130]
 
 [^130]: Erstellt von Luca Gisler
@@ -6801,7 +6814,7 @@ verfügung steht.
 ```{r}
 #prepare new df to join with df_district_mod
 district_new_name <- df_district_mod %>% 
-  rename(account_district_name = district_name)
+#rename(account_district_name = district_name)
 
  
 
