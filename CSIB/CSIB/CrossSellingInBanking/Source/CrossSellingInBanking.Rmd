@@ -88,7 +88,7 @@ orders and ask for a loan
 
 [^2]: Erstellt von Aaron Studer
 
-
+Notwendige Pakete laden
 
 ```{r include=FALSE}
 library(tidyverse)
@@ -661,7 +661,7 @@ names(df_loan_mod) <- paste0("loan_", names(df_loan_mod))
 
 Loan wird zum Data Frame "df_mod" hinzugefügt.
 
-```{r}
+```{r include=FALSE}
 df_mod <- left_join(df_mod, df_loan_mod, by = c("account_account_id" = "loan_account_id"))
  
 summary(df_mod)
@@ -1141,7 +1141,7 @@ rm(cashwidthrawals)
 
 [^23]: Erstellt von Léonie Bécheiraz
 
-Nebst dem Mutieren werden die NA's mit "OUT" imputiert. Dies geht aus
+Nebst dem mutieren werden die NA's mit "OUT" imputiert. Dies geht aus
 der vorgängigen Analyse hervor.
 
 ```{r}
@@ -1265,13 +1265,13 @@ head(balance_per_month_mean)
 
 ```
 
-#### wichtige Erkenntnis[^29]
+#### Wichtige Erkenntnis[^29]
 
 [^29]: Erstellt von Léonie Bécheiraz
 
 Eine Überprüfung der Werte hat ergeben, dass dies so nicht gerechnet
 werden Kann. Es entstehen dabei Rechnungsfehler, da zum Beispiel bei
-einem Eingang mit meheren Werten der Durchschnitt berechnet wird und
+einem Eingang mit mehreren Werten der Durchschnitt berechnet wird und
 wenn dann ein Ausgang mit nur einem Wert vorhanden ist, dieser abgezogen
 wird, stimmt das Verhältnis der Beträge nicht mehr. Daher wird nur die
 Berechnung mit den totalen verwendet und damit weiter gearbeitet!
@@ -1898,7 +1898,7 @@ rm(transaction_cashflow_per_month_and_year, transaction_mod_balance_per_month, t
 
 ```
 
-#### [^42]Vierteljähriges Einkommen und Ausgaben per Jahr
+#### Vierteljähriges Einkommen und Ausgaben per Jahr[^42]
 
 [^42]: Erstellt von Léonie Bécheiraz
 
@@ -1987,7 +1987,7 @@ rm(transaction_cashflow_per_quarter_and_year, transaction_cashflow_per_quarter_a
 
 ```
 
-#### [^44]Kontostand am Ende des Tages
+#### Kontostand am Ende des Tages[^44]
 
 [^44]: Erstellt von Léonie Bécheiraz
 
@@ -3227,13 +3227,13 @@ Das konsolidierte Data Frame wird und dem Namen **df_cons** gespeichert.
 df_cons <- df_mod
 # save(df_cons, file = "df_cons.RData")
 # save(df_mod, file = "df_mod.RData")
-rm(df_mod)
+
 
 ```
 
 Übersicht über die Struktur des konsolidierten Datensatzes.
 
-```{r}
+```{r include=FALSE}
 glimpse(df_cons)
 
 ```
@@ -3275,7 +3275,7 @@ Interesse, da wir mit Ihnen effizient, klar und strukturiert arbeiten
 können. Beim Erstellen des **df_cons** sind unsere Gedanken und
 Änderungen eingeflossen.
 
-```{r}
+```{r include=FALSE}
 glimpse(df_cons)
 ```
 
@@ -3288,7 +3288,7 @@ eigentlich angestrebten erreicht wird. - Ein zu großer Stichprobenumfang
 kann dazu führen, dass unnötig Resscourcen verschwendet werden.
 
 Wir bemühen uns, genügend Proben zu haben, um einen Effekt vernünftig zu
-erkennen, wenn er wirklich vorhanden ist ohne begrenzte Ressourcen für
+erkennen, wenn er wirklich vorhanden ist, ohne begrenzte Ressourcen für
 zu viele Proben zu verschwenden.
 
 Deshalb die "Sample Size Calculation"
@@ -3308,9 +3308,9 @@ Berechnung: (Z-Score)2 x StdDev x (1-StdDev)/(margin of error)2
 
 Ideale Sample Grösse: 1067
 
-Der zur verfügung gestellte Anzahl Accounts hat eine grösse von 4500,
+Der zur verfügung gestellte Anzahl Accounts hat eine Grösse von 4500 Zeilen,
 was in ungefähr dem vierfachen der berechneten optimalen
-Stichprobengrösse. Was bedeutet, das wir von mehr Beobachtungen als
+Stichprobengrösse entspricht. Dies bedeutet, dass wir von mehr Beobachtungen als
 nötig sprechen.
 
 relation account (4500 objects in the file ACCOUNT.ASC) -\> Wie im
@@ -3341,13 +3341,9 @@ Zuverlässigkeit: Da dies Eine Challenge ist die bereits dutzende male
 erarbeitet wurde, und von Fachhoschulen, Unis und weiteren Institutionen
 verwendet wird, haben wir eine Zuverlässige Quelle Relevanz: Diese Daten
 sind für uns relevant, da diese Daten unseren Informationsbedarf
-abdecken. Verständlichkeit: Durch die Tansfotmation der Daten ins
-Englische kam die verständlichkeit. Denn Tschechisch wird bei uns in der
+abdecken. Verständlichkeit: Durch die Transfotmation der Daten ins
+Englische kam die Verständlichkeit. Denn Tschechisch wird bei uns in der
 Gruppe nicht gesprochen.
-
-Korrektheit:
-
-Aktualität:
 
 Da wir mit den zur Verfügung gestellten Daten arbeiten, und keinen
 Einfluss auf die Qualitätansprüche bei der Erhebung haben können wir
@@ -3992,9 +3988,7 @@ Vermögensentwicklung leicht zu nimmt im positiven Bereich aber auch
 deutlich abnimmt im negativen Bereich. Durch die negative Entwicklung
 sind im negativen Bereich Outliers entstanden.
 
-#### Geschichtliches Intermezzo[^77]
-
-[^77]: Erstellt von Christian Heeb
+#### Geschichtliches Intermezzo
 
 Im Jahr 1993 gab es die meisten positiven Vermögensentwicklungen. Danach
 gehen die Vermögen zurück analog der Einkommensentwicklung. Diese
@@ -4216,7 +4210,7 @@ oder Darlehen verbunden sind.
 Inspizieren der Konten, welche keine Girokontos sind und daher
 Sparkonten sein könnten.
 
-```{r}
+```{r include=FALSE}
 # Filtern nach Accounts, welche nicht als Girokonte identifiziert wurden
 savings_account <- df_cons %>% 
   filter(is_checking_account == FALSE) 
@@ -5202,7 +5196,7 @@ ct_tree
 
 Mit summary analysieren
 
-```{r}
+```{r include=FALSE}
 summary(ct_tree)
 
 ```
@@ -5511,13 +5505,13 @@ Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung
 
 [^114]: Erstellt von Christian Heeb
 
-Gesamtübersicht über die letzten Jahre
+##### Gesamtübersicht dern neu eröffneten Konten in den letzten Jahren
 
 ```{r}
 ggplot(data = df_cons, aes(x = account_opening_date)) +
     geom_histogram(binwidth = 20, stat = "bin", fill = "#CD950C") +
     labs(title = "Opening of new bank Accounts", 
-           subtitle = "From the Year 1993 to 1997 ", 
+           subtitle = "From the Year 1993 to 1998 ", 
            caption = "Source: PKDD’99 Discovery Challenge",
            x = "Year", y = "Number of openings") +
     theme(legend.position = "none", axis.text.x = element_text(size = 6, angle = 60, vjust = 0.5)) +
@@ -5525,7 +5519,10 @@ ggplot(data = df_cons, aes(x = account_opening_date)) +
 
 ```
 
-Jährliche Übersicht
+Das Histogramm zeigt die Jährliche Übersicht der neu gewonnenen Kunden in den Jahren 1993 bis 1998
+
+
+#### Detaillierten Jahresansicht
 
 ```{r}
 # account_opening_date nach Jahr sortieren
@@ -5544,8 +5541,10 @@ df_cons %>%
 
 ```
 
-iv\. Wie sieht die Altersverteilung dieser Kunden aus und was kann
-daraus hergeleitet werden?[^115]
+Detaillierte Überischt der Neukunden unterteilt nach Jahren.
+
+
+#### Altersverteilung der Kunden[^115]
 
 [^115]: Erstellt von Christian Heeb
 
@@ -5575,7 +5574,10 @@ df_cons %>%
  
 ```
 
-Altersverteilung beim eröffnen des Kontos
+Der Barplot zeigt die die Verteilung der Kundenalters. Da eine Darstellung mit dem Kundenalter im Jahr 2023 nur bedingt aussagekräftig wäre, wurde als Stichtag der 31.12.1999 definiert. 
+
+
+#### Altersverteilung beim eröffnen des Kontos
 
 ```{r}
    ggplot(data = df_cons, aes(owner_age_at_account_opening)) +
@@ -5588,8 +5590,10 @@ Altersverteilung beim eröffnen des Kontos
    scale_x_continuous(breaks = scales::breaks_pretty(10))
 ```
 
-vi\. Wie sieht die Verteilung von Kreditkartentypen auf die Population
-der Kreditkarten aus?[^116]
+Der Barplot zeigt die die Verteilung der Kundenalters beim eröffnen des Kontos.
+
+
+#### Verteilung der Kreditkartentypen [^116]
 
 [^116]: Erstellt von Aaron Studer
 
@@ -5617,7 +5621,7 @@ rm(df_credit_card_by_type)
 
 ```
 
-vii\. Clustering des Einkommens und der Ausgaben[^117]
+#### Clustering des Einkommens und der Ausgaben[^117]
 
 [^117]: Erstellt von Aaron Studer
 
@@ -5724,7 +5728,7 @@ autoplot(fitK, df_cons_metrics_scaled, frame=TRUE)
 
 ```
 
-viii\. Was ist der am beliebtesten Modus einer Transaktion?[^118]
+#### Beliebtester Modus einer Transaktion?[^118]
 
 [^118]: Erstellt von Aaron Studer
 
@@ -5761,9 +5765,9 @@ ggplot(df_transaction_type_count, aes(fill = characterization, x = quarter, y = 
 
 ```
 
-### Kartenansicht
+### Kartografische Darstellung von Analysen
 
-ix\. Verteilung der Kundschaft auf die Distrikte in Tschechien.[^119]
+#### Verteilung der Kundschaft auf die Distrikte in Tschechien.[^119]
 
 [^119]: Erstellt von Aaron Studer
 
@@ -5808,7 +5812,7 @@ geographical_data <- geographical_data %>%
 
 ```
 
-x\. i. Die Anzahl der Kunden in den einzelnen Distrikten.[^121]
+#### Anzahl der Kunden in den einzelnen Distrikten.[^121]
 
 [^121]: Erstellt von Aaron Studer
 
@@ -5847,7 +5851,7 @@ ggplot(data = df_customers_per_district_incl_geo_data) +
 
 ```
 
-x\. ii. Der Durchschnittliche Lohn in den verschiedenen Distrikten[^122]
+#### Durchschnittslohn in den verschiedenen Distrikten[^122]
 
 [^122]: Erstellt von Aaron Studer
 
@@ -5875,7 +5879,7 @@ ggplot_average_salary_per_district <- ggplot(data = df_average_salary_per_distri
 
 ```
 
-x\. iii. Average Salary berechnet durch die von Kunden getätigten
+Average Salary berechnet durch die von Kunden getätigten
 Transaktionen in den verschiedenen Distrikten[^123]
 
 [^123]: Erstellt von Aaron Studer
@@ -5908,7 +5912,7 @@ ggplot_average_income_calculated <- ggplot(data = df_average_income_per_district
 
 ```
 
-x\. iiii. Vergleich Average Einkommen von den Distrikten und dem
+#### Vergleich Average Einkommen von den Distrikten und dem
 Durchschnittlichen Einkommen der Kunden:
 
 ggplot_average_salary_per_district
@@ -5931,7 +5935,8 @@ Konto weiterhin erstellt haben, aber auch nach einem Datum x ein neues
 Lohnkonto bei einer weiteren Bank eröffnen. - Die Kunden kommen aus den
 tieferverdienenden Segmenten.
 
-x\. iiiii. Aufräumen nach der Darstellungen in der Kartenübersicht
+
+Aufräumen nach der Darstellungen in der Kartenübersicht
 
 ```{r}
 
@@ -5956,20 +5961,23 @@ genommen, die ein Einkommen von mehr als 320'000 CZK haben.
 Wir greifen hier auf die bereits vorhanden Analyse zu von Leonie.
 
 ```{r}
-# incomes_over_320K <- in_out_monthly %>% 
-#   filter(incomes_per_year > 320000) %>%
-#   select(account_id) %>%
-#   
-# 
-# incomes_over_320K
 
-
+incomes_over_320K <- in_out_yearly %>% 
+   filter(incomes_per_year > 320000) %>%
+   select(account_id) 
+   
+incomes_over_320K
 
 ```
 
-### Für Korrelationen zwischen Datenattributen:
 
-i\. Prognosen für die Bank erarbeiten, um festzustellen, ob Kunden ihre
+
+
+### Korrelationen zwischen Datenattributen:
+
+#### Wahrscheinlichkeit dass ein Kunden seinen Kredit zurückbezahlen wird
+
+Ziel dieses Abschnittes ist es, Prognosen für die Bank zu erarbeiten, um festzustellen, ob Kunden ihre
 Kredite zurückzahlen können. Die Kreditwürdigkeit des Kunden kann
 mithilfe der Analyse festgestellt werden und bei bereits laufenden
 Krediten können Massnahmen getroffen werden.[^125]
@@ -5994,7 +6002,7 @@ df_cons %>%
 ```
 
 Das Balkendiagramm zeigt die Anzahl der gewährten Kredite inklusive
-deren Status.
+deren Status. Daraus wird ersichtlich, dass der grösste Teil der Kunden ihren Kredit bereits erfolgreich zurückzahlen wird, oder ihn bereits zurückbezahlt hat.
 
 ```{r message=FALSE}
 # Preparation of Plots
@@ -6121,20 +6129,13 @@ Jahreseinkommens ausmacht und somit auch schneller zu einer Belastung
 wird, was ein Grund für das nicht- oder zu spät bezahlen der Kredite
 sein könnte.
 
-**Erstellen von Decision Tree und Random Forest Modellen zur Vorhersage
-der Kreditwürdigkeit**[^126]
+
+
+#### Erstellen von Decision Tree und Random Forest Modellen zur Vorhersage
+der Kreditwürdigkeit[^126]
 
 [^126]: Erstellt von Christian Heeb
 
-```{r}
-# Loading and installing Packages
-library(rpart)
-library(randomForest)
-
-# Package ROSE (Random Over Sampling Examples) for undersampling Problem
-#install.packages("ROSE")
-library(ROSE)
-```
 
 Für einen einfacheren Umgang mit den Daten wird eine Kopie des
 Originalen Datensatzes mit allen relevanten Attributen erstellt.
@@ -6156,7 +6157,7 @@ summary(df_cons_predict)
 
 Aufteilung der Daten in Trainings- und Testsätze
 
-Die Methode split Methode wird verwendet, um die Daten in Trainings- und
+Die split Methode wird verwendet, um die Daten in Trainings- und
 Testsätze aufzuteilen. Der Datensatz wird in loan_train und loan_test
 unterteilt. Das loan_test Set wird verwendet um festzustellen, ob das
 Modell die richtigen Ausgaben vorhersagt.\
@@ -6169,7 +6170,7 @@ Modells verwendet. Der Datensatz, auf dem das Modell trainiert wird.
 Testdatensatz: Der Testdatensatz ist eine Teilmenge des
 Trainingsdatensatzes, die verwendet wird, um eine genaue Bewertung der
 endgültigen Anpassung des Modells zu erhalten.
-
+\
 Unausgeglichener Datensatz
 
 ```{r}
@@ -6621,8 +6622,12 @@ aufzuzeigen, welche Durchschnittliche Eigenschaften eine solcher Kunde
 aufweist, um herauszufinden welche weiteren Kunden für diese spezielle
 Kreditkarte in Frage kommen.
 
-iv\. Korrelationsanalyse zwischen den Bankdaten und den
+
+
+### Korrelationsanalyse zwischen den Bankdaten und den
 soziodemografischen Daten.
+[^123]
+[^123]: Erstellt von Luca Gisler
 
 1\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug
 zu den restlichen Einwohnern? Können durch diese Zahlen neue
@@ -6631,29 +6636,114 @@ führen?[^129]
 
 [^129]: Erstellt von Luca Gisler
 
-Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da
-und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur
-verfügung steht.
 
 ```{r}
-#prepare new df to join with df_district_mod
-district_new_name <- df_district_mod
-#  rename(account_district_name = district_name)
+#create new df
+df_owner_over_district_size <- df_cons %>% 
+  #select the wanted Informations Age, district, sex for both owner and user
+  select(
+    account_district_inhabitants,
+    account_district_name)
 
- 
+#count ammount of accountsi per district
+new_version_count <- df_owner_over_district_size %>% count(account_district_name) %>% 
+  arrange(desc(n))
+
+#remove doublicates
+df_owner_over_district_size <- df_owner_over_district_size %>% 
+  distinct(account_district_inhabitants, .keep_all = TRUE) %>% 
+  arrange(desc(account_district_inhabitants))
+
+#put the two dftogether to get the right variables
+combined_owner_over_district_size <- full_join(df_owner_over_district_size, new_version_count, by = "account_district_name" ) %>% 
+  distinct(account_district_inhabitants, .keep_all = TRUE) %>% 
+  relocate(n, .after = account_district_inhabitants) %>% 
+  arrange(desc(account_district_inhabitants))
+
+#check data
+sum(combined_owner_over_district_size$n)
+
+#calculate percentage of accountowner in every district
+combined_owner_over_district_size <- combined_owner_over_district_size %>% 
+  mutate(percentage_of_district_own_account = n/account_district_inhabitants*100)
+
+
+#show the districts with the lowest percentage
+head(combined_owner_over_district_size %>% arrange(percentage_of_district_own_account),30)
+
+#show the districts with highest percentage
+head(combined_owner_over_district_size %>% arrange(desc(percentage_of_district_own_account)),30)
+
+```
+
+Wir sehen In den grösseren Distrikten ist gibt es Prozentual weniger Kunden als in den kleinen. Als direkter Vergleich: Ceske Budejovice der Bezirk mit dem kleinsten Anteil an Kontoinhabern hat eine Einwohnerzahl von Insgesamt 177'686. Und der Bezirk mit dem grössten Anteil hat eine Grösse von 42'821 Einwohnern.
+Ein Ansatz für die Bank ist, die Präsenz in den Distrikten mit niedrigem Prozentsatz ihre Präsenz zu verstärken. Um somit mehr Kunden in diesen Bezirken zu generieren.
+Zusätzlich kann bei bestehenden Kunden ein Profitprogramm Eingeführt werden um neue Kunden zu akquirieren Damit ist gemeint, dass bestehende Kunden durch Akquisition gewisse Vorteile erhalten können.
+
+
+
+2\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
+Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.[^130]
+
+[^130]
+
+[^129]: Erstellt von Luca Gisler
+
+Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da
+und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur
+Verfügung  steht.
+
+```{r, error=FALSE}
+#prepare new df to join with df_district_mod
+district_new_name <- df_district %>% 
+  rename(account_district_name = name)
 
 
 #join dfcons with district_new_names
-df_crimes_cons <- inner_join(df_cons, district_new_name, by = "account_district_name")
+df_crimes_cons <- inner_join(df_cons, district_new_name, by = "account_district_name") %>% 
+  filter(unemployment_rate_95 != "NA",
+         unemployment_rate_96 != "NA",
+         commited_crimes_95 != "NA",
+         commited_crimes_96 != "NA",
+         salary_groups != "NA")
 
  
-
- 
-
 #check data district number comparison
 head(df_crimes_cons)
 
- 
+# Einkommen pro Monat 
+incomes_per_month <- df_transaction_complete %>%
+  group_by(
+    account_id,
+    year(date),
+    month(date)
+  ) %>%
+  summarise(incomes_per_month = round(sum(incomes), digits = 0)) %>% 
+  ungroup()
+
+# monatliche Einkommen und Ausgaben und die Vermögensentwicklung
+in_out_monthly <- incomes_per_month %>% 
+  left_join(outgoes_per_month, by = c("account_id", "year(date)", "month(date)")) %>% 
+  mutate(assets_dev_month = incomes_per_month - outgoes_per_month) %>%
+  filter(incomes_per_month != 0 | outgoes_per_month != 0) %>% 
+  rename(year = `year(date)`,
+         month = `month(date)`)
+
+
+in_out_monthly <- incomes_per_month %>% 
+  left_join(outgoes_per_month, by = c("account_id", "year(date)", "month(date)")) %>% 
+  mutate(assets_dev_month = incomes_per_month - outgoes_per_month) %>%
+  filter(incomes_per_month != 0 | outgoes_per_month != 0) %>% 
+  rename(year = `year(date)`,
+         month = `month(date)`) 
+
+in_out_yearly <- in_out_monthly %>% 
+  group_by(account_id, year) %>% 
+  summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12,
+            assets_dev_yearly = round(sum(assets_dev_month), digits = 0)) %>% 
+  ungroup()
+
+
 
 # Anfügen der Information an die Monatsübersicht
 in_out_monthly <- in_out_monthly %>% 
@@ -6662,17 +6752,11 @@ in_out_monthly <- in_out_monthly %>%
 in_out_yearly <- in_out_monthly %>% 
   group_by(account_id, year) %>% 
   summarise(incomes_per_year = round(mean(incomes_per_month), digits = 0) * 12,
-            outgoes_per_year = round(mean(outgoes_per_month), digits = 0) * 12,
             assets_dev_year = round(sum(assets_dev_month), digits = 0)) %>% 
   ungroup()
 
-head(in_out_yearly)  
- 
 
 #prepare unemploymentrate for 1995 1996
-
-
-
 
 in_out_yearly_crime_unemployment <- in_out_yearly [!(in_out_yearly$year=="1993" | in_out_yearly$year=="1994" | in_out_yearly$year=="1997" | in_out_yearly$year=="1998"),]
 
@@ -6686,13 +6770,10 @@ der Kriminalität und Arbeitslosenrate gearbeitet werden kann.
 
 ```{r}
 
- 
-
 #plot salary 1995-1996 change appearence
-in_out_yearly_crime_unemployment %>%
-ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
+in_out_yearly_crime_unemployment %>% 
+  ggplot(aes(x = as.factor(year), y = incomes_per_year, fill = year)) +
   geom_boxplot() +
-  scale_fill_viridis_d(alpha = 0.6, option = "A") +
     theme_minimal() +
     theme(
       legend.position = "none",
@@ -6705,15 +6786,14 @@ ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
     subtitle = "Time span: 1995-1996, across all accounts")
 
 
-
 #plot unemploymentrate 1995
 df_crimes_cons %>%
-  ggplot(aes(x= district_unemployment_rate_95,
+  ggplot(aes(x= unemployment_rate_95,
          group = salary_groups,
          fill = salary_groups))+
   labs(title = "Unemployment rate 1995",
        subtitle = "grouped by salary groups",
-       x ="Unemployment Rate ",
+       x ="Unemployment Rate [%] ",
        y = "Density",
        fill = "Salary groups")+
 
@@ -6723,12 +6803,12 @@ df_crimes_cons %>%
 
 #plot unemploymentrate 1996
 df_crimes_cons %>%
-  ggplot(aes(x= district_unemployment_rate_96,
+  ggplot(aes(x= unemployment_rate_96,
          group = salary_groups,
          fill = salary_groups))+
   labs(title = "Unemployment rate 1996",
        subtitle = "grouped by salary groups",
-       x ="Unemployment Rate",
+       x ="Unemployment Rate [%]",
        y = "Density",
        fill = "Salary groups")+
 
@@ -6739,14 +6819,15 @@ df_crimes_cons %>%
 ```
 
 Erkenntnisse bezüglich dem Einkommen, wie bereits in einer anderen
-Fragestellung erläutert, gabe es 1996 einen leichten Einbruch. Im
-Vergleich mit der Arbeitslosenrate, sehen wir, dass in de "High Income"
-Kategorie im jahr 1996 einen erhöhten Anstieg bei der Rate von 7.5 gab.
-Dies kann einen Grossen Einfluss gehabt haben, denn die "High Incomes"
-machen ein Grossteil des Volumens aus. Wo die Arbeitslosenrate im Jahr
+Fragestellung erläutert, gäbe es 1996 einen leichten Einbruch. Im
+Vergleich mit der Arbeitslosenrate, sehen wir, dass in den höheren Einkommensgruppen
+Kategorie im Jahr 1996 einen leichten Anstieg bei der Rate von 7.5% gab.
+Dies kann einen grossen Einfluss gehabt haben, denn die höheren Einkommensgruppen
+machen eben durch Ihre Grösse ein Grossteil des Volumens aus. Als die Arbeitslosenrate im Jahr
 1995 im gleichen Bereich eine Abflachung im Schrumpfen der
-Arbeitslosigkeit erfuhr, ist sie im 1996 bei den "High Incomes
+Arbeitslosigkeit erfuhr, ist sie im 1996 bei den höheren Einkommen noch einen leichten Anstieg, mit 
 angestiegen.
+
 
 Überprüfung ob die Kriminalitätsrate einen Einfluss auf die
 Einkommensentwicklung hat.
@@ -6754,9 +6835,8 @@ Einkommensentwicklung hat.
 ```{r}
 #plot salary 1995-1996 change appearence
 in_out_yearly_crime_unemployment %>%
-ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
+ggplot(aes(x = as.factor(year), y = incomes_per_year, fill = year)) +
   geom_boxplot() +
-  scale_fill_viridis_d(alpha = 0.6, option = "A") +
     theme_minimal() +
     theme(
       legend.position = "none",
@@ -6772,7 +6852,7 @@ ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
 
 #plot crime rate 1995
 df_crimes_cons %>%
-  ggplot(aes(x= district_commited_crimes_95,
+  ggplot(aes(x= commited_crimes_95,
          group = salary_groups,
          fill = salary_groups))+
   labs(title = "Crime rate 1995",
@@ -6786,7 +6866,7 @@ df_crimes_cons %>%
 
 #plot crime rate 1996
 df_crimes_cons %>%
-  ggplot(aes(x= district_commited_crimes_96,
+  ggplot(aes(x= commited_crimes_96,
          group = salary_groups,
          fill = salary_groups))+
   labs(title = "Crime rate 1996",
@@ -6802,169 +6882,12 @@ Zusammenhang. Die Kriminalitätsrate verändert sich von 1995 auf 1996
 kaum. Somit ist die Einkommensentwicklung unabhängig von der
 Kriminalitätsrate zu betrachten.
 
-2\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
-Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.[^130]
-
-[^130]: Erstellt von Luca Gisler
-
-Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da
-und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur
-verfügung steht.
-
-```{r}
-#prepare new df to join with df_district_mod
-district_new_name <- df_district_mod %>% 
-#rename(account_district_name = district_name)
-
- 
-
-#join dfcons with district_new_names
-df_crimes_cons <- inner_join(df_cons, district_new_name, by = "account_district_name")
-
- 
-
-#check data district number comparison
-head(df_crimes_cons)
-
- 
-
-#prepare unemploymentrate for 1995 1996
-in_out_yearly_crime_unemployment <- in_out_yearly [!(in_out_yearly$year=="1993" | in_out_yearly$year=="1994" | in_out_yearly$year=="1997" | in_out_yearly$year=="1998"),]
-
- 
-
-#check Data
-in_out_yearly_crime_unemployment
-
-```
-
-Es wurden die nötigen Spalten in einem neuen DF hinzugefügt. Damit mit
-der Kriminalität und Arbeitslosenrate gearbeitet werden kann.
-
-```{r}
-
- 
-
-#plot salary 1995-1996 change appearence
-in_out_yearly_crime_unemployment %>% 
-ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
-  geom_boxplot() +
-  scale_fill_viridis_d(alpha = 0.6, option = "A") +
-    theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.title = element_text(size = 15)
-    ) +
-    ggtitle("Incomes development") +
-  labs(
-    x = "",
-    y = "Amount per year [CZK]",
-    subtitle = "Time span: 1995-1996, across all accounts")
-
- 
-
-#plot unemploymentrate 1995
-df_crimes_cons %>% 
-  ggplot(aes(x= district_unemployment_rate_95,
-         group = salary_groups,
-         fill = salary_groups))+
-  labs(title = "Unemployment rate 1995",
-       subtitle = "grouped by salary groups",
-       x ="Unemployment Rate ",
-       y = "Density",
-       fill = "Salary groups")+
-
-  geom_density(adjust=1.5, alpha=.4)
-
- 
-
-#plot unemploymentrate 1996
-df_crimes_cons %>% 
-  ggplot(aes(x= district_unemployment_rate_96,
-         group = salary_groups,
-         fill = salary_groups))+
-  labs(title = "Unemployment rate 1996",
-       subtitle = "grouped by salary groups",
-       x ="Unemployment Rate",
-       y = "Density",
-       fill = "Salary groups")+
-
-  geom_density(adjust=1.5, alpha=.4)
-
- 
-
-```
-
-Erkenntnisse bezüglich dem Einkommen, wie bereits in einer anderen
-Fragestellung erläutert, gabe es 1996 einen leichten Einbruch. Im
-Vergleich mit der Arbeitslosenrate, sehen wir, dass in de "High Income"
-Kategorie im jahr 1996 einen erhöhten Anstieg bei der Rate von 7.5 gab.
-Dies kann einen Grossen Einfluss gehabt haben, denn die "High Incomes"
-machen ein Grossteil des Volumens aus. Wo die Arbeitslosenrate im Jahr
-1995 im gleichen Bereich eine Abflachung im Schrumpfen der
-Arbeitslosigkeit erfuhr, ist sie im 1996 bei den "High Incomes
-angestiegen.
-
-Überprüfung ob die Kriminalitätsrate einen Einfluss auf die
-Einkommensentwicklung hat.
-
-```{r}
-
- 
-
-#plot salary 1995-1996 change appearence
-in_out_yearly_crime_unemployment %>% 
-ggplot(aes(x = year, y = incomes_per_year, fill = year)) +
-  geom_boxplot() +
-  scale_fill_viridis_d(alpha = 0.6, option = "A") +
-    theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.title = element_text(size = 15)
-    ) +
-    ggtitle("Incomes development") +
-  labs(
-    x = "",
-    y = "Amount per year [CZK]",
-    subtitle = "Time span: 1995-1996, across all accounts")
-
- 
-
-#plot crime rate 1995
-df_crimes_cons %>% 
-  ggplot(aes(x= district_commited_crimes_95,
-         group = salary_groups,
-         fill = salary_groups))+
-  labs(title = "Crime rate 1995",
-       subtitle = "grouped by salary groups",
-       x ="Crime Rate ",
-       fill = "Salary groups")+
-
-  geom_density(adjust=1.5, alpha=.4)
-
- 
-
-#plot crime rate 1996
-df_crimes_cons %>% 
-  ggplot(aes(x= district_commited_crimes_96,
-         group = salary_groups,
-         fill = salary_groups))+
-  labs(title = "Crime rate 1996",
-       subtitle = "grouped by salary groups",
-       x ="Crime Rate",
-       fill = "Salary groups")+
-
-  geom_density(adjust=1.5, alpha=.4)
-
-```
-
-Zwischen dem Einkommen und Kriminalitätsrate erkennen wir hier keinen
-Zusammenhang. Die Kriminalitätsrate verändert sich von 1995 auf 1996
-kaum. Somit ist die Einkommensentwicklung unabhängig von der
-Kriminalitätsrate zu betrachten.
 
 v\. Kann man Unterschiede herleiten, um Geschäfts- und Privatkunden zu
 unterteilen?
+
+[^1212]
+[^1212]: Erstellt von Luca Gisler
 
 Diese Frage ist in diesem Sinne interessant, dass man im Bereich des
 Cross Sellings unterschiedliche Angebote für Geschäfts- und Privatkunden
@@ -6973,7 +6896,7 @@ und eine andere Beziehung zur Bank.
 
 Eine Möglichkeit um herauszufinden ob es ein Geschäftskonto ist, wenn
 viele Nutzer einer Karte die gleiche Adresse besitzen. Dann kann man
-darauf schliessen, das dies der Sitz und die Adresse der Firma ist.
+darauf schliessen, dass dies der Sitz und die Adresse der Firma ist.
 
 Da wir über keine Adressen verfügen ist dieser Ansatz eine Sackgasse.
 
@@ -6984,7 +6907,7 @@ ist dieser Transaktionstyp kein sicheres Ausscheide Kriterium.
 HOUSEHOLD - Hat ein Unternehmen Ausgaben die den Haushalt betreffen? Ein
 Unternehmen zahlt Löhne, Mieten, Versicherungen. Wir vermuten dass ein
 Unternehmen keine Ausgaben im Bereich Haushalt hat. Aber was ist wenn
-eine Festlichektit ansteht? Dann fallen diese Ausgaben auch in den
+eine Festlichkeit  ansteht? Dann fallen diese Ausgaben auch in den
 Bereich des Haushaltes. Also kein Kriterium für das sichere
 Identifizieren. LEASING - Ein Unternehmen kann auch ein Auto leasen,
 also ist das kein sicheres Ausscheide Kriterium.
@@ -6998,7 +6921,7 @@ könnte dies ein Indiz dafür sein, ein Geschäftskonto zu sein.
 Auch diesen Ansatz wurde Verworfen, bei den Owner / User ist und ein
 Muster Aufgefallen.
 
-Für dieses Beispiel wurde die Alter bei Eröffung des Kontos verglichen.
+Für dieses Beispiel wurde die Alter bei Eröffnung des Kontos verglichen.
 
 ```{r}
 #filter for the ages 30 and 50
@@ -7034,23 +6957,26 @@ unterteilen kann.
 vi\. Wie sieht die Entwicklung der Kredite in Bezug auf Typ und Dauer
 aus? Kann aus der Grafik ein Trend ausgelesen werden?
 
+[^1212]
+[^1212]: Erstellt von Luca Gisler
+
 ```{r}
+
 #prepare informations, removed NAs and plot
 Loan_trend_over_time <- df_cons %>%
   filter(loan_status != "NA") %>%
-  ggplot(df_cons, mapping = aes(x = loan_start_date,
+  ggplot(Loan_trend_over_time, mapping = aes(x = loan_start_date,
                                 y = loan_duration_in_month)) +
-
+  
   #add jittering for visability
   geom_jitter()+
   #add geom_smooth for visual trend changes
   geom_smooth()+
   #new Title, axis-labels
-  labs(title = "Kreditdauer über die Zeit")+
-  xlab("Jahre")+
-  ylab("Dauer des Kredites in Monaten")
+  labs(title = "Loan duration over Time")+
+  xlab("Years")+
+  ylab("Loan duration in Month")
 
- 
 #print plot
 Loan_trend_over_time
 ```
@@ -7067,22 +6993,22 @@ nicht ersichtlich sind. Deshalb können nur Veränderungen über die Zeit
 Analysiert werden.
 
 ```{r}
+
 #prepare informations, removed NAs and plot
 Loan_trend_over_time_ammount <- df_cons %>%
   filter(loan_status != "NA") %>%
-  ggplot(df_cons, mapping = aes(x = loan_start_date,
+  ggplot(Loan_trend_over_time_ammount, mapping = aes(x = loan_start_date,
                                 y = loan_total_amount)) +
-
+  
   #add jittering
   geom_jitter()+
   #add geom_smooth for for visual trends
   geom_smooth()+
   scale_y_continuous(labels=comma)+
   #create new title and axis-labels
-  labs(title = "Kreditsumme über die Zeit")+
-  xlab("Jahre")+
-  ylab("Wert der Kredite in [CZK]")
-
+  labs(title = "Loan um over time")+
+  xlab("Years")+
+  ylab("Value of Loans [CZK]")
 
 #print plot
 Loan_trend_over_time_ammount
@@ -7094,15 +7020,10 @@ wir, dass es keine wesentlichen Veränderungen im Bereich der
 Kreditvergabe, aber auch von Seitens Kreditnehmer gab. Das Volumen der
 Kredite hat im in der Grafik von vorhin vergrössert.
 
-3\. Welches Potenzial haben jegliche Datenobjekte und mit Hilfe welcher
-Mittel kann das beste Produkt daraus generiert werden? (Aaron) und jeder
-der noch kann....
-
-```{r}
- 
-```
 
 #### i. Gibt es einen Zusammenhang zwischen den unterschiedlichen Regionen und dem Kreditverhalten (Kreditgrösse, Dauer) von den Kunden? Für eine Optimierung der lokalen Werbekampagnen und Angebote in den entsprechenden Regionen(Cross Selling)
+[^1212]
+[^1212]: Erstellt von Luca Gisler
 
 ```{r}
 #filter the NAs and create plot
@@ -7110,17 +7031,15 @@ district_loan_correlation <- df_cons %>%
   filter(!is.na(loan_start_date)) %>%
   ggplot(aes (x = account_district_region,
               y = loan_total_amount))+
-
+  
   #add title and axis names, labels for CZK not in hex
   geom_boxplot()+
   scale_y_continuous(labels=comma)+
-  labs(title = "Boxplot Kreditunterschiede in den Distrikten",
-       subtitle = "Kreditgrösse [CZK]")+
-  xlab("Regionen")+
-  ylab("Kreditgrösse [CZK]")+
+  labs(title = "Loan differences in districts",
+       subtitle = "Loan size [CZK]")+
+  xlab("regions")+
+  ylab("Loan size [CZK]")+
   theme(axis.text.x = element_text(angle = 45))
-
- 
 
 #creat plotly plot, for more informations by hoverinfo
 ggplotly(district_loan_correlation)
@@ -7128,7 +7047,7 @@ ggplotly(district_loan_correlation)
 
 In den Distrikten haben wir einen MIN/MAX unterschied im Median von
 58'782 CZK (MAX: east Bohemia 155'178, MIN: west Bohemia 96'396). Das
-ist ein grosser unterschied, auf was ist dieser zurückzuführen?
+ist ein grosser Unterschied, auf was ist dieser zurückzuführen?
 
 ```{r}
 #filter the NAs and create plot
@@ -7136,17 +7055,15 @@ district_loan_correlation_duartion <- df_cons %>%
   filter(!is.na(loan_start_date)) %>%
   ggplot(aes (x = account_district_region,
               y = loan_duration_in_month))+
-
+  
   #add title and axis names, labels for CZK not in hex  
   geom_boxplot()+
   scale_y_continuous(labels=comma)+
-  labs(title = "Boxplot Kreditunterschiede in den Distrikten",
-       subtitle = "Kreditdauer")+
-  xlab("Regionen")+
-  ylab("Kreditdauer [Monat]")+
+  labs(title = "Loan differences in districts",
+       subtitle = "Loan duration")+
+  xlab("region")+
+  ylab("Loan duration [Monat]")+
   theme(axis.text.x = element_text(angle = 45))
-
- 
 
 #creat plotly plot, for more informations by hoverinfo
 ggplotly(district_loan_correlation_duartion)
@@ -7166,23 +7083,21 @@ district_loan_correlation_monthly_amount <- df_cons %>%
   filter(!is.na(loan_start_date)) %>%
   ggplot(aes (x = account_district_region,
               y = loan_total_amount/loan_duration_in_month))+
-
+  
   #add title and axis names, labels for CZK not in hex  
   geom_boxplot()+
   scale_y_continuous(labels=comma)+
-  labs(title = "Boxplot Kreditunterschiede in den Distrikten")+
-  xlab("Regionen")+
-  ylab("Kreditgrösse/Monat [CZK]")+
+  labs(title = "Loan differences in districts")+
+  xlab("regions")+
+  ylab("Loan size / Month [CZK]")+
   theme(axis.text.x = element_text(angle = 45))
-
- 
 
 #creat plotly plot, for more informations by hoverinfo
 ggplotly(district_loan_correlation_monthly_amount)
 ```
 
 Damit wir einen Einheitlichen Vergleich erstellen können, stellen wir
-die Monatlichen Kreditkosten dar. Des weiteren Verleichen wir jetzt
+die Monatlichen Kreditkosten dar. Des weiteren Vergleichen  wir jetzt
 diese Grafik mit dem Durchschnittlichen Distrikt Einkommen
 
 Berechnung des Einkommens auf die Region.
@@ -7211,3 +7126,4 @@ guten Angebote weiter wachsen, und somit ist der Markt für Hypotheken
 auch ein Boomendes Geschäft. Durch die Vergabe von mehr Krediten
 verdient die Bank an den Zinsen und kann somit ihren Gewinn steigern und
 das Angebot verbessern und wo nötig erweitern.
+
