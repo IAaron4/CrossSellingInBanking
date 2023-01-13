@@ -5498,7 +5498,9 @@ Das Data Frame df_cons wurde während der verschiedenen Analysen immer
 wieder mit relevanten Daten angereichert, somit sollte es als Client
 Analytical Record dienen.
 
-### Weitere Analysen
+## Weitereführende Analysen
+
+### Analyse von Kundenattributen
 
 Wann hat die Bank neue Kunden gewonnen und wie sieht diese Verteilung
 über die Zeit aus?[^114]
@@ -6209,7 +6211,7 @@ aufgeteilt werden.
 
 ```{r}
 # splitting the data into training and test sets
-set.seed(42)
+set.seed(321)
 sample <- sample.int(n = nrow(df_cons_predict), size = floor(.80*nrow(df_cons_predict)), replace = F)
 loan_train <- df_cons_predict[sample, ]
 loan_test  <- df_cons_predict[-sample, ]
@@ -6227,7 +6229,9 @@ prop.table(table(loan_train$loan_in_dept))
 prop.table(table(loan_test$loan_in_dept))
 ```
 
-**Decision Tree / Entscheidungsbaum**
+##### Decision Tree / Entscheidungsbaum[^126]
+
+[^126]: Erstellt von Christian Heeb
 
 Ein Entscheidungsbaum ist eine Art des supervised machine learning, das
 zur Kategorisierung oder zur Erstellung von Vorhersagen auf der
@@ -6241,7 +6245,7 @@ erstellt.
 
 ```{r warning=FALSE}
 # Building Decision Tree
-set.seed(42)
+set.seed(321)
 dtree_loan <- rpart(loan_in_dept ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + income_avg + outgoes_avg, 
                data = loan_train, 
                method = "class",
@@ -6257,28 +6261,31 @@ sogenannter cp-Werte (complexity parameter) festgesetzt wird.
 
 ```{r}
 plotcp(dtree_loan)
+printcp(dtree_loan)
 ```
 
 Die Spalten in der Ausgabe listen die cp-Werte, die zugehörige Anzahl
 der Splits (nsplit), den relativen Fehler (rel error) bezogen auf den
 Fehler im Wurzelknoten auf. Wie man der Tabelle, entnehmen kann, ist der
-xerror + xstd bei 32 Blättern, also bei 31 Splits am kleinsten. Daraus
-können wir einen optimalen cp-Wert von 0.0078 ablesen.
+xerror + xstd bei 28 Blättern, also bei 27 Splits am kleinsten. Daraus
+können wir einen optimalen cp-Wert von 0.00724638 ablesen.
 
 ```{r}
 # Decision Tree with modifyled cp-Value
-set.seed(42)
+set.seed(321)
 dtree_pruned <- rpart(loan_in_dept ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + income_avg + outgoes_avg, 
                data = loan_train, 
                method = "class",
-               control = rpart.control(cp = 0.0072))
+               control = rpart.control(cp = 0.00724638))
 
 # Plotting pruned Tree
 rpart.plot(dtree_pruned, split.prefix = "if ", fallen.leaves = TRUE, shadow.col = "gray", digits=-3, main = "Is Customer in Dept?\n(Training Data)")
 
+# Numerical output of the tree
+#dtree_pruned
 ```
 
-Genauigkeit des Modells mit predict-Funltion und Confusion-Matrix
+Genauigkeit des Modells mit predict-Funktion und Confusion-Matrix
 bestimmen
 
 ```{r}
@@ -6292,7 +6299,9 @@ confusion_matrix_train
 # Calculating accuracy 
 accuracy_train <- sum(diag(confusion_matrix_train)) / sum(confusion_matrix_train)
 
-paste("Genauigkeit des Modells: ", accuracy_train, "%" )
+
+
+paste("Genauigkeit des Modells: ", round((accuracy_train * 100), digits = 2), "%" )
 
 ```
 
@@ -6316,12 +6325,14 @@ confusion_matrix_test
 # Calculating accuracy 
 accuracy_test <- sum(diag(confusion_matrix_test)) / sum(confusion_matrix_test)
 
-paste("Genauigkeit des Modells: ", accuracy_test, "%" )
+paste("Genauigkeit des Modells: ", round((accuracy_test * 100), digits = 2), "%" )
 ```
 
-**Random Forest**
+##### Random Forest[^126]
 
-Bei Random Forests werden viele Entscheidungsbäume erstellt, wobei bei
+[^126]: Erstellt von Christian Heeb
+
+Bei Random Forests werden viele Entscheidungsbäume gleichzeitig erstellt, wobei bei
 jedem Baum nur eine Teilmenge der Daten genutzt wird. Für die Prognose
 der Klasse eines neuen Objekts wird eine Mehrheitsentscheidung der Bäume
 gefällt (majority vote). Es erfolgt kein Pruning der einzelnen Bäume, da
@@ -6344,7 +6355,7 @@ Ebenen:
 Erstellen des Modells mit den loan_train Daten.
 
 ```{r}
-set.seed(42)
+set.seed(321)
 # Creating of Random Forest Model (default Number of Trees = 100, na.action = na.omit removes incomplete cases)
 rf_model <- randomForest(as.factor(loan_in_dept) ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + income_avg + outgoes_avg, 
                    data = loan_train,
@@ -6365,7 +6376,7 @@ dargestellt. Bei spätestens 150 Bäumen stabilisieren sich alle Werte.
 Daher führen wir die Analyse nochmals mit 150 Bäumen durch.
 
 ```{r}
-set.seed(42)
+set.seed(321)
 rf_model_150 <- randomForest(as.factor(loan_in_dept) ~ loan_duration_in_month + loan_per_year + age_dec1999 + owner_sex + income_avg + outgoes_avg, 
                    data = loan_train,
                    na.action = na.omit,
@@ -6380,7 +6391,7 @@ plot(rf_model_150)
 
 Das Summary zeigt verschiedenen Angaben des Modells wie Art des Modells,
 Anzahl Trees (von uns auf 150 gesetzt), sowie die OOB estimate of error
-rate von 2.17%. OOB steht für Out-Of-Bag Samples. OOB Samples sind
+rate in Prozent. OOB steht für Out-Of-Bag Samples. OOB Samples sind
 solche welche nicht im Bootstraped Dataset aufgenommen wurden.
 
 Genauigkeit des Modells mit predict-Funktion und Confusion-Matrix and
@@ -6397,7 +6408,8 @@ rf_confusion_matrix_test
 # Calculating accuracy 
 rf_accuracy_test <- sum(diag(rf_confusion_matrix_test)) / sum(rf_confusion_matrix_test)
 
-rf_accuracy_test
+
+paste("Genauigkeit des Modells: ", round((rf_accuracy_test * 100), digits = 2), "%" )
 ```
 
 Mithilfe der Confusion Matrix können wir unser Klassifikationsmodell
@@ -6417,7 +6429,9 @@ rf_confusion_matrix_all
 # Calculating accuracy 
 rf_accuracy_all <- sum(diag(rf_confusion_matrix_all)) / sum(rf_confusion_matrix_all)
 
-rf_accuracy_all
+
+
+paste("Genauigkeit des Modells: ", round((rf_accuracy_all * 100), digits = 2), "%" )
 ```
 
 Wichtigkeit der Variablen (Importance)
@@ -6473,11 +6487,9 @@ Knoten eine Klasse bildet.\
 Quelle: Von der Hude, M. (2020). *Predictive Analytics und Data Mining*
 (S. 137 -166). Springer
 
-ii\. Wie sieht das Verhältnis der Benutzung von verschiedenen
-Zahlungsmitteln aller getätigten Transaktionen aus? Wie sieht die
-Entwicklung auf die Zeit aus? Kann man Prognosen daraus herleiten?
 
-Müssen wir das Geschäftsmodell anpassen?[^127]
+
+#### Wie seiht das Verhältnis der der Verwendung von verschiedenen Zahlungsmittel in abhängigkeit der Zeit aus?[^127]
 
 [^127]: Erstellt von Christian Heeb
 
@@ -6508,9 +6520,7 @@ begründen, dass wahrscheinlich noch weitere Bezüge nach dem
 Jahreswechsel getätigt wurden, da die gespeicherten Daten aber nur bis
 zum 31.12.1999 reichen, wurden diese Bezüge nicht aufgezeichnet.
 
-iii\. Wie viele der Kunden verwenden eine Gold Kreditkarte? Welche
-Attribute weisen diese Kunden auf? Können Angebote für spezifische
-Kundengruppen erstellt werden?[^128]
+#### Analyse der Kundengruppe welche eine Gold-Kreditkarte verwendet[^128]
 
 [^128]: Erstellt von Christian Heeb
 
@@ -6625,14 +6635,12 @@ Kreditkarte in Frage kommen.
 
 
 ### Korrelationsanalyse zwischen den Bankdaten und den
-soziodemografischen Daten.
-[^123]
+soziodemografischen Daten.[^123]
+
 [^123]: Erstellt von Luca Gisler
 
-1\. Wie sieht die Distribution von Kunden in den Distrikten aus im Bezug
-zu den restlichen Einwohnern? Können durch diese Zahlen neue
-Werbe-Kampagnen gestartet werden, welche zu einem Zuwachs von Kunden
-führen?[^129]
+#### Distribution von Kunden in den Distrikten im Bezug
+zu den restlichen Einwohnern
 
 [^129]: Erstellt von Luca Gisler
 
@@ -6681,13 +6689,11 @@ Ein Ansatz für die Bank ist, die Präsenz in den Distrikten mit niedrigem Proze
 Zusätzlich kann bei bestehenden Kunden ein Profitprogramm Eingeführt werden um neue Kunden zu akquirieren Damit ist gemeint, dass bestehende Kunden durch Akquisition gewisse Vorteile erhalten können.
 
 
+#### Entwicklung des Einkommens im Bezug zu begangenen Straftaten[^130]
 
-2\. Wie sieht die Entwicklung des Einkommens im Bezug zu den
-Prüfvariablen der Arbeitslosenrate und den begangenen Straftaten.[^130]
+[^130]: Erstellt von Luca Gisler
 
-[^130]
 
-[^129]: Erstellt von Luca Gisler
 
 Für diese Aufgabe beschränken wir uns auf die Jahre 1995 und 1996, da
 und nur in diesen Jahren die Arbeitslosenrate und Kriminalität zur
@@ -7021,8 +7027,10 @@ Kreditvergabe, aber auch von Seitens Kreditnehmer gab. Das Volumen der
 Kredite hat im in der Grafik von vorhin vergrössert.
 
 
-#### i. Gibt es einen Zusammenhang zwischen den unterschiedlichen Regionen und dem Kreditverhalten (Kreditgrösse, Dauer) von den Kunden? Für eine Optimierung der lokalen Werbekampagnen und Angebote in den entsprechenden Regionen(Cross Selling)
-[^1212]
+#### Aufzeigen von Zusammenhänge im Kreditverhalten der Kunden
+
+Gibt es einen Zusammenhang zwischen den unterschiedlichen Regionen und dem Kreditverhalten (Kreditgrösse, Dauer) von den Kunden? Für eine Optimierung der lokalen Werbekampagnen und Angebote in den entsprechenden Regionen(Cross Selling)[^1212]
+
 [^1212]: Erstellt von Luca Gisler
 
 ```{r}
@@ -7127,3 +7135,6 @@ auch ein Boomendes Geschäft. Durch die Vergabe von mehr Krediten
 verdient die Bank an den Zinsen und kann somit ihren Gewinn steigern und
 das Angebot verbessern und wo nötig erweitern.
 
+
+## Summary
+Wird noch durch Christian erstellt
